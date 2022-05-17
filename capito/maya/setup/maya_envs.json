@@ -1,0 +1,32 @@
+[
+    {
+        "name": "PYTHONPATH",
+        "recursive": false,
+        "replace": false,
+        "value": ""
+    },
+    {
+        "name": "MAYA_SCRIPT_PATH",
+        "recursive": true,
+        "replace": false,
+        "value": "{CAPITO_RESOURCES}/maya/scripts/mel"
+    },
+    {
+        "name": "MAYA_PLUG_IN_PATH",
+        "recursive": false,
+        "replace": false,
+        "value": "{CAPITO_RESOURCES}/maya/plugins/{VERSION_SHORT}/{OS}"
+    },
+    {
+        "name": "XBMLANGPATH",
+        "recursive": true,
+        "replace": false,
+        "value": "{CAPITO_RESOURCES}/icons"
+    },
+    {
+        "name": "MAYA_FORCE_C_LOCALE",
+        "recursive": false,
+        "replace": true,
+        "value": "1"
+    }
+]

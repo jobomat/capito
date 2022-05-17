@@ -1,0 +1,34 @@
+{
+    "templates": {
+        "release": "${kind}/${name}/${name}_${dep}.${extension}",
+        "version": "${kind}/${name}/versions/${dep}/${name}_${dep}_${user}_${version}.${extension}",
+        "release_history": "${kind}/${name}/release_history/${name}_${dep}_${timestamp}.${extension}"
+    },
+    "deps": {
+        "mod": {},
+        "rig": {},
+        "shade": {},
+        "anim": {},
+        "ren": {},
+        "asmbl": {}
+    },
+    "kinds": {
+        "char": {},
+        "prop": {},
+        "set": {
+            "start_dep": "asmbl"
+        },
+        "seq": {
+            "start_dep": "anim"
+        }
+    },
+    "default_start_dep": "mod",
+    "mother_scenes": {
+        "default": "mother_scenes/default.ma"
+    },
+    "fps": "film",
+    "resolution": [
+        1920,
+        1080
+    ]
+}

@@ -1,0 +1,103 @@
+{"name": "group", "files": [], "dirs": [
+        {"name": "3d", "files": [
+                {"name": "workspace.mel", "template": "", "find_replace": []
+                }
+            ], "dirs": [
+                {"name": "assetTemplates", "files": [], "dirs": []
+                },
+                {"name": "cache", "files": [], "dirs": [
+                        {"name": "alembic", "files": [], "dirs": []
+                        },
+                        {"name": "nCache", "files": [], "dirs": []
+                        },
+                        {"name": "particles", "files": [], "dirs": []
+                        }
+                    ]
+                },
+                {"name": "clips", "files": [], "dirs": []
+                },
+                {"name": "data", "files": [], "dirs": [
+                        {"name": "2DVector", "files": [], "dirs": []
+                        },
+                        {"name": "diskCache", "files": [], "dirs": []
+                        },
+                        {"name": "fur", "files": [], "dirs": [
+                                {"name": "furAttrMap", "files": [], "dirs": []
+                                },
+                                {"name": "furFiles", "files": [], "dirs": []
+                                },
+                                {"name": "furShadowMap", "files": [], "dirs": []
+                                }
+                            ]
+                        },
+                        {"name": "move", "files": [], "dirs": []
+                        },
+                        {"name": "render", "files": [], "dirs": [
+                                {"name": "iprImages", "files": [], "dirs": []
+                                }
+                            ]
+                        },
+                        {"name": "translator", "files": [], "dirs": []
+                        }
+                    ]
+                },
+                {"name": "renders", "files": [], "dirs": []
+                },
+                {"name": "scenes", "files": [], "dirs": [
+                        {"name": "autosave", "files": [], "dirs": []
+                        },
+                        {"name": "edits", "files": [], "dirs": []
+                        },
+                        {"name": "exports", "files": [], "dirs": []
+                        },
+                        {"name": "sceneAssembly", "files": [], "dirs": []
+                        }
+                    ]
+                },
+                {"name": "scripts", "files": [], "dirs": []
+                },
+                {"name": "shaders", "files": [], "dirs": []
+                },
+                {"name": "sound", "files": [], "dirs": []
+                },
+                {"name": "sourceimages", "files": [], "dirs": [
+                        {"name": "3dPaintTextures", "files": [], "dirs": []
+                        },
+                        {"name": "hdri", "files": [], "dirs": []
+                        },
+                        {"name": "textures", "files": [], "dirs": [
+                                {"name": "shared", "files": [], "dirs": []
+                                }
+                            ]
+                        }
+                    ]
+                },
+                {"name": "timeEditor", "files": [], "dirs": [
+                        {"name": "clipExports", "files": [], "dirs": []
+                        }
+                    ]
+                }
+            ]
+        },
+        {"name": "comp", "files": [], "dirs": [
+                {"name": "renders", "files": [], "dirs": []
+                }
+            ]
+        },
+        {"name": "concept", "files": [], "dirs": []
+        },
+        {"name": "edit", "files": [], "dirs": [
+                {"name": "renders", "files": [], "dirs": []
+                }
+            ]
+        },
+        {"name": "orga", "files": [], "dirs": []
+        },
+        {"name": "pipeline", "files": [], "dirs": []
+        },
+        {"name": "sound", "files": [], "dirs": []
+        },
+        {"name": "weekly", "files": [], "dirs": []
+        }
+    ]
+}

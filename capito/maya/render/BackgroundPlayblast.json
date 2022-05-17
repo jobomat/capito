@@ -1,0 +1,10 @@
+{
+    "burnin_presets": {
+        "CA Stupro": {
+            "left": ["<projectname>", "<scenename>"],
+            "center": ["<frame>"],
+            "right": ["<camera>", "<datetime>"]
+        },
+        "No Burn Ins": {}
+    }
+}

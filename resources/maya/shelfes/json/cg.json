@@ -1,0 +1,121 @@
+{
+    "buttons": [
+        {
+            "sourceType": "python", 
+            "image": "hashRename.png", 
+            "label": "Hash Renamer", 
+            "command": "from capito.maya.util.names import HashRenamer\nHashRenamer()", 
+            "image1": "hashRename.png", 
+            "annotation": "Hash Renamer: Rename with auto numbering."
+        }, 
+        {
+            "sourceType": "python", 
+            "image": "addGroup.png", 
+            "label": "Add Group", 
+            "command": "import pymel.core as pc\nfrom capito.maya.util.hirarchies import add_group\nsel=pc.selected()\nif sel:\n\tadd_group(sel[0])", 
+            "image1": "addGroup.png", 
+            "annotation": "Add group above selected object."
+        }, 
+        {
+            "sourceType": "python", 
+            "image": "addShapes.png", 
+            "label": "Add Shapes", 
+            "command": "import pymel.core as pc\nfrom capito.maya.geo.shapes import add_shapes\n\nsel = pc.selected()\nif len(sel) != 2:\n\tpc.warning('Please selecte exactly two objects.')\nelse:\n\tadd_shapes(sel[0], sel[1])", 
+            "image1": "addGroup.png", 
+            "annotation": "Add shapes found in the first selected object to the second selected object."
+        }, 
+        {
+            "type": "separator"
+        }, 
+        {
+            "sourceType": "mel", 
+            "image": "kinJoint.png", 
+            "label": "JointTool", 
+            "command": "JointTool", 
+            "image1": "kinJoint.png", 
+            "annotation": "JointTool", 
+            "doubleClickCommand": "JointToolOptions"
+        }, 
+        {
+            "sourceType": "python", 
+            "image": "splitJoint.png", 
+            "label": "Split Selected Joints", 
+            "command": "from capito.maya.rig.joints import SplitSelected\nSplitSelected()", 
+            "image1": "splitJoint.png", 
+            "annotation": "Split Selected\nJoints"
+        }, 
+        {
+            "type": "separator"
+        }, 
+        {
+            "sourceType": "mel", 
+            "image": "kinHandle.png", 
+            "label": "IKHandleTool", 
+            "command": "IKHandleTool", 
+            "image1": "kinHandle.png", 
+            "annotation": "IKHandleTool", 
+            "doubleClickCommand": "IKHandleToolOptions"
+        }, 
+        {
+            "sourceType": "python", 
+            "image": "stretchyIKSetup.png", 
+            "label": "Stretchy IK Setup", 
+            "command": "import capito.maya.rig.iks as iks\nsik = iks.StretchyIK()\nsik.gui()", 
+            "image1": "stretchyIKSetup.png", 
+            "annotation": "Create a Stretchy IK Setup from an existing IK."
+        }, 
+        {
+            "type": "separator"
+        }, 
+        {
+            "sourceType": "mel", 
+            "image": "ikSplineSolver.svg", 
+            "label": "IKSplineHandleTool", 
+            "command": "IKSplineHandleTool", 
+            "image1": "ikSplineSolver.svg", 
+            "annotation": "IKSplineHandleTool", 
+            "doubleClickCommand": "IKSplineHandleToolOptions"
+        }, 
+        {
+            "sourceType": "python", 
+            "image": "stretchySplineSetup2.png", 
+            "label": "Stretchy Spline IK Manager", 
+            "command": "from capito.maya.rig.splineiks import SplineIKManager\nSplineIKManager()", 
+            "image1": "stretchySplineSetup2.png", 
+            "annotation": "Create and manage Stretchy Spline IK Rigs."
+        }, 
+        {
+            "type": "separator"
+        }, 
+        {
+            "sourceType": "python", 
+            "image": "rigIcons.png", 
+            "label": "Rig Icons", 
+            "command": "from capito.maya.rig.icons import RigIcons\nRigIcons().gui()", 
+            "image1": "rigIcons.png", 
+            "annotation": "Rig Icons"
+        }, 
+        {
+            "sourceType": "python", 
+            "image": "stickyControlerSetup.png", 
+            "label": "Sticky Controler", 
+            "command": "from capito.maya.rig.ctrl import StickyControllers\nStickyControllers()", 
+            "image1": "stickyControlerSetup.png", 
+            "annotation": "Sticky Controler Setup and Editing"
+        },
+        {
+            "type": "separator"
+        },
+        {
+            "sourceType": "python",
+            "image": "bgPlayblast.png",
+            "label": "Background Playblast",
+            "command": "from capito.maya.render.playblast import BackgroundPlayblast\nBackgroundPlayblast()",
+            "image1": "bgPlayblast.png",
+            "annotation": "Background Playblast. Render with Hardware or Arnold and encode with FFMPEG."
+        }
+    ], 
+    "name": "cg", 
+    "replace": true,
+    "position": 20
+}
