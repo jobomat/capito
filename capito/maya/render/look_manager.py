@@ -193,12 +193,13 @@ class LookManager(QMainWindow):
     def export(self):
         items = self.look_list.selectedItems()
         for item in items:
-            look = item.data(Qt.UserRole)
+            look:Look = item.data(Qt.UserRole)
             filename = QFileDialog.getSaveFileName(
                 self, "Export Look", f"{str(pc.workspace.path)}/{look.name}.ma", filter="Maya ASCII (*.ma)"
             )
             if not filename[0]:
                 return
+            look.select_shading_groups()
             pc.system.exportSelected(filename[0], type="mayaAscii")
 
     def delete(self):
