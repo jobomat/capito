@@ -136,3 +136,32 @@ class Look:
                         pc.sets(shading_group, forceElement=shape.f[faces])
                     else:
                         pc.sets(shading_group, forceElement=shape)
+
+    def select_shading_groups(self):
+        """Select all associated shading groups."""
+        pc.select(self.shadingGroups, noExpand=True)
+
+    def select_objects(self, namespace=""):
+        """Select all associated objects.
+        If a namespace is specified, only objects within that namespace are selected.
+        """
+        if namespace:
+            pc.select([f"{namespace}:{obj}" for obj in self.objectNames])
+            return
+        try:
+            pc.select([f":{obj}" for obj in self.objectNames])
+            return
+        except TypeError:
+            pc.select([f"*:{obj}" for obj in self.objectNames])
+
+    @property
+    def shadingGroups(self):
+        """Return all shading groups associated with this look node."""
+        return self.look_node.sg.listConnections()
+
+    @property
+    def objectNames(self):
+        """Return the names of all objects associated with this look node."""
+        object_list = self.look_node.objectList.get()
+        return [] if not object_list else json.loads(object_list)
+
