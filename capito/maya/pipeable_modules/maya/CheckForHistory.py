@@ -1,5 +1,7 @@
 from typing import Any, List
 
+import pymel.core as pc
+
 from capito.core.pipe import Pipeable, PipeableCategory
 
 
@@ -13,8 +15,11 @@ Fails if history is detected."""
 
     def execute(self, items: List[Any], exports: List[str]):
         """The check method."""
-        for mesh in [m for m in items if m.type() in self.types.split(",")]:
-            shape = mesh.getShape()
+        type_list = [t.strip() for t in self.types.split(",")]
+        for mesh in [m for m in items if m.type() in type_list]:
+            shape = mesh
+            if isinstance(mesh, pc.nodetypes.Transform):
+                shape = mesh.getShape()
             if shape is None:
                 continue
             connections = shape.connections(s=True, d=False)

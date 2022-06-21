@@ -4,8 +4,8 @@ import os
 import pymel.core as pc
 
 from capito.maya.ui.widgets import file_chooser_button
-from capito.maya.env.vars import FRAME_RATE_MAP
-from capito.maya.env.settings import SettingsManagerMixin
+from capito.maya.environ.vars import FRAME_RATE_MAP
+from capito.conf.settings import SettingsManagerMixin
 from capito.maya.util.process import SubQ
 from capito.maya.render.processes import (
     Ffmpeg,

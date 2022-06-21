@@ -108,9 +108,20 @@
         },
         {
             "sourceType": "python",
+            "image": "lookManager.png",
+            "label": "Look Manager",
+            "command": "from capito.maya.render.look_manager import LookManager\nLookManager()",
+            "image1": "lookManager.png",
+            "annotation": "Look Manager. Save and reapply shaders and shader assignments."
+        },
+        {
+            "type": "separator"
+        },
+        {
+            "sourceType": "python",
             "image": "bgPlayblast.png",
             "label": "Background Playblast",
-            "command": "from capito.maya.render.playblast import BackgroundPlayblast\nBackgroundPlayblast()",
+            "command": "#from capito.maya.render.playblast import BackgroundPlayblast\n#BackgroundPlayblast()\nprint('Needs massive Refactoring. Sorry!')",
             "image1": "bgPlayblast.png",
             "annotation": "Background Playblast. Render with Hardware or Arnold and encode with FFMPEG."
         }
