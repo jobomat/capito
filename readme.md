@@ -1,5 +1,5 @@
 Capito stands for "Computer Animation Pipeline Tools". These are scripts related to HdM Übungen CG and Stupro CA.
-In the rooms 042 / 043 you have access to the latest version on drive K:\pipeline\capito (\\cg\pipeline\cg3). Just use the drop-installer located there to set up capito for your HdM account (See 3.1 further down). 
+In the rooms 042 / 043 you have access to the latest version on drive K:\pipeline\capito (\\cg\pipeline\capito). Just use the drop-installer located there to set up capito for your HdM account (See 3.1 further down). 
 
 # 1 Requirements
 + Maya 2022+ (capito uses the featureset of Python 3.7.7)
