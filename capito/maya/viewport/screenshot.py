@@ -4,7 +4,6 @@ from typing import Callable, Tuple
 
 import maya.api.OpenMaya as om
 import pymel.core as pc
-
 from capito.maya.viewport.hud import HUDs
 
 
@@ -42,7 +41,7 @@ class Screenshooter:
             self.cam_shape = self.cam.getShape()
         else:
             self.cam, self.cam_shape = pc.camera()
-            self.cam.setRotation((-30,45,0))
+            self.cam.setRotation((-30, 45, 0))
         pc.select(sel)
         self.show_settings = show_settings
         self.state_string = ""
@@ -53,7 +52,9 @@ class Screenshooter:
 
     def gui(self):
         """Build the window"""
-        with pc.window(w=self.vp_width, h=self.vp_height + 30, cc=pc.Callback(self.cleanup)) as self.win:
+        with pc.window(
+            w=self.vp_width, h=self.vp_height + 30, cc=pc.Callback(self.cleanup)
+        ) as self.win:
             with pc.formLayout() as form_layout:
                 self.viewport = pc.modelEditor(camera=self.cam)
                 with pc.rowLayout(
@@ -74,7 +75,6 @@ class Screenshooter:
         form_layout.attachForm(row_layout, "left", 0)
         form_layout.attachControl(self.viewport, "bottom", 0, row_layout)
 
-
     def setup_viewport(self):
         """Function called before showing gui to set specific viewport options."""
         self.state_string = self.viewport.getStateString()
@@ -91,7 +91,9 @@ class Screenshooter:
     def reset_viewport(self):
         """Perform the opposite actions of 'setup_viewport' to reset the viewport."""
         pc.mel.eval(
-            self.state_string.replace(self.cam.name(long=True), "|persp").replace("$editorName", "modelPanel4")
+            self.state_string.replace(self.cam.name(long=True), "|persp").replace(
+                "$editorName", "modelPanel4"
+            )
         )
 
         self.huds.recall_current()
@@ -112,6 +114,7 @@ class Screenshooter:
 
     def capture(self):
         """Action performed on user press 'Accept'."""
+        self.viewport.setActiveView(True)
         pc.refresh(currentView=True, fn=str(self.filepath), fe=self.file_format)
 
         img = om.MImage()

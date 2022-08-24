@@ -1,16 +1,15 @@
 import inspect
-from pathlib import Path
 import json
-
-from maya.utils import executeDeferred
+from pathlib import Path
 
 from capito.maya.environ.set_env_vars import set_env_vars
-
+from maya.utils import executeDeferred
 
 executeDeferred("import capito.maya.setup.add_venvs")
 executeDeferred("import capito.maya.setup.add_toolbox_buttons")
 executeDeferred("import capito.maya.setup.add_shelfes")
-#executeDeferred("from capito.maya.plugin.models import Plugins; capito_plugins = Plugins()")
+executeDeferred("from capito.conf.config import CONFIG")
+# executeDeferred("from capito.maya.plugin.models import Plugins; capito_plugins = Plugins()")
 
 
 this_file_path = inspect.getfile(lambda: None).replace("\\", "/")
@@ -23,14 +22,12 @@ ENV_JSON = SETUP_DIR / "maya_envs.json"
 with ENV_JSON.open("r") as jf:
     envvars = json.load(jf)
 
-envvars.append({
-    "name": "CAPITO_RESOURCES",
-    "value": str(RESOURCES_DIR).replace("\\", "/")
-})
+envvars.append(
+    {"name": "CAPITO_RESOURCES", "value": str(RESOURCES_DIR).replace("\\", "/")}
+)
 
-envvars.append({
-    "name": "CAPITO_BASE_DIR",
-    "value": str(CAPITO_BASE_DIR).replace("\\", "/")
-})
+envvars.append(
+    {"name": "CAPITO_BASE_DIR", "value": str(CAPITO_BASE_DIR).replace("\\", "/")}
+)
 
 set_env_vars(envvars)

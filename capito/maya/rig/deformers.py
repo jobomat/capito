@@ -1,3 +1,4 @@
+from typing import Any, List
 import maya.OpenMaya as om1
 import maya.api.OpenMaya as om
 import pymel.core as pc
@@ -5,7 +6,7 @@ import pymel.core as pc
 from capito.maya.geo.shapes import get_used_shapes
 
 
-def list_inputs_of_type(transform, nodetype):
+def list_inputs_of_type(transform:pc.nodetypes.Transform, nodetype: Any):
     """List all nodes of specific type found in history of selected transfroms shapes.
 
     :param transform: The transform which inputs (history) will be examined.
@@ -18,7 +19,7 @@ def list_inputs_of_type(transform, nodetype):
     return [s for s in transform.listHistory() if isinstance(s, nodetype)]
 
 
-def get_orig_shape(transform):
+def get_orig_shape(transform: pc.nodetypes.Transform):
     """Tries to return the original shape of a transform.
     The original shape is the undeformed input into the deformer chain.
     If no 'shapeOrig' is found returns None.
@@ -38,7 +39,7 @@ def get_orig_shape(transform):
     return None
 
 
-def get_visible_shape(transform):
+def get_visible_shape(transform: pc.nodetypes.Transform):
     all_shapes = transform.getShapes()
     if len(all_shapes) == 1:
         return all_shapes[0]
@@ -48,7 +49,7 @@ def get_visible_shape(transform):
     return None
 
 
-def duplicate_orig_shape(transform):
+def duplicate_orig_shape(transform: pc.nodetypes.Transform):
     """Duplicates the orig shape of given transform in its base position
 
     :param transform: The transform whichs orig shape will be duplicated.
@@ -95,7 +96,7 @@ def get_soft_selection_values():
     return weight_dict
 
 
-def set_cluster_pivots_to_pos(cluster_handle: pc.nodetypes.Transform, pos: list):
+def set_cluster_pivots_to_pos(cluster_handle: pc.nodetypes.Transform, pos: List[float, float, float]):
     """Sets visual appearance, scale- and rotate pivot of cluster to pos
 
     :param cluster_handle: The pymel transform of the cluster.

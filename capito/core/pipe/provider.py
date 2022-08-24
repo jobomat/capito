@@ -2,7 +2,7 @@
 import importlib
 import sys
 from pathlib import Path
-from typing import Dict, List, Tuple, Any
+from typing import Any, Dict, List, Tuple
 
 from .models import Pipeable, PipeableCategory
 
@@ -59,7 +59,8 @@ class PipeProvider:
             except AttributeError:
                 print(f"Module '{modname}' not loaded.")
 
-    def get_instance(self, module_name:str):
+    def get_instance(self, module_name: str):
+        """Given a pipeable module name the function returns an instance of the pipeable."""
         class_instance = getattr(self.modules[module_name][0], module_name)()
         class_instance.set_default_parameters()
         return class_instance

@@ -83,12 +83,12 @@ class Asset:
         self.subsets.append(subset)
         subset.parent = self
 
-    def family(self, family: str) -> Subset:
-        """Get subset tagged 'family'."""
-        subsets = [s for s in self.subsets if s.family == family]
+    def subset(self, subset: str) -> Subset:
+        """Get subset tagged 'subset'."""
+        subsets = [s for s in self.subsets if s.family == subset]
         if subsets:
             return subsets[0]
-        new_subset = Subset(family)
+        new_subset = Subset(subset)
         self.add_subset(new_subset)
         return new_subset
 
@@ -99,5 +99,5 @@ bob.add_subset(bob_mod)
 bob_mod_version1 = Version(1, time_from_ntp())
 bob_mod.add_version(bob_mod_version1)
 
-print(bob.family("mod").version(1))
-print(bob.family("rig"))
+print(bob.subset("mod").version(1))
+print(bob.subset("rig"))
