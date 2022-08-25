@@ -1,4 +1,4 @@
-from typing import Any, List
+from typing import Any, List, Dict
 
 import pymel.core as pc
 from capito.core.pipe import Pipeable, PipeableCategory
@@ -11,7 +11,7 @@ class CheckLaminaFaces(Pipeable):
     category = PipeableCategory.CHECK
     host = "maya"
 
-    def execute(self, items: List[Any], exports: List[str]):
+    def execute(self, items: List[Any], exports: List[str], user_input: Dict[str, Any]):
         """Select all items and run cleanup with only lamina faces checked."""
         pc.select(items, r=True)
         pc.mel.eval(

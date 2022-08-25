@@ -1,4 +1,4 @@
-from typing import Any, List
+from typing import Any, List, Dict
 
 from capito.core.pipe import Pipeable, PipeableCategory
 
@@ -10,7 +10,7 @@ class CheckMultipleShapeNodes(Pipeable):
     category = PipeableCategory.CHECK
     host = "maya"
 
-    def execute(self, items: List[Any], exports: List[str]):
+    def execute(self, items: List[Any], exports: List[str], user_input: Dict[str, Any]):
         """Check for mulitple Shape Nodes"""
         for mesh in [m for m in items if hasattr(m, "getShapes")]:
             if len(mesh.getShapes()) > 1:

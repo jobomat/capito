@@ -1,5 +1,5 @@
 import re
-from typing import Any, List
+from typing import Any, List, Dict
 
 import pymel.core as pc
 from capito.core.pipe import Pipeable, PipeableCategory
@@ -36,7 +36,7 @@ class CollectByTypesAndNames(Pipeable):
             "exclude_shared_nodes": True,
         }
 
-    def execute(self, items: List[Any], exports: List[str]):
+    def execute(self, items: List[Any], exports: List[str], user_input: Dict[str, Any]):
         """Search for sets matching the pattern and collect the Members."""
         regex = re.compile(rf"{self.regex_pattern}")
         type_list = [t.strip() for t in self.types.split(",")]

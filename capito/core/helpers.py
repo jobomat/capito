@@ -16,4 +16,21 @@ def time_from_ntp(addr="0.de.pool.ntp.org"):
     return zeit
 
 
-print(time_from_ntp())
+def detect_host():
+    host = "system"
+    try:
+        import maya
+        host = "maya"
+    except ImportError:
+        pass
+    try:
+        import nuke
+        host = "nuke"
+    except ImportError:
+        pass
+    try:
+        import substance_painter
+        host ="substance_painter"
+    except:
+        pass
+    return host

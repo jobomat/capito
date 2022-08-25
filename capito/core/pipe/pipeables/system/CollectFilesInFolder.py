@@ -1,5 +1,5 @@
 from pathlib import Path
-from typing import Any, List
+from typing import Any, List, Dict
 
 from capito.core.pipe import Pipeable, PipeableCategory
 
@@ -11,7 +11,7 @@ class CollectFilesInFolder(Pipeable):
     category = PipeableCategory.COLLECT
     host = "system"
 
-    def execute(self, items: List[Any], exports: List[str]):
+    def execute(self, items: List[Any], exports: List[str], user_input: Dict[str, Any]):
         path = Path(self.folder)
         matches = [m for m in path.glob(self.name_pattern) if m.is_file()]
         if matches:

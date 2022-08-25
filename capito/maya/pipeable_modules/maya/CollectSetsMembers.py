@@ -1,4 +1,4 @@
-from typing import Any, List
+from typing import Any, List, Dict
 import re
 
 import pymel.core as pc
@@ -26,7 +26,7 @@ If a set was found only set members with names matching the member_regex will be
             "member_regex": ".*_geo"
         }
 
-    def execute(self, items: List[Any], exports: List[str]):
+    def execute(self, items: List[Any], exports: List[str], user_input: Dict[str, Any]):
         """Search for sets matching the pattern and collect the Members."""
         maya_sets = pc.ls(sets=True, regex=self.set_regex)
         if not maya_sets:

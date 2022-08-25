@@ -26,8 +26,4 @@ envvars.append(
     {"name": "CAPITO_RESOURCES", "value": str(RESOURCES_DIR).replace("\\", "/")}
 )
 
-envvars.append(
-    {"name": "CAPITO_BASE_DIR", "value": str(CAPITO_BASE_DIR).replace("\\", "/")}
-)
-
 set_env_vars(envvars)

@@ -1,4 +1,4 @@
-from typing import Any, List
+from typing import Any, List, Dict
 import re
 from capito.core.pipe import Pipeable, PipeableCategory
 
@@ -18,7 +18,7 @@ class CheckNameByRegex(Pipeable):
         """A regular expression to match the items names against (eg '_(geo$|grp$)')."""
         return {"regex_pattern": "_(geo$|grp$)"}
 
-    def execute(self, items: List[Any], exports: List[str]):
+    def execute(self, items: List[Any], exports: List[str], user_input: Dict[str, Any]):
         """Checks collected items follow the regex.
         This checker doesn't check if the postfix matches with object-type."""
         regex = re.compile(rf"{self.regex_pattern}")

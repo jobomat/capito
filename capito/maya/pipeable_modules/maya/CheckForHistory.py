@@ -1,4 +1,4 @@
-from typing import Any, List
+from typing import Any, List, Dict
 
 import pymel.core as pc
 
@@ -13,7 +13,7 @@ Fails if history is detected."""
     category = PipeableCategory.CHECK
     host = "maya"
 
-    def execute(self, items: List[Any], exports: List[str]):
+    def execute(self, items: List[Any], exports: List[str], user_input: Dict[str, Any]):
         """The check method."""
         type_list = [t.strip() for t in self.types.split(",")]
         for mesh in [m for m in items if m.type() in type_list]:

@@ -1,4 +1,4 @@
-from typing import Any, List
+from typing import Any, List, Dict
 from collections import Counter
 
 from capito.core.pipe import Pipeable, PipeableCategory
@@ -19,7 +19,7 @@ class CheckUniqueNames(Pipeable):
     #     """A regular expression to match the items names against (eg '_(geo$|grp$)')."""
     #     return {"regex_pattern": "_(geo$|grp$)"}
 
-    def execute(self, items: List[Any], exports: List[str]):
+    def execute(self, items: List[Any], exports: List[str], user_input: Dict[str, Any]):
         """Check the items on uniqueness of names."""
         count = Counter([o.name(long=None) for o in items])
         for name, num in count.items():

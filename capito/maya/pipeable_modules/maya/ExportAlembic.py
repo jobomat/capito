@@ -1,4 +1,4 @@
-from typing import Any, List
+from typing import Any, List, Dict
 from capito.core.pipe import Pipeable, PipeableCategory
 
 
@@ -17,7 +17,7 @@ class ExportAlembic(Pipeable):
         """A regular expression to match the items names against (eg '_(geo$|grp$)')."""
         return {"regex_pattern": "_(geo$|grp$)"}
 
-    def execute(self, items: List[Any], exports: List[str]):
+    def execute(self, items: List[Any], exports: List[str], user_input: Dict[str, Any]):
         """Export to Alembic."""
         
         long_names = [item.name(long=True) for item in items]

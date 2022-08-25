@@ -64,7 +64,7 @@ class PipePlayer:
         self.stopped = False
         self.title = "New Playlist"
         self.description = "No description available."
-        self.globals = ""
+        self.user_input = {}
 
         self.reporter_callbacks = [print_reporter]
         if reporter_callbacks is not None:
@@ -92,14 +92,14 @@ class PipePlayer:
             reporter(reportable)
 
     def play(self):
-        """The collect, check, export, process function."""
+        """The collect, check, export, process... function."""
         self.stopped = False
         self.items = []
         for class_instance in self.playlist:
             if self.stopped:
                 break
             class_instance.reset()
-            class_instance.execute(self.items, self.exports)
+            class_instance.execute(self.items, self.exports, self.user_input)
             self.call_reporters(class_instance)
             if class_instance.failed and class_instance.stop_on_failed:
                 self.stopped = True

@@ -1,9 +1,8 @@
-import os
+from pathlib import Path
 import site
-from capito.maya.environ.vars import getenv
+from capito.conf.config import CONFIG
 
-site.addsitedir(
-    os.path.normpath(
-        os.path.join(getenv("CG3_MAYA_DIR"), "venvs", "cg3", "Lib", "site-packages")
-    )
-)
+venvs = [str(Path(CONFIG.CAPITO_BASE_DIR, "venvs", "maya", "Lib", "site-packages"))]
+for venv in venvs:
+    site.addsitedir(venv)
+    print(f"Added '{venv}' as sitedir.")

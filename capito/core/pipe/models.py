@@ -12,11 +12,13 @@ class PipeableCategory:
     PROCESS = "Process"
     EXPORT = "Export"
     POSTPROCESS = "Postprocess"
+    USER_INPUT = "User Input"
+    IMPORT = "Import"
 
     @classmethod
     def list(cls):
         """Return the relevant order"""
-        return [cls.COLLECT, cls.CHECK, cls.PROCESS, cls.EXPORT, cls.POSTPROCESS]
+        return [cls.COLLECT, cls.IMPORT, cls.CHECK, cls.PROCESS, cls.USER_INPUT, cls.EXPORT, cls.POSTPROCESS]
 
 
 @dataclass

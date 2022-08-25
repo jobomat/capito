@@ -1,4 +1,4 @@
-from typing import Any, List
+from typing import Any, List, Dict
 
 from capito.core.pipe import Pipeable, PipeableCategory
 
@@ -11,7 +11,7 @@ Fails if translate channels are not (0, 0, 0)."""
     category = PipeableCategory.CHECK
     host = "maya"
 
-    def execute(self, items: List[Any], exports: List[str]):
+    def execute(self, items: List[Any], exports: List[str], user_input: Dict[str, Any]):
         """Check for Freezed Translate Values"""
         for transform in [t for t in items if t.type() == "transform"]:
             translates_are_zero = [x == 0.0 for x in transform.getTranslation()]
