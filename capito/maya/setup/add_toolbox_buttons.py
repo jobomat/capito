@@ -1,6 +1,8 @@
 import pymel.core as pc
 
 from capito.maya.ui import maya_gui
+from capito.conf.config import CONFIG
+from capito.core.asset.browser import AssetBrowser
 
 
 def win_manager_factory():
@@ -27,6 +29,12 @@ def test_runner_factory():
     mayatestui.show()
 
 
+def toolbox_button_pressed():
+    if CONFIG.CAPITO_PROJECT:
+        AssetBrowser()
+        return
+    print("Call set or create Capito project.")
+
 # btn=maya_gui.add_toolbox_button(
 #     style="iconOnly",
 #     i="dev.png",
@@ -34,9 +42,7 @@ def test_runner_factory():
 # )
 
 btn = maya_gui.add_toolbox_button(
-    command=pc.Callback(
-        pc.warning, "Not implemented ATM. Right Click to see Developer Tools."
-    ),
+    command=pc.Callback(toolbox_button_pressed),
     style="iconOnly",
     i="hdm.png",
 )

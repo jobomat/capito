@@ -1,4 +1,3 @@
-from PySide2 import QtCore, QtWidgets
 from capito.core.ui import constants
 from capito.core.helpers import detect_host
 
@@ -7,6 +6,7 @@ def bind_to_host(ui_class):
     def wrapper(*args, **kwargs):
         host = detect_host()
         if host == "maya":
+            from PySide2 import QtWidgets
             import maya.app.general.mayaMixin as maya_mixin
             import maya.OpenMayaUI as omui
             import shiboken2
@@ -54,6 +54,7 @@ def bind_to_host(ui_class):
             ui.show()
             
         elif host == "system":
+            from PySide2 import QtWidgets
             app = QtWidgets.QApplication([])
             app.setStyle("Fusion")
             app.setPalette(constants.dark_palette)
