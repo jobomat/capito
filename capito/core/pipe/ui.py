@@ -2,7 +2,7 @@
 from functools import partial
 from pathlib import Path
 
-from capito.core.pipe import Pipeable, PipePlayer, PipeProvider
+from capito.core.pipe import Pipeable, PipeableCategory, PipePlayer, PipeProvider
 from capito.core.ui.decorators import bind_to_host
 from capito.core.ui.syntax import PythonHighlighter
 from capito.core.ui.widgets import QHLine, QSplitWidget
@@ -32,10 +32,14 @@ from PySide2.QtWidgets import (  # pylint:disable=wrong-import-order
 PipeColors = {
     "maya": QColor(30, 30, 30),
     "system": QColor(30, 30, 30),
+    "default": QColor(45, 45, 45),
     "Check": QColor(40, 60, 40),
     "Export": QColor(0, 83, 79),
     "Collect": QColor(20, 40, 60),
-    "default": QColor(45, 45, 45),
+    "Process": QColor(45, 45, 45),
+    "Postprocess": QColor(45, 45, 45),
+    "User Input": QColor(45, 45, 45),
+    "Import": QColor(45, 45, 45),
 }
 
 
@@ -102,7 +106,7 @@ class AddModuleWindow(QWidget):
         super().__init__(parent)
         self.setWindowTitle("Add Modules")
         self.setFixedSize(300, 600)
-        preferred_order = ["Collect", "Check", "Export"]
+        preferred_order = PipeableCategory.list()
         mod_categories = []
         availible_categories = provider.list_categories()
         for mod_type in preferred_order:
@@ -136,7 +140,7 @@ class CategorizedModulesListWidget(QListWidget):
         provider: PipeProvider = None,
         preferred_order=None,
     ):
-        preferred_order = preferred_order or ["Collect", "Check", "Export"]
+        preferred_order = preferred_order or PipeableCategory.list()
         super().__init__()
         mod_categories = []
         availible_categories = provider.list_categories()
@@ -428,7 +432,9 @@ class PipeManager(QMainWindow):
                 selected_item.data(Qt.UserRole).name
             )
             item.setData(Qt.UserRole, pipeable_instance)
-            item.setBackground(PipeColors[pipeable_instance.category.capitalize()])
+            item.setBackground(
+                PipeColors.get(pipeable_instance.category, PipeColors["default"])
+            )
             row = ListItemWithButton(item=item)
             item.setSizeHint(row.minimumSizeHint())
             self.module_list_widget.addItem(item)
