@@ -1,3 +1,4 @@
 gspread
 PySide2
 plumbum
+fonttools

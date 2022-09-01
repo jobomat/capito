@@ -1,5 +1,8 @@
 import socket
 import struct
+import os
+from pathlib import Path
+from typing import Tuple
 
 REF_TIME_1970 = 2208988800  # Reference time
 
@@ -34,3 +37,41 @@ def detect_host():
     except:
         pass
     return host
+
+
+def remap_value(old_min, old_max, new_min, new_max, value):
+    old_range = (old_max - old_min)
+    if old_range == 0:
+        new_value = new_min
+    else:
+        new_range = (new_max - new_min)  
+        new_value = (((value - old_min) * new_range) / old_range) + new_min
+    return new_value
+
+
+def clamp(n, smallest, largest):
+    return max(smallest, min(n, largest))
+
+
+def rgb_int_to_hex(rgb:Tuple[int, int, int], include_hash:bool=True):
+    return "{}{}{}{}".format(
+        "#" if include_hash else "",
+        clamp(rgb[0], 0, 255),
+        clamp(rgb[1], 0, 255),
+        clamp(rgb[2], 0, 255)
+    )
+
+
+def get_font_dict(font_dir:Path=None):
+    if not font_dir:
+        return
+        
+    font_dict = {}    
+    for font_file in font_dir.glob("*"):
+        font_split = str(font_file.stem).split("-")
+        if not font_dict.get(font_split[0]):
+            font_dict[font_split[0]] = []
+        if len(font_split) > 1:
+            font_dict[font_split[0]].append(font_split[1])
+
+    return font_dict

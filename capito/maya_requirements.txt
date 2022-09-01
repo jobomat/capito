@@ -1,2 +1,3 @@
 gspread
 plumbum
+fonttools
