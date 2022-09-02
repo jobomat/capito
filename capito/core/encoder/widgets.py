@@ -35,10 +35,11 @@ from capito.core.ui.widgets import (
     QIntSliderGroup,
     QHLine,
     LoadingProgressBar,
-    QFfmpegFontChooser
+    QFfmpegFontChooser,
+    QColorButtonWidget
 )
 from capito.core.encoder.util import guess_sequence_pattern
-from capito.core.helpers import remap_value
+from capito.core.helpers import remap_value, get_font_file
 from capito.core.ui.decorators import bind_to_host
 
 
@@ -50,11 +51,27 @@ class Signals(QObject):
 
 @bind_to_host
 class DrawTextSettings(QWidget):
-    def __init__(self, host: str = None, parent=None):
+    def __init__(self, host=None, parent=None, settings=None, sequence_encoder_widget=None):
         super().__init__(parent)
-        self.setMinimumSize(400, 300)
+        self.sequence_encoder_widget = sequence_encoder_widget
+        
+        self.setWindowTitle("Burn In Settings")
+        self.settings = settings or {
+            "margins": {
+                "top": 25, "right": 25, "bottom": 25, "left":25
+            },
+            "font_color": "#000000",
+            "font_opacity": 80,
+            "font_tuple": ("NotoSansMono_Condensed", "Regular"),
+            "font_size": 16,
+            "box_color": "#FFFFFF",
+            "box_opacity": 25,
+            "box_padding": 4
+        }
+
+        self.setMinimumSize(360, 200)
         self.setStyleSheet(r"QGroupBox {font-weight: bold;}")
-        font_folder = Path(os.environ.get("CAPITO_BASE_DIR"), "resources", "fonts")
+        self.font_folder = Path(os.environ.get("CAPITO_BASE_DIR"), "resources", "fonts")
 
         vbox = QVBoxLayout()
         vbox.setSpacing(5)
@@ -63,15 +80,17 @@ class DrawTextSettings(QWidget):
         margin_hbox = QHBoxLayout()
         margin_groupbox = QGroupBox()
         margin_groupbox.setLayout(margin_hbox)
-        margin_groupbox.setTitle("Margins")
+        margin_groupbox.setTitle("Screen Margin")
         self.margin_widgets = {}
-        for direction in ["Top", "Right", "Bottom", "Left"]:
-            margin_label = QLabel(direction)
+        for direction in self.settings["margins"]:
+            margin_label = QLabel(direction.capitalize())
             margin_label.setMaximumWidth(50)
             margin_hbox.addWidget(QLabel(direction))
-            self.margin_widgets[direction] = QSpinBox()
-            self.margin_widgets[direction].setMinimumWidth(60)
-            self.margin_widgets[direction].setMaximumWidth(60)
+            spinbox = QSpinBox()
+            spinbox.setMinimumWidth(60)
+            spinbox.setMaximumWidth(60)
+            spinbox.setValue(self.settings["margins"][direction])
+            self.margin_widgets[direction] = spinbox
             margin_hbox.addWidget(self.margin_widgets[direction])
         margin_hbox.addStretch()
 
@@ -79,14 +98,63 @@ class DrawTextSettings(QWidget):
         font_groupbox = QGroupBox()
         font_groupbox.setLayout(font_vbox)
         font_groupbox.setTitle("Font")
-        self.font_widget = QFfmpegFontChooser(font_folder)
+        self.font_widget = QFfmpegFontChooser(
+            self.font_folder, hex_color=self.settings["font_color"], opacity=self.settings["font_opacity"],
+            font_tuple=self.settings["font_tuple"], size=self.settings["font_size"]
+        )
         font_vbox.addWidget(self.font_widget)
+
+        box_hbox = QHBoxLayout()
+        box_groupbox = QGroupBox()
+        box_groupbox.setLayout(box_hbox)
+        box_groupbox.setTitle("Background Box (Font)")
+        self.box_color_button = QColorButtonWidget(hex_color=self.settings["box_color"])
+        box_hbox.addWidget(self.box_color_button)
+        self.box_opacity_widget = QIntSliderGroup(
+            label_text="Opacity", value=self.settings["box_opacity"], widths=(50,30,100), max_width=200
+        )
+        box_hbox.addWidget(self.box_opacity_widget)
+        box_hbox.addWidget(QLabel("Padding"))
+        self.box_padding_widget = QSpinBox()
+        self.box_padding_widget.setMaximumWidth(60)
+        self.box_padding_widget.setMinimumWidth(60)
+        self.box_padding_widget.setValue(self.settings["box_padding"])
+        box_hbox.addWidget(self.box_padding_widget)
+        box_hbox.addStretch()
+
+        button_hbox = QHBoxLayout()
+        button_hbox.addStretch()
+        ok_button = QPushButton("OK")
+        ok_button.setMinimumWidth(100)
+        ok_button.clicked.connect(self.ok_clicked)
+        button_hbox.addWidget(ok_button)
         
         vbox.addWidget(margin_groupbox)
         vbox.addWidget(font_groupbox)
+        vbox.addWidget(box_groupbox)
         vbox.addStretch()
+        vbox.addLayout(button_hbox)
+
         self.setLayout(vbox)
         self.show()
+
+    def ok_clicked(self):
+        print(self.get_settings_dict())
+
+    def get_settings_dict(self):
+        margins_dict = {}
+        for direction in self.settings["margins"]:
+            margins_dict[direction] = self.margin_widgets[direction].value()
+        return {
+                "margins": margins_dict,
+                "font_color": self.font_widget.get_hex(),
+                "font_opacity": self.font_widget.get_opacity(),
+                "font_tuple": self.font_widget.get_font_tuple(),
+                "font_size": self.font_widget.get_size(),
+                "box_color": self.box_color_button.get_hex(),
+                "box_opacity": self.box_opacity_widget.get_value(),
+                "box_padding": self.box_padding_widget.value()
+        }
 
 
 class InputWidget(QWidget):
@@ -203,6 +271,8 @@ class MainWidget(QWidget):
         super().__init__(parent)
         self.ffmpeg = ffmpeg
         widths = (80, 0, 50)
+
+        self.signals = Signals()
         
         vbox = QVBoxLayout()
         vbox.setMargin(0)
@@ -221,6 +291,10 @@ class MainWidget(QWidget):
         )
         vbox.addWidget(self.output_file_chooser)
 
+        drawtext_settings_button = QPushButton("Burn In Settings")
+        drawtext_settings_button.clicked.connect(self.open_drawtext_settings)
+        vbox.addWidget(drawtext_settings_button)
+
         vbox.addStretch()
 
         vbox.addWidget(QHLine())
@@ -238,6 +312,9 @@ class MainWidget(QWidget):
         vbox.addLayout(hbox)
 
         self.setLayout(vbox)
+
+    def open_drawtext_settings(self):
+        DrawTextSettings(sequence_encoder_widget=self)
 
     def encode(self):
         parameters = [

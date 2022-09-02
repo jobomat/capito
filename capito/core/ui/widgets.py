@@ -23,7 +23,7 @@ from PySide2.QtWidgets import (
     QTextEdit
 )
 
-from capito.core.helpers import clamp, get_font_dict
+from capito.core.helpers import clamp, get_font_dict, get_font_file, hex_to_rgb_int
 
 
 class QSplitWidget(QWidget):
@@ -135,6 +135,7 @@ class QIntSliderGroup(QWidget):
         self.lineedit.setValidator(QIntValidator())
         if widths[1]:
             self.lineedit.setMaximumWidth(widths[1])
+            self.lineedit.setMinimumWidth(widths[1])
         hbox.addWidget(self.lineedit)
         self.slider = QSlider(Qt.Horizontal)
         self.slider.setMinimumWidth(50)
@@ -143,6 +144,7 @@ class QIntSliderGroup(QWidget):
         self.slider.setValue(value)
         if widths[2]:
             self.slider.setMaximumWidth(widths[2])
+            self.slider.setMinimumWidth(widths[2])
         hbox.addWidget(self.slider)
 
         self.slider.sliderMoved.connect(self.setLineedit)
@@ -158,7 +160,7 @@ class QIntSliderGroup(QWidget):
         self.lineedit.setText(str(val))
         self.slider.setValue(val)
     
-    def getValue(self):
+    def get_value(self):
         return self.slider.value()
 
 
@@ -167,8 +169,8 @@ class QColorButtonWidget(QWidget):
         super().__init__()
         if hex_color is None:
             hex_color = "#000000"
-        self.color = hex_color
-        self.setStyleSheet(f"QPushButton#fontcolorbutton {{background-color: {self.color};}}")
+        self.color = QColor(*hex_to_rgb_int(hex_color))
+        self.setStyleSheet(f"QPushButton#fontcolorbutton {{background-color: {self.get_hex()};}}")
         hbox = QHBoxLayout()
         hbox.setMargin(0)
         if label:
@@ -202,10 +204,10 @@ class QColorButtonWidget(QWidget):
 
 
 class QFontTypeChooserWidget(QWidget):
-    def __init__(self, font_dir:Path, font:Tuple[str, str]=None):
+    def __init__(self, font_dir:Path=None, font_tuple:Tuple[str, str]=None):
         super().__init__()
-        if font is None:
-            font = ("NotoSansMono_Condensed", "Regular")
+        if font_tuple is None:
+            font_tuple = ("NotoSansMono_Condensed", "Regular")
         self.font_dir = font_dir
         self.font_dict = get_font_dict(font_dir)
 
@@ -218,8 +220,8 @@ class QFontTypeChooserWidget(QWidget):
             for style in styles:
                 self.style_combo.addItem(style)
 
-        self.font_combo.setCurrentText(font[0])
-        self.style_combo.setCurrentText(font[1])
+        self.font_combo.setCurrentText(font_tuple[0])
+        self.style_combo.setCurrentText(font_tuple[1])
         hbox.addWidget(self.font_combo)
         hbox.addWidget(self.style_combo)
 
@@ -234,20 +236,23 @@ class QFontTypeChooserWidget(QWidget):
         if "Regular" in self.font_dict[font]:
             self.style_combo.setCurrentText("Regular")
 
-    def get_ttf_file(self) -> Path:
-        return self.font_dir / f"{self.font_combo.itemText()}-{self.style_combo.itemText()}"
+    def get_font_file(self) -> Path:
+        return get_font_file(self.font_dir, self.font_combo.currentText(), self.style_combo.currentText())
+
+    def get_font_tuple(self) -> Tuple[str, str]:
+        return (self.font_combo.currentText(), self.style_combo.currentText())
 
 
 class QFfmpegFontChooser(QWidget):
-    def __init__(self, font_folder:Path, hex_color:str=None, font:Tuple[str, str]=None, size=18):
+    def __init__(self, font_folder:Path, hex_color:str=None, opacity=100, font_tuple:Tuple[str, str]=None, size=18):
         super().__init__()
         hbox = QHBoxLayout()
         hbox.setMargin(0)
-        self.font_color_button = QColorButtonWidget()
+        self.font_color_button = QColorButtonWidget(hex_color=hex_color)
         hbox.addWidget(self.font_color_button)
-        self.fontopacity_slider = QIntSliderGroup(label_text="Opacity", widths=(50,30,120), max_width=200, value=100)
+        self.fontopacity_slider = QIntSliderGroup(label_text="Opacity", widths=(50,30,100), max_width=200, value=opacity)
         hbox.addWidget(self.fontopacity_slider)
-        self.font_chooser = QFontTypeChooserWidget(font_folder, font)
+        self.font_chooser = QFontTypeChooserWidget(font_folder, font_tuple)
         hbox.addWidget(self.font_chooser)
         size_label = QLabel("Size")
         size_label.setMaximumWidth(30)
@@ -265,8 +270,18 @@ class QFfmpegFontChooser(QWidget):
     def get_hex(self):
         return self.font_color_button.get_hex()
 
+    def get_opacity(self):
+        return self.fontopacity_slider.get_value()
+
     def get_font_file(self):
-        return self.font_chooser.get_ttf_file()
+        return self.font_chooser.get_font_file()
+
+    def get_font_tuple(self):
+        return self.font_chooser.get_font_tuple()
+
+    def get_size(self):
+        return self.fontsize_spinbox.value()
+
 
 class QHLine(QFrame):
     def __init__(self):

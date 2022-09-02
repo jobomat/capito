@@ -61,11 +61,11 @@ def rgb_int_to_hex(rgb:Tuple[int, int, int], include_hash:bool=True):
         clamp(rgb[2], 0, 255)
     )
 
+def hex_to_rgb_int(hex_color: str) -> Tuple[int, int, int]:
+    return tuple(int(hex_color.lstrip('#')[i:i+2], 16) for i in (0, 2, 4))
 
-def get_font_dict(font_dir:Path=None):
-    if not font_dir:
-        return
-        
+
+def get_font_dict(font_dir:Path):
     font_dict = {}    
     for font_file in font_dir.glob("*"):
         font_split = str(font_file.stem).split("-")
@@ -73,5 +73,8 @@ def get_font_dict(font_dir:Path=None):
             font_dict[font_split[0]] = []
         if len(font_split) > 1:
             font_dict[font_split[0]].append(font_split[1])
-
     return font_dict
+
+
+def get_font_file(font_dir:Path, font:str, style:str):
+    return font_dir / f"{font}-{style}.ttf"

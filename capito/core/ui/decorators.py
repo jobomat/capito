@@ -63,3 +63,11 @@ def bind_to_host(ui_class):
             app.exec_()
 
     return wrapper
+
+
+def add_user_settings(cls):
+    def get_user_settings(self):
+        return cls.__name__
+
+    setattr(cls, 'get_user_settings', get_user_settings)
+    return cls
