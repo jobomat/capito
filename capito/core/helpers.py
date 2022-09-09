@@ -78,3 +78,7 @@ def get_font_dict(font_dir:Path):
 
 def get_font_file(font_dir:Path, font:str, style:str):
     return font_dir / f"{font}-{style}.ttf"
+
+def get_ffmpeg_fontfile(font_dir:Path, font:str, style:str):
+    fontfile = str(get_font_file(font_dir, font, style))
+    return fontfile.replace("C:", "").replace("\\", "/")

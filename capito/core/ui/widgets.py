@@ -163,6 +163,9 @@ class QIntSliderGroup(QWidget):
     def get_value(self):
         return self.slider.value()
 
+    def set_value(self, value):
+        self.setSlider(value)
+
 
 class QColorButtonWidget(QWidget):
     def __init__(self, label="Color", min_width=30, max_width=30, hex_color=None, label_width=0):

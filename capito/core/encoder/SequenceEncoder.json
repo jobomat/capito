@@ -1,0 +1,53 @@
+{
+    "last_selected_preset": "24fps, No Burn Ins",
+    "last_input_sequence": "",
+    "last_output_file": "",
+    "PRESET:24fps, No Burn Ins": {
+        "framerate": 24,
+        "quality": 50,
+        "burnin_defaults": {
+            "margins": {
+                "top": 25, "right": 25, "bottom": 25, "left":25
+            },
+            "font_color": "#000000",
+            "font_opacity": 80,
+            "font_tuple": ["NotoSansMono_Condensed", "Regular"],
+            "font_size": 18,
+            "box_color": "#FFFFFF",
+            "box_opacity": 30,
+            "box_padding": 4
+        },
+        "burnins": {
+            "top_left": "",
+            "top_center": "",
+            "top_right": "",
+            "bottom_left": "",
+            "bottom_center": "",
+            "bottom_right": ""
+        }
+    },
+    "PRESET:CA Sturpro": {
+        "framerate": 24,
+        "quality": 60,
+        "burnin_defaults": {
+            "margins": {
+                "top": 20, "right": 20, "bottom": 20, "left":20
+            },
+            "font_color": "#000000",
+            "font_opacity": 80,
+            "font_tuple": ["NotoSansMono_Condensed", "Regular"],
+            "font_size": 18,
+            "box_color": "#FFFFFF",
+            "box_opacity": 30,
+            "box_padding": 4
+        },
+        "burnins": {
+            "top_left": "",
+            "top_center": "",
+            "top_right": "",
+            "bottom_left": "<DATETIME>\n<FRAME:padding=4>",
+            "bottom_center": "",
+            "bottom_right": ""
+        }
+    }
+}

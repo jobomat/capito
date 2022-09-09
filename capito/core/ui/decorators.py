@@ -1,3 +1,4 @@
+
 from capito.core.ui import constants
 from capito.core.helpers import detect_host
 
@@ -14,12 +15,13 @@ def bind_to_host(ui_class):
             main_window_ptr = omui.MQtUtil.mainWindow()
             maya_win = shiboken2.wrapInstance(int(main_window_ptr), QtWidgets.QWidget)
 
-            class M(maya_mixin.MayaQWidgetDockableMixin, ui_class):
+            # class M(maya_mixin.MayaQWidgetDockableMixin, ui_class):
+            class M(ui_class):
                 def __init__(self):
                     super().__init__(*args, **kwargs, parent=maya_win, host=host)
 
             ui = M()
-            ui.show(dockable=True)
+            ui.show() #dockable=True)
 
         if host == "nuke":
             from PySide2 import QtWidgets
@@ -65,9 +67,4 @@ def bind_to_host(ui_class):
     return wrapper
 
 
-def add_user_settings(cls):
-    def get_user_settings(self):
-        return cls.__name__
 
-    setattr(cls, 'get_user_settings', get_user_settings)
-    return cls

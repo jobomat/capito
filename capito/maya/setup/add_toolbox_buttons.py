@@ -2,6 +2,7 @@ import pymel.core as pc
 
 from capito.maya.ui import maya_gui
 from capito.conf.config import CONFIG
+from capito.conf.setup import SetupUI
 from capito.core.asset.browser import AssetBrowser
 
 
@@ -30,10 +31,10 @@ def test_runner_factory():
 
 
 def toolbox_button_pressed():
-    if CONFIG.CAPITO_PROJECT:
+    if CONFIG.alias.get("capito_project"):
         AssetBrowser()
         return
-    print("Call set or create Capito project.")
+    SetupUI()
 
 # btn=maya_gui.add_toolbox_button(
 #     style="iconOnly",
