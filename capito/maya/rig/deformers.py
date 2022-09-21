@@ -96,7 +96,7 @@ def get_soft_selection_values():
     return weight_dict
 
 
-def set_cluster_pivots_to_pos(cluster_handle: pc.nodetypes.Transform, pos: List[float, float, float]):
+def set_cluster_pivots_to_pos(cluster_handle: pc.nodetypes.Transform, pos: List[float]):
     """Sets visual appearance, scale- and rotate pivot of cluster to pos
 
     :param cluster_handle: The pymel transform of the cluster.

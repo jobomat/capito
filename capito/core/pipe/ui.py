@@ -4,6 +4,8 @@ from pathlib import Path
 
 from capito.core.pipe import Pipeable, PipeableCategory, PipePlayer, PipeProvider
 from capito.core.ui.decorators import bind_to_host
+from capito.core.ui.constants import *
+
 from capito.core.ui.syntax import PythonHighlighter
 from capito.core.ui.widgets import QHLine, QSplitWidget
 from PySide2 import QtCore  # pylint:disable=wrong-import-order
@@ -99,10 +101,11 @@ class ListItemWithButton(QWidget):
         self.item.listWidget().takeItem(i)
 
 
-class AddModuleWindow(QWidget):
+@bind_to_host
+class AddModuleWindow(QMainWindow):
     """The window for adding registered modules to the current playlist."""
 
-    def __init__(self, parent=None, callback=None, provider: PipeProvider = None):
+    def __init__(self, parent=None, callback=None, provider: PipeProvider = None, host=None):
         super().__init__(parent)
         self.setWindowTitle("Add Modules")
         self.setFixedSize(300, 600)
@@ -124,7 +127,10 @@ class AddModuleWindow(QWidget):
         btn.clicked.connect(self.add)
         self.widget_layout.addWidget(btn)
 
-        self.setLayout(self.widget_layout)
+        central_widget = QWidget()
+        central_widget.setLayout(self.widget_layout)
+
+        self.setCentralWidget(central_widget)
 
     def add(self):
         """Call the callback function and pass the current selected items."""
@@ -157,7 +163,7 @@ class CategorizedModulesListWidget(QListWidget):
         host_font = QFont()
         host_font.setPointSize(11)
         host_font.setBold(True)
-        for host in provider.hosts:
+        for host in [h for h in provider.hosts if h is not None]:
             host_item = QListWidgetItem()
             host_item.setText(f"{host.capitalize()}")
             host_item.setFont(host_font)
@@ -250,10 +256,6 @@ class PipeManager(QMainWindow):
         self.provider = PipeProvider(hosts=hosts)
         self.player = PipePlayer(self.provider, [self.update_playlist_status])
 
-        self.add_window = AddModuleWindow(
-            callback=self.add_modules, provider=self.provider, parent=parent
-        )
-
         vbox = QVBoxLayout()
         hbox = QHBoxLayout()
 
@@ -303,7 +305,10 @@ class PipeManager(QMainWindow):
 
     def open_add_window(self):
         """Opens the AddModulesWindow."""
-        self.add_window.show()
+        #self.add_window = 
+        AddModuleWindow(
+            callback=self.add_modules, provider=self.provider
+        )
 
     def load_playlist(self):
         """Load a playlist json file."""

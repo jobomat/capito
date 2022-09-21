@@ -2,8 +2,26 @@ import re
 from pathlib import Path
 from typing import Tuple
 
-from PySide2.QtCore import Signal, QObject, QPropertyAnimation, QAbstractAnimation, QEasingCurve
-from PySide2.QtGui import Qt, QColor, QIntValidator, QFont, QFontDatabase, QFontInfo
+from PySide2.QtCore import (
+    Signal,
+    QObject,
+    QPropertyAnimation,
+    QAbstractAnimation,
+    QEasingCurve,
+    QPoint,
+    QSize
+)
+from PySide2.QtGui import (
+    Qt, 
+    QColor,
+    QIntValidator,
+    QFont,
+    QFontDatabase,
+    QFontInfo,
+    QFontMetrics,
+    QTransform,
+    QIcon,
+)
 from PySide2.QtWidgets import (
     QColorDialog,
     QComboBox,
@@ -14,12 +32,15 @@ from PySide2.QtWidgets import (
     QLayout,
     QLineEdit,
     QProgressBar,
+    QProxyStyle,
     QPushButton,
     QSlider,
     QSpinBox,
     QSplitter,
+    QStyle,
     QWidget,
     QFrame,
+    QTabBar,
     QTextEdit
 )
 

@@ -1,14 +1,16 @@
 from abc import ABC, abstractmethod
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Dict
 
-from capito.core.models import Asset
+from capito.core.asset.models import Asset
 
 
 class AssetProvider(ABC):
+    """The base class for Asset Providers."""
+
     @abstractmethod
-    def get_asset(self, name: str) -> Asset:
+    def get(self, name: str) -> Asset:
         """Returns  Asset by name"""
 
     @abstractmethod
-    def get_assets(self) -> List[Asset]:
-        """Returns a list of all Assets"""
+    def list(self) -> Dict[str, Asset]:
+        """Returns a dictionary of all Assets"""

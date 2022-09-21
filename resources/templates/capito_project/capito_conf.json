@@ -1,1 +1,9 @@
-{}
+{
+    "ASSETS_PATH": "assets",
+    "RELEASE_PATH_TEMPLATE": "{ASSETS_PATH}/{asset}",
+    "STEP_PATH": "{ASSETS_PATH}/{asset}/{step}",
+    "VERSION_PATH": "{STEP_PATH}/versions",
+    "VERSION_FILE": "{asset}_{step}_{version}_{user}_{time}.{extension}",
+    "REPRESENTATION_PATH": "{asset}/{step}/representations",
+    "REPRESENTATION_FILE": "{asset}_{step}_{version}_{description}.{extension}"
+}

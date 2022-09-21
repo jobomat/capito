@@ -1,3 +1,4 @@
+"""Module with the ui components of the encoder"""
 import os
 import threading
 import time
@@ -50,6 +51,8 @@ from PySide2.QtWidgets import (  # pylint:disable=wrong-import-order
 
 
 class Signals(QObject):
+    """Special Signals for communicating between custom Widgets"""
+
     fileChosen = Signal(Path)
     presetChanged = Signal(dict)
 
@@ -59,6 +62,8 @@ class Signals(QObject):
 
 @bind_to_host
 class DrawTextSettings(QMainWindow):
+    """Settings window for margins, font and box settings"""
+
     def __init__(self, host=None, parent=None, encoder_win=None):
         super().__init__(parent)
         self.encoder_win = encoder_win
@@ -151,10 +156,12 @@ class DrawTextSettings(QMainWindow):
         # self.show()
 
     def ok_clicked(self):
+        """Called if user clicked ok"""
         self.encoder.burnin_defaults = self.get_values()
         self.close()
 
     def get_values(self):
+        """Assemble the settings in a dict."""
         margins_dict = {}
         for direction in self.settings["burnin_defaults"]["margins"]:
             margins_dict[direction] = self.margin_widgets[direction].value()
@@ -171,6 +178,8 @@ class DrawTextSettings(QMainWindow):
 
 
 class InputWidget(QWidget):
+    """The Input section of the ui"""
+
     def __init__(self, widths):
         super().__init__()
         self.start_num = None
@@ -219,6 +228,8 @@ class InputWidget(QWidget):
         self.setLayout(vbox)
 
     def process_file(self, file_path: Path):
+        """Get the necessary infos out of the chosen file.
+        eg startframe, endframe, ffmpeg-framepattern..."""
         self.chosen_image = file_path
         self.input_file_chooser.lineedit.setText(str(file_path))
         result = guess_sequence_pattern(file_path)
@@ -236,22 +247,29 @@ class InputWidget(QWidget):
         self.frame_pattern_label.setText(f" |  {self.ffmpeg_pattern.name}")
 
     def update_frame_number_label(self):
+        """Update the QLabel for the frame number."""
         self.frame_number_label.setText(f"{self.get_number_of_frames()} frames")
 
     def get_start_frame(self):
+        """get strat frame"""
         return self.start_frame_spinbox.value()
 
     def get_end_frame(self):
+        """get end frame"""
         return self.end_frame_spinbox.value()
 
     def get_number_of_frames(self):
+        """convenience method calculting the sequence length"""
         return self.end_frame_spinbox.value() - self.start_frame_spinbox.value()
 
     def get_ffmpeg_pattern(self):
+        """just return the pattern."""
         return str(self.ffmpeg_pattern)
 
 
 class OptionsWidget(QWidget):
+    """The custom widget for the options-section (quality and framerate)"""
+
     def __init__(self, widths, change_signal):
         super().__init__()
 
@@ -274,17 +292,22 @@ class OptionsWidget(QWidget):
         self.setLayout(hbox)
 
     def load_settings(self, settings):
+        """Method called by a signal if something changed"""
         self.framerate_spinbox.setValue(settings["framerate"])
         self.quality_slider.set_value(settings["quality"])
 
     def get_framerate(self):
+        """get the framerate"""
         return self.framerate_spinbox.value()
 
     def get_quality(self):
+        """get the quality"""
         return self.quality_slider.get_value()
 
 
 class DrawtextWidget(QWidget):
+    """The custom grid based drawtext widget."""
+
     def __init__(self, change_signal):
         super().__init__()
         self.grid = QGridLayout()
@@ -297,6 +320,7 @@ class DrawtextWidget(QWidget):
         self.setLayout(self.grid)
 
     def create_grid(self):
+        """Create a 3*2 grid"""
         for i, vertical in enumerate(["top", "bottom"]):
             for j, horizontal in enumerate(["left", "center", "right"]):
                 hbox = QHBoxLayout()
@@ -316,10 +340,12 @@ class DrawtextWidget(QWidget):
                 self.grid.addWidget(groupbox, i, j)
 
     def fill_grid(self, settings):
+        """Method called by a signal if settings changed (preset selected)"""
         for pos, burnin in settings["burnins"].items():
             self.text_edits[pos].setText(burnin)
 
     def context_menu(self, text_edit, *args):
+        """Create the context menu for Burnin placeholders."""
         menu = QMenu(self)
 
         action1 = QAction("Frame number (<FRAME:padding=INT:start=INT>)")
@@ -329,24 +355,40 @@ class DrawtextWidget(QWidget):
         action2 = QAction("Datetime (<DATETIME:format=strftime-formatstring>)")
         action2.triggered.connect(partial(self.insert_text, text_edit, "<DATETIME>"))
         menu.addAction(action2)
-        
-        action3 = QAction("Output filename (<OUTFILE:full_path=BOOL>)")
-        action3.triggered.connect(partial(self.insert_text, text_edit, "<OUTFILE>"))
+
+        action3 = QAction("Project Name (<PROJECTNAME>)")
+        action3.triggered.connect(partial(self.insert_text, text_edit, "<PROJECTNAME>"))
         menu.addAction(action3)
+
+        action4 = QAction("Output filename (<OUTFILE:full_path=BOOL>)")
+        action4.triggered.connect(partial(self.insert_text, text_edit, "<OUTFILE>"))
+        menu.addAction(action4)
 
         menu.exec_(QCursor.pos())
 
     def insert_text(self, text_edit, text):
+        """Callback for context menu insertion."""
         cursor = text_edit.textCursor()
         cursor.insertText(text)
 
     def get_burnins(self):
+        """Get burnins as dict"""
         return {k: widget.toPlainText() for k, widget in self.text_edits.items()}
+
 
 @bind_to_host
 class SavePresetWindow(QMainWindow):
-    def __init__(self, host=None, parent=None, encoder=None, save_callback=None,
-                 label:str="Save for ...", preset_name="New Preset"):
+    """Dialog to appear for saving presets."""
+
+    def __init__(
+        self,
+        host=None,
+        parent=None,
+        encoder=None,
+        save_callback=None,
+        label: str = "Save for ...",
+        preset_name="New Preset",
+    ):
         super().__init__(parent)
         self.alias = None
         self.encoder = encoder
@@ -354,9 +396,9 @@ class SavePresetWindow(QMainWindow):
         possibilities = [
             ("user", "... me."),
             ("projectuser", "... me in the current project."),
-            ("project", ".. all users in the current project.")
+            ("project", ".. all users in the current project."),
         ]
-        
+
         vbox = QVBoxLayout()
         self.preset_name_lineedit = QLineEdit()
         self.preset_name_lineedit.setText(preset_name)
@@ -387,16 +429,20 @@ class SavePresetWindow(QMainWindow):
         self.setCentralWidget(central_widget)
 
     def set_alias(self, alias):
+        """Set alias and enable the ok button."""
         self.alias = alias
         self.ok_btn.setEnabled(True)
 
     def save(self):
+        """Save the preset"""
         name = self.preset_name_lineedit.text()
-        self.encoder._layered_settings.set(self.alias, f"PRESET:{name}", self.encoder.get_current_settings())
+        self.encoder._layered_settings.set(
+            self.alias, f"PRESET:{name}", self.encoder.get_current_settings()
+        )
         self.encoder._layered_settings.save(self.alias)
         self.save_callback(name)
         self.close()
-        
+
 
 class MainWidget(QWidget):
     """QWidget containing FFMpeg Options."""
@@ -423,7 +469,7 @@ class MainWidget(QWidget):
         settings_hbox.addWidget(settings_label)
         self.settings_preset_combobox = QComboBox()
         self.settings_preset_combobox.currentTextChanged.connect(self.preset_changed)
-        settings_hbox.addWidget(self.settings_preset_combobox)  
+        settings_hbox.addWidget(self.settings_preset_combobox)
         settings_hbox.addStretch()
         save_btn = QPushButton("Save Preset...")
         save_btn.setMinimumWidth(widths[2])
@@ -449,7 +495,7 @@ class MainWidget(QWidget):
         drawtext_settings_button.clicked.connect(self.open_drawtext_settings)
         burnin_hbox.addWidget(drawtext_settings_button)
         vbox.addLayout(burnin_hbox)
-        
+
         self.drawtext_widget = DrawtextWidget(self.signals.presetChanged)
         vbox.addWidget(self.drawtext_widget, stretch=1)
 
@@ -474,70 +520,89 @@ class MainWidget(QWidget):
         self.progress_bar.hide()
         hbox.addWidget(self.progress_bar)
         hbox.addStretch()
+        self.show_command_button = QPushButton("Show Command")
+        self.show_command_button.clicked.connect(self.show_command)
+        hbox.addWidget(self.show_command_button)
         self.encode_button = QPushButton("Encode")
         self.encode_button.setMinimumWidth(widths[2])
         self.encode_button.clicked.connect(self.encode)
         hbox.addWidget(self.encode_button)
-        # self.test_button = QPushButton("Test")
-        # self.test_button.clicked.connect(self.show_drawtext)
-        # hbox.addWidget(self.test_button)
         vbox.addLayout(hbox)
 
-        self.rebuild_preset_combobox(self.encoder._layered_settings['last_selected_preset'])
-        
+        self.rebuild_preset_combobox(
+            self.encoder._layered_settings["last_selected_preset"]
+        )
+
         self.setLayout(vbox)
 
     def rebuild_preset_combobox(self, select_preset=None):
+        """Rebuild the preset dropdown."""
         self.settings_preset_combobox.clear()
         for preset in self.encoder.get_availible_presets():
             self.settings_preset_combobox.addItem(preset)
         if not select_preset:
-            select_preset = self.encoder._layered_settings['last_selected_preset']
+            select_preset = self.encoder._layered_settings["last_selected_preset"]
         self.settings_preset_combobox.setCurrentText(select_preset)
         self.load_preset(select_preset)
 
     def preset_changed(self, item_text):
+        """Method called when user changes preset dropdown."""
         self.encoder._layered_settings.set("user", "last_selected_preset", item_text)
         self.encoder._layered_settings.save("user")
         self.load_preset(item_text)
-        
+
     def load_preset(self, item_text):
+        """Perform all necessary actions to load a preset."""
         self.encoder.load_preset(item_text)
         self.signals.presetChanged.emit(self.encoder.get_current_settings())
 
     def save_preset(self):
+        """Save the current settings as a new preset."""
         self.set_encoder_settings()
-        SavePresetWindow(encoder=self.encoder, save_callback=self.rebuild_preset_combobox)
+        SavePresetWindow(
+            encoder=self.encoder, save_callback=self.rebuild_preset_combobox
+        )
 
     def open_drawtext_settings(self):
+        """Open the drawtext settings window."""
         DrawTextSettings(encoder_win=self.encoder_win)
 
     def encoding_started(self):
+        """Serves as a callback for the encoder.encoding_started_callbacks list."""
         self.status_text.setText(f"Encoding")
         self.progress_bar.show()
 
     def encoding_ended(self, elapsed_seconds):
+        """Serves as a callback for the encoder.encoding_ended_callbacks list."""
         self.status_text.setText(f"Encoding finished in {elapsed_seconds} seconds.")
         self.progress_bar.hide()
 
     def set_encoder_settings(self):
+        """Gather all the info from the GUI and set it to the encoder instance."""
         self.encoder.framerate = self.options_widget.get_framerate()
         self.encoder.quality = self.options_widget.get_quality()
         self.encoder.burnins = self.drawtext_widget.get_burnins()
-
-    def encode(self):
-        self.set_encoder_settings()
         self.encoder.startframe = self.input_widget.get_start_frame()
         self.encoder.endframe = self.input_widget.get_end_frame()
         self.encoder.input_pattern = self.input_widget.get_ffmpeg_pattern()
         self.encoder.output_file = self.output_file_chooser.lineedit.text()
-        self.encoder.encoding_started_callbacks.append(self.encoding_started)
-        self.encoder.encoding_ended_callbacks.append(self.encoding_ended)
+
+    def encode(self):
+        """Performed when user presses "Encode" Button."""
+        self.set_encoder_settings()
+        if self.encoding_started not in self.encoder.encoding_started_callbacks:
+            self.encoder.encoding_started_callbacks.append(self.encoding_started)
+        if self.encoding_ended not in self.encoder.encoding_ended_callbacks:
+            self.encoder.encoding_ended_callbacks.append(self.encoding_ended)
         self.encoder.encode()
 
-    def show_drawtext(self):
-        self.encoder.burnins = self.drawtext_widget.get_burnins()
-        print(self.encoder.get_drawtext())
+    def show_command(self):
+        """For debug and saving command for later use."""
+        self.set_encoder_settings()
+        print(
+            self.encoder.ffmpeg,
+            " ".join([str(p) for p in self.encoder.get_parameters()]),
+        )
 
 
 class ErrorWidget(QWidget):
@@ -557,5 +622,5 @@ class ErrorWidget(QWidget):
             )
         )
         lines.addStretch()
-        # TODO: Enable user to pick ffmpeg and add the env var from here.
+        #  TODO: Enable user to pick ffmpeg and add the env var from here.
         self.setLayout(lines)

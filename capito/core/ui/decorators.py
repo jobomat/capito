@@ -1,5 +1,4 @@
-
-from capito.core.ui import constants
+from capito.core.ui.constants import *
 from capito.core.helpers import detect_host
 
 
@@ -57,12 +56,22 @@ def bind_to_host(ui_class):
             
         elif host == "system":
             from PySide2 import QtWidgets
-            app = QtWidgets.QApplication([])
-            app.setStyle("Fusion")
-            app.setPalette(constants.dark_palette)
-            ui = ui_class(host=host)
-            ui.show()
-            app.exec_()
+            app = QtWidgets.QApplication.instance()
+            if app is None:
+                first_app = True
+                app = QtWidgets.QApplication([])
+                app.setStyle("Fusion")
+                app.setPalette(get_dark_palette())
+                ui = ui_class(host=host)
+                ui.show()
+                app.exec_()
+            else:
+                class Sy(ui_class):
+                    def __init__(self):
+                        super().__init__(*args, **kwargs, parent=QtWidgets.QApplication.activeWindow(), host=host)
+                ui = Sy()
+                ui.show()
+
 
     return wrapper
 

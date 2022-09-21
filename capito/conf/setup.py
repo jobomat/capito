@@ -1,12 +1,10 @@
-from pathlib import Path
 import os
+from pathlib import Path
 
-from capito.core.ui.decorators import bind_to_host
-from capito.core.file.utils import copytree
-from capito.core.file.utils import sanitize_name
-from capito.core.env import set_os_env_var
 from capito.conf.config import CONFIG
-
+from capito.core.env import set_os_env_var
+from capito.core.file.utils import copytree, sanitize_name
+from capito.core.ui.decorators import bind_to_host
 from PySide2 import QtCore  # pylint:disable=wrong-import-order
 from PySide2.QtGui import QColor, QFont, QIcon, Qt  # pylint:disable=wrong-import-order
 from PySide2.QtWidgets import (  # pylint:disable=wrong-import-order
@@ -38,7 +36,12 @@ from PySide2.QtWidgets import (  # pylint:disable=wrong-import-order
 
 def get_user_conf(username):
     """Get the json configurtion file of the currently active Capito User."""
-    user_conf = Path(os.environ.get("CAPITO_PROJECT_DIR")) / "users" / username / "user_conf.json"
+    user_conf = (
+        Path(os.environ.get("CAPITO_PROJECT_DIR"))
+        / "users"
+        / username
+        / "user_conf.json"
+    )
     if user_conf.exists():
         return user_conf
 
@@ -69,21 +72,21 @@ def get_user_names():
 class SetUserUI(QMainWindow):
     """The Capito User Setup Window."""
 
-    def __init__(self, host: str = None, parent=None):
+    def __init__(self, host: str = None, parent=None, choice="existing"):
         super().__init__(parent)
         self.setWindowTitle("Capito User")
-        self.choice = "existing"
-        
+        self.choice = choice
+
         vbox = QVBoxLayout()
 
         vbox.addWidget(QLabel("Specify a Capito User:"))
         hbox = QHBoxLayout()
         existing_radiobtn = QRadioButton("Choose existing User")
         existing_radiobtn.setChecked(True)
-        existing_radiobtn.toggled.connect(lambda:self.radio_checked("existing"))
+        existing_radiobtn.toggled.connect(lambda: self.radio_checked("existing"))
         hbox.addWidget(existing_radiobtn)
         new_radiobtn = QRadioButton("Create New User")
-        new_radiobtn.toggled.connect(lambda:self.radio_checked("new"))
+        new_radiobtn.toggled.connect(lambda: self.radio_checked("new"))
         hbox.addWidget(new_radiobtn)
         vbox.addLayout(hbox)
 
@@ -114,7 +117,10 @@ class SetUserUI(QMainWindow):
         central_widget.setLayout(vbox)
         self.setCentralWidget(central_widget)
 
-    def radio_checked(self, choice:str):
+        new_radiobtn.setChecked(self.choice == "new")
+
+    def radio_checked(self, choice: str):
+        """When user checks between 'existing' and 'new'"""
         self.choice = choice
         if choice == "new":
             self.user_combobox.hide()
@@ -128,7 +134,12 @@ class SetUserUI(QMainWindow):
         Create and Set: Set the CAPITO_USERNAME env var to the current user."""
         if self.choice == "new":
             username = sanitize_name(self.user_creation_lineedit.text())
-            template = Path(os.environ.get("CAPITO_BASE_DIR")) / "resources" / "templates" / "user_dir"
+            template = (
+                Path(os.environ.get("CAPITO_BASE_DIR"))
+                / "resources"
+                / "templates"
+                / "user_dir"
+            )
             dst = Path(os.environ.get("CAPITO_PROJECT_DIR")) / "users" / username
             copytree(template, dst)
         else:
@@ -142,38 +153,44 @@ class SetUserUI(QMainWindow):
 def set_capito_project(path: Path):
     """Sets a capito project given the top folder of the project.
     The given path must be a valid capito project!
-    This function will NOT CHECK if the given path is a valid caption project!
+    This function will NOT CHECK if the given path is a valid capito project!
     """
     set_os_env_var("CAPITO_PROJECT_DIR", str(path))
     project_conf = get_project_conf()
-    
+
     if project_conf:
         CONFIG.reset()
         CONFIG.load(project_conf, "capito_project")
-    
+
         if os.environ.get("CAPITO_USERNAME"):
             user_conf = get_user_conf(os.environ.get("CAPITO_USERNAME"))
             if user_conf:
                 CONFIG.load(user_conf, "capito_user")
             else:
                 # username env var exists, but user is not user in this project.
-                SetUserUI() 
+                SetUserUI(choice="new")
         else:
             # username env var does not yet exist.
-            SetUserUI() 
+            SetUserUI(choice="new")
     else:
         # No config file found (should be impossible... only if race condition occured.)
         print("Project conf not found.")
 
 
-def create_capito_project(path: Path, name:str, template:Path=None):
+def create_capito_project(path: Path, name: str, template: Path = None):
     """Create a capito project folder named 'name' in 'path'.
     Use the template project structure 'template'."""
-    template = template or Path(os.environ.get("CAPITO_BASE_DIR")) / "resources" / "templates" / "capito_project"
+    template = (
+        template
+        or Path(os.environ.get("CAPITO_BASE_DIR"))
+        / "resources"
+        / "templates"
+        / "capito_project"
+    )
     dst = path / name
     copytree(template, dst)
     set_capito_project(dst)
-    
+
 
 @bind_to_host
 class SetupUI(QMainWindow):
@@ -182,10 +199,10 @@ class SetupUI(QMainWindow):
     def __init__(self, host: str = None, parent=None):
         super().__init__(parent)
         self.setWindowTitle("Capito Setup")
-        
+
         vbox = QVBoxLayout()
 
-        vbox.addWidget(QLabel("No Capito Project set."), stretch=1)
+        vbox.addWidget(QLabel("Capito Project Setter"), stretch=1)
 
         existing_btn = QPushButton("Set an existing Project...")
         existing_btn.clicked.connect(self.set_existing)
@@ -194,16 +211,18 @@ class SetupUI(QMainWindow):
 
         vbox.addWidget(existing_btn)
         vbox.addWidget(new_btn)
-        
+
         central_widget = QWidget()
         central_widget.setLayout(vbox)
         self.setCentralWidget(central_widget)
 
     def set_existing(self):
+        """Let the user choose a capito project folder and check if it's valid."""
         result = QFileDialog.getExistingDirectory(
-            self, "Choose Project Folder",
+            self,
+            "Choose Project Folder",
             QtCore.QDir().home().path(),
-            QFileDialog.Option.ShowDirsOnly
+            QFileDialog.Option.ShowDirsOnly,
         )
         if result:
             project_conf = Path(result) / "capito_conf.json"
@@ -212,24 +231,26 @@ class SetupUI(QMainWindow):
                 msg.setIcon(QMessageBox.Warning)
                 msg.setText("This seems to be no valid Capito Project.")
                 msg.setWindowTitle("Oops")
-                msg.setDetailedText(f"The folder {result} contains no valid 'capito_conf.json' file.")
+                msg.setDetailedText(
+                    f"The folder {result} contains no valid 'capito_conf.json' file."
+                )
                 msg.setStandardButtons(QMessageBox.Ok)
                 return
             set_capito_project(Path(result))
             self.close()
 
     def create_new(self):
+        """Let user choose the place and foldername of project."""
         path = QFileDialog.getExistingDirectory(
-            self, "Select folder where project folder will be created",
+            self,
+            "Select folder where project folder will be created",
             QtCore.QDir().home().path(),
-            QFileDialog.Option.ShowDirsOnly
+            QFileDialog.Option.ShowDirsOnly,
         )
         listed_name = sanitize_name(f"{QtCore.QDir().home().dirName()}s_project")
         while True:
             name, ok = QInputDialog().getText(
-                self, "Set project name",
-                "Project name:", QLineEdit.Normal,
-                listed_name
+                self, "Set project name", "Project name:", QLineEdit.Normal, listed_name
             )
             if not ok:
                 break
@@ -238,7 +259,12 @@ class SetupUI(QMainWindow):
             full_path = Path(path) / name
             if full_path.exists():
                 qm = QMessageBox()
-                ret = qm.question(self,'Oops', f"A folder named {name} already exists.\nPlease choose another name.", qm.Ok)
+                ret = qm.question(
+                    self,
+                    "Oops",
+                    f"A folder named {name} already exists.\nPlease choose another name.",
+                    qm.Ok,
+                )
                 continue
             else:
                 break
@@ -249,13 +275,14 @@ class SetupUI(QMainWindow):
             msg.setText("The project will be created here:")
             msg.setInformativeText(f"{path}/{name}")
             msg.setWindowTitle("Create Capito Project")
-            msg.setDetailedText(f"A folder called {name} will be created in {path}.\n\nThis folder will contain further dirs and files.\n\nAdditionally a user environment variable called 'CAPITO_PROJECT_DIR' will be created.\n\nThis variable will point to the created directory.")
+            msg.setDetailedText(
+                f"A folder called {name} will be created in {path}.\n\nThis folder will contain further dirs and files.\n\nAdditionally a user environment variable called 'CAPITO_PROJECT_DIR' will be created.\n\nThis variable will point to the created directory."
+            )
             msg.setStandardButtons(QMessageBox.Ok | QMessageBox.Cancel)
             # msg.buttonClicked.connect(self.create)
 
             confirm = msg.exec_()
-        
+
             if confirm == 1024:
                 create_capito_project(Path(path), name)
                 self.close()
-

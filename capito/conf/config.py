@@ -43,7 +43,7 @@ class Config:
             self.load(config_file)
 
     def remove_override(self, key):
-        """Removes key/value from the upper most layer (if existing)."""
+        """Removes key/value from the upper most layer (if key  exists)."""
         for i, path in enumerate(self.config_keys[:-1]):
             try:
                 del self.configs[path][key]
