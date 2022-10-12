@@ -52,7 +52,6 @@ from PySide2.QtWidgets import (  # pylint:disable=wrong-import-order
 )
 
 CAPITO_ICONS_PATH = Path(CONFIG.CAPITO_BASE_DIR) / "resources" / "icons"
-FLOWS_PATH = Path(CONFIG.CAPITO_PROJECT_DIR) / "flows" / "kinds"
 
 
 class VersionItemWidget(QWidget):
@@ -66,11 +65,15 @@ class VersionItemWidget(QWidget):
         left_vbox = QVBoxLayout()
         version_label = QLabel(str(version))
         version_label.setFont(HeadlineFont(12))
+        icons_path = CONFIG.CAPITO_PROJECT_DIR
+        if not icons_path:
+            icons_path = CAPITO_ICONS_PATH
+        
         version_thumb = Path(version.absolute_path) / f"{version.file}.jpg"
         version_thumb = (
             str(version_thumb)
             if version_thumb.exists()
-            else str(FLOWS_PATH / f"{version.asset.kind}.svg")
+            else str(Path(icons_path) / f"{version.asset.kind}.svg")
         )
         thumb_pixmap = QPixmap(version_thumb).scaled(
             80, 80, Qt.KeepAspectRatio, Qt.SmoothTransformation
