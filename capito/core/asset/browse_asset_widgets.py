@@ -33,7 +33,6 @@ from PySide2.QtWidgets import (
 )
 
 CAPITO_ICONS_PATH = Path(CONFIG.CAPITO_BASE_DIR) / "resources" / "icons"
-FLOWS_PATH = Path(CONFIG.CAPITO_PROJECT_DIR) / "flows" / "kinds"
 
 
 @bind_to_host
