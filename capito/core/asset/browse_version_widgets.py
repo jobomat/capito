@@ -73,7 +73,7 @@ class VersionItemWidget(QWidget):
         version_thumb = (
             str(version_thumb)
             if version_thumb.exists()
-            else str(Path(icons_path) / f"{version.asset.kind}.svg")
+            else str(Path(icons_path) / "flows" / "kinds" / f"{version.asset.kind}.svg")
         )
         thumb_pixmap = QPixmap(version_thumb).scaled(
             80, 80, Qt.KeepAspectRatio, Qt.SmoothTransformation
