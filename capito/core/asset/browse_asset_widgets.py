@@ -85,6 +85,7 @@ class CreateAssetsWindow(QMainWindow):
             l for l in self.asset_lineedit.toPlainText().split("\n") if l
         ]
         default_kind = self.kind_combobox.currentText()
+        assets_to_create = []
         updated_text_list = []
         already_existing_names = []
         for asset_name in assets_name_list:
@@ -92,13 +93,15 @@ class CreateAssetsWindow(QMainWindow):
             name = sanitize_asset_name(name)
             kind = default_kind if not kind else kind[0].strip()
             kind = best_match(kind, self.kinds)
-            try:
-                self.asset_provider.create_asset(name, kind)
-            except AssetExistsError:
+            if self.asset_provider.asset_exists(name):
+                assets_to_create.append((name, kind))
+            else:
                 updated_text_list.append(f"{name},{kind}")
                 already_existing_names.append(name)
         self.asset_lineedit.setText("\n".join(updated_text_list))
-        capito_event.post("asset_created")
+        if assets_to_create:
+            self.asset_provider.create_assets(assets_to_create)
+        # capito_event.post("asset_created")
         if updated_text_list:
             msg = QMessageBox()
             msg.setIcon(QMessageBox.Warning)
@@ -121,7 +124,10 @@ class AssetItemWidget(QWidget):
         hbox = QHBoxLayout()
         asset_label = QLabel(asset.name)
         asset_label.setFont(HeadlineFont())
-        thumb_svg = FLOWS_PATH / f"{self.asset.kind}.svg"
+        icons_path = CONFIG.CAPITO_PROJECT_DIR
+        if not icons_path:
+            icons_path = "."
+        thumb_svg = icons_path / f"{self.asset.kind}.svg"
         thumb_svg = (
             thumb_svg
             if thumb_svg.exists()
