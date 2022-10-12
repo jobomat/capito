@@ -91,6 +91,8 @@ class GoogleSheetsAssetProvider(AssetProvider):
         assets = super().create_assets(asset_tuples)
         rows = []
         for asset in assets:
+            if not asset:
+                continue
             rows.append([
                 asset.name, asset.kind, 0, 0,
                 None, None, None, None, None, None
