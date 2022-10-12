@@ -126,7 +126,7 @@ class AssetItemWidget(QWidget):
         icons_path = CONFIG.CAPITO_PROJECT_DIR
         if not icons_path:
             icons_path = "."
-        thumb_svg = icons_path / f"{self.asset.kind}.svg"
+        thumb_svg = Path(icons_path) / f"{self.asset.kind}.svg"
         thumb_svg = (
             thumb_svg
             if thumb_svg.exists()
