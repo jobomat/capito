@@ -1,9 +1,17 @@
 {
     "ASSETS_PATH": "assets",
-    "RELEASE_PATH_TEMPLATE": "{ASSETS_PATH}/{asset}",
+    "RELEASE_PATH": "{ASSETS_PATH}/{asset}",
     "STEP_PATH": "{ASSETS_PATH}/{asset}/{step}",
     "VERSION_PATH": "{STEP_PATH}/versions",
     "VERSION_FILE": "{asset}_{step}_{version}_{user}_{time}.{extension}",
-    "REPRESENTATION_PATH": "{asset}/{step}/representations",
-    "REPRESENTATION_FILE": "{asset}_{step}_{version}_{description}.{extension}"
+    "REPRESENTATION_PATH": "{VERSION_PATH}/representations",
+    "REPRESENTATION_FILE": "{asset}_{step}_{version}_{description}.{extension}",
+    "RESOLUTION_3D_X": 1920,
+    "RESOLUTION_3D_Y": 1080,
+    "FRAMERATE": 24,
+    "DEFAULT_STARTFRAME": 1001,
+    "DEFAULT_ENDFRAME": 1120,
+    "GOOGLE_API_KEY_LOCATION": "",
+    "GOOGLE_SHEETS_NAME": "",
+    "TIMEZONE": "Europe/Berlin"
 }

@@ -1,0 +1,87 @@
+{
+    "long_name": "Character",
+    "description": "",
+    "color": "#008080",
+    "steps": {
+        "mod":{
+            "maya": {
+                "filters": {
+                    "kind": [],
+                    "step": []
+                },
+                "importers": {},
+                "publishers": {}
+            }
+        },
+        "rig":{
+            "maya": {
+                "filters": {
+                    "kind": [],
+                    "step": []
+                },
+                "importers": {},
+                "publishers": {}
+            }
+        },
+        "shade":{
+            "maya": {
+                "filters": {
+                    "kind": [],
+                    "step": []
+                },
+                "importers": {},
+                "publishers": {}
+            }
+        },
+        "asmbl":{
+            "maya": {
+                "filters": {
+                    "kind": [],
+                    "step": []
+                },
+                "importers": {},
+                "publishers": {}
+            }
+        },
+        "sim":{
+            "maya": {
+                "filters": {
+                    "kind": [],
+                    "step": []
+                },
+                "importers": {},
+                "publishers": {}
+            }
+        },
+        "anim":{
+            "maya": {
+                "filters": {
+                    "kind": [],
+                    "step": []
+                },
+                "importers": {},
+                "publishers": {}
+            }
+        },
+        "lgt":{
+            "maya": {
+                "filters": {
+                    "kind": [],
+                    "step": []
+                },
+                "importers": {},
+                "publishers": {}
+            }
+        },
+        "render":{
+            "maya": {
+                "filters": {
+                    "kind": [],
+                    "step": []
+                },
+                "importers": {},
+                "publishers": {}
+            }
+        }
+    }
+}

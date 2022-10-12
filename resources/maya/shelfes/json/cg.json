@@ -119,11 +119,11 @@
         },
         {
             "sourceType": "python",
-            "image": "bgPlayblast.png",
-            "label": "Background Playblast",
-            "command": "#from capito.maya.render.playblast import BackgroundPlayblast\n#BackgroundPlayblast()\nprint('Needs massive Refactoring. Sorry!')",
-            "image1": "bgPlayblast.png",
-            "annotation": "Background Playblast. Render with Hardware or Arnold and encode with FFMPEG."
+            "image": "sequence_encoder.png",
+            "label": "Sequence Encoder",
+            "command": "from capito.core.encoder.ui import SequenceEncoderUI\nSequenceEncoderUI()",
+            "image1": "sequence_encoder.png",
+            "annotation": "Encode image sequences with FFMPEG and add text burnins."
         }
     ], 
     "name": "cg", 

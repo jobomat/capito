@@ -31,6 +31,7 @@ from PySide2.QtWidgets import (
     QLabel,
     QLayout,
     QLineEdit,
+    QListWidgetItem,
     QProgressBar,
     QProxyStyle,
     QPushButton,
@@ -45,6 +46,13 @@ from PySide2.QtWidgets import (
 )
 
 from capito.core.helpers import clamp, get_font_dict, get_font_file, hex_to_rgb_int
+
+
+class HeadlineFont(QFont):
+    def __init__(self, size=10, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.setBold(True)
+        self.setPointSize(size)
 
 
 class QSplitWidget(QWidget):
@@ -86,6 +94,16 @@ class Signals(QObject):
     opacityChosen = Signal(float)
     def __init__(self):
         super().__init__()
+
+
+class RichListItem(QListWidgetItem):
+    """A QListWidgetItem that uses whatever widget is handed for Presentation."""
+
+    def __init__(self, widget: QWidget, parent):
+        super().__init__(parent)
+        self.widget = widget
+        self.setSizeHint(self.widget.minimumSizeHint())
+        parent.setItemWidget(self, self.widget)
 
 
 class QFileChooserButton(QWidget):

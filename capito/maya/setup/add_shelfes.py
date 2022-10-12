@@ -1,7 +1,7 @@
 from pathlib import Path
 
-from capito.maya.ui import shelfes
 from capito.maya.environ.vars import getenv
+from capito.maya.ui import shelfes
 
 
 def build_shelfes():

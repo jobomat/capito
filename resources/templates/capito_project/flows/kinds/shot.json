@@ -1,36 +1,30 @@
 {
-    "long_name": "Character",
+    "long_name": "Shot",
     "description": "",
     "color": "#008080",
     "steps": {
-        "mod":{
+        "light":{
             "maya": {
                 "filters": {
-                    "kinds": [],
-                    "steps": []
+                    "kind": [],
+                    "step": []
                 },
                 "importers": {},
                 "publishers": {}
             }
         },
-        "rig":{
+        "render":{
             "maya": {
                 "filters": {
-                    "kinds": [],
-                    "steps": []
+                    "kind": [],
+                    "step": []
                 },
                 "importers": {},
                 "publishers": {}
             }
         },
-        "shade":{
+        "comp":{
             "maya": {
-                "filters": {
-                    "kinds": [],
-                    "steps": []
-                },
-                "importers": {},
-                "publishers": {}
             }
         }
     }

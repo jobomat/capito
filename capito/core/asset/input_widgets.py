@@ -1,7 +1,6 @@
 """The widget for Importing, Referencing"""
 from capito.core.ui.decorators import bind_to_host
 from capito.core.ui.widgets import QHLine, QSplitWidget
-
 from PySide2 import QtCore  # pylint:disable=wrong-import-order
 from PySide2.QtGui import QColor, QFont, QIcon, Qt  # pylint:disable=wrong-import-order
 from PySide2.QtWidgets import (  # pylint:disable=wrong-import-order
@@ -32,7 +31,7 @@ from PySide2.QtWidgets import (  # pylint:disable=wrong-import-order
 
 
 class InputWidget(QWidget):
-    def __init__(self, *args, **kwargs):
+    def __init__(self, host, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
         layout = QVBoxLayout()

@@ -41,7 +41,6 @@ def get_dark_palette():
     return dark_palette
 
 ICON_PATH = Path(os.environ["CAPITO_BASE_DIR"]) / "resources" / "icons"
-print(ICON_PATH)
 
 PySide2.QtCore.QDir.addSearchPath(
     'icons',

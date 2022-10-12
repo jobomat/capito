@@ -1,0 +1,27 @@
+{
+    "long_name": "Sequence",
+    "description": "",
+    "color": "#008080",
+    "steps": {
+        "anim":{
+            "maya": {
+                "filters": {
+                    "kind": [],
+                    "step": []
+                },
+                "importers": {},
+                "publishers": {}
+            }
+        },
+        "light":{
+            "maya": {
+                "filters": {
+                    "kind": [],
+                    "step": []
+                },
+                "importers": {},
+                "publishers": {}
+            }
+        }
+    }
+}

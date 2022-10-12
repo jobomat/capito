@@ -1,0 +1,27 @@
+{
+    "long_name": "Set",
+    "description": "",
+    "color": "#008080",
+    "steps": {
+        "asmbl":{
+            "maya": {
+                "filters": {
+                    "kind": [],
+                    "step": []
+                },
+                "importers": {},
+                "publishers": {}
+            }
+        },
+        "light":{
+            "maya": {
+                "filters": {
+                    "kind": [],
+                    "step": []
+                },
+                "importers": {},
+                "publishers": {}
+            }
+        }
+    }
+}

@@ -1,13 +1,16 @@
+import json
 import os
 from dataclasses import dataclass, field
+from datetime import datetime
+import pytz
 from pathlib import Path
 from typing import Dict, List, Optional
 
 from capito.conf.config import CONFIG
-from capito.core.asset.flows import Flows
 from capito.core.helpers import time_from_ntp
 from capito.core.user.models import User
 
+#  TODO: STEPS sollte aus einer externen Quelle kommen
 STEPS = {
     "mod": "Modelling",
     "rig": "Rigging",
@@ -58,7 +61,7 @@ class Version:
 
     version: int
     step: "Step"
-    user: User
+    user: str
     extension: str
     comment: str = None
     timestamp: float = None
@@ -66,6 +69,26 @@ class Version:
 
     def __post_init__(self):
         self.timestamp = self.timestamp or time_from_ntp()
+
+    def save_json(self):
+        """Save the unique json file on creation of a version."""
+        content = {
+            "version": self.version,
+            "user": self.user,
+            "extension": self.extension,
+            "comment": self.comment,
+            "timestamp": self.timestamp,
+        }
+        json_file = Path(self.absolute_path) / f"{self.file}.json"
+        with json_file.open("w") as jfp:
+            json.dump(content, jfp)
+
+    def get_date(self, pattern: str):
+        """Human readable date with specifiable string pattern."""
+        return datetime.fromtimestamp(
+            self.timestamp,
+            tz=pytz.timezone(CONFIG.TIMEZONE)
+        ).strftime(pattern)
 
     @property
     def absolute_path(self):
@@ -90,6 +113,16 @@ class Version:
         )
 
     @property
+    def filepath(self):
+        """Get absolute path and filename"""
+        return f"{self.absolute_path}/{self.file}"
+
+    @property
+    def date(self):
+        """Human readable date property"""
+        return self.get_date("%d.%m.%y - %H:%M")
+
+    @property
     def asset(self) -> "Asset":
         """Return corresponding Asset."""
         return self.step.asset
@@ -112,15 +145,15 @@ class Step:
     """Class representing a working step (~Department mod, rig...)."""
 
     name: str
-    long_name: str
     asset: "Asset" = None
     versions: Optional[Dict[str, Version]] = field(default_factory=dict)
     contains: Optional[List[Release]] = field(default_factory=list)
+    status: str = "NONE"
 
     def add_version(
         self,
         version: int,
-        user: User,
+        user: str,
         extension: str,
         comment: str = None,
         timestamp: int = None,
@@ -129,6 +162,11 @@ class Step:
         self.versions[version] = Version(
             version, self, user, extension, comment, timestamp
         )
+
+    def add_version_from_json_file(self, json_file: Path):
+        """Add a version from content of its json meta file."""
+        with json_file.open("r", encoding="utf-8") as jf:
+            self.add_version(**json.load(jf))
 
     def new_version(self, extension: str, comment: str = None, user: User = None):
         """Use next available version number."""
@@ -142,6 +180,16 @@ class Step:
     def get_latest_version_number(self):
         """Get latest version number."""
         return len(self.versions.keys())
+
+    def create(self):
+        """Create dirs, templates..."""
+        abs_path = Path(self.absolute_path)
+        version_path = CONFIG.VERSION_PATH.format(STEP_PATH=abs_path)
+        representation_path = CONFIG.REPRESENTATION_PATH.format(
+            VERSION_PATH=version_path
+        )
+        Path(version_path).mkdir(parents=True, exist_ok=True)
+        Path(representation_path).mkdir(parents=True, exist_ok=True)
 
     @property
     def relative_path(self):
@@ -167,7 +215,7 @@ class Kind:
 
     name: str
     long_name: str
-    flow: Flows = None
+    flow: str = None
 
 
 @dataclass
@@ -177,27 +225,31 @@ class Asset:
     name: str
     kind: str
     steps: Dict[str, Step] = field(default_factory=dict)
+    comment: str = None
 
     def add_step(self, step: str):
-        """Append a Step and annotate it."""
-        self.steps[step] = Step(step, STEPS[step], self)
+        """Append a Step."""
+        self.steps[step] = Step(step, self)
 
     def step(self, step: str):
         """Get Step Instance (mod, rig, shade, shot...)"""
         return self.steps[step]
 
+    def create(self):
+        """Create a new asset.
+        (Create directories, templates...)"""
+        abs_asset_path = Path(CONFIG.CAPITO_PROJECT_DIR) / CONFIG.ASSETS_PATH
+        asset_dir = abs_asset_path / self.name
+        asset_dir.mkdir(parents=True, exist_ok=True)
+        step_list = []
+        for step in self.steps.values():
+            step.create()
+            step_list.append(f'"{step}"')
+        meta_json = asset_dir / f"{self.name}.json"
+        meta_json.touch()
+        meta_json.write_text(
+            f'{{"kind": "{self.kind}", "steps": [{",".join(step_list)}]}}'
+        )
+
     def __str__(self):
         return self.name
-
-
-# from pathlib import Path
-# from capito.core.asset.models import Asset
-
-
-# bob = Asset("bob", "char")
-# bob.add_step("mod")
-# bob.add_step("rig")
-# bob.add_step("shade")
-
-# for step in bob.steps.values():
-#     Path(step.absolute_path).mkdir(parents=True, exist_ok=True)

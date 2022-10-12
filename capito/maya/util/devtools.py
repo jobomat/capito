@@ -8,7 +8,7 @@ from capito.maya.ui.windows import WindowManager, WinWrapper
 class ModuleManager(WinWrapper):
     def __init__(self):
         super().__init__("module_manager_win", "Module Manager")
-        self.filter = "capito.maya."
+        self.filter = "capito."
 
         self.top = self.add_top_layout(pc.horizontalLayout)
         self.filter_textFieldGrp = pc.textFieldGrp(
