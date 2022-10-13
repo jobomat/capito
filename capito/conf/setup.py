@@ -3,7 +3,7 @@ from pathlib import Path
 
 from capito.conf.config import CONFIG
 from capito.core.env import set_os_env_var
-from capito.core.file.utils import copytree, sanitize_name
+from capito.core.file.utils import copy_template, sanitize_name
 from capito.core.ui.decorators import bind_to_host
 from PySide2 import QtCore  # pylint:disable=wrong-import-order
 from PySide2.QtGui import QColor, QFont, QIcon, Qt  # pylint:disable=wrong-import-order
@@ -141,7 +141,7 @@ class SetUserUI(QMainWindow):
                 / "user_dir"
             )
             dst = Path(os.environ.get("CAPITO_PROJECT_DIR")) / "users" / username
-            copytree(template, dst)
+            copy_template(template, dst)
         else:
             username = self.user_combobox.currentText()
 
@@ -188,7 +188,7 @@ def create_capito_project(path: Path, name: str, template: Path = None):
         / "capito_project"
     )
     dst = path / name
-    copytree(template, dst)
+    copy_template(template, dst)
     set_capito_project(dst)
 
 

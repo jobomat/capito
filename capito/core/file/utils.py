@@ -9,7 +9,7 @@ from pathlib import Path
 import errno
 
 
-def copytree(src, dest):
+def copytree(src: str, dest: str):
     # Copy the content of
     # source to destination
     try:
@@ -48,6 +48,18 @@ def silent_rename(old_name:str, new_name:str):
     except OSError as err:  # this would be "except OSError, e:" before Python 2.6
         if err.errno != errno.ENOENT:  # errno.ENOENT = no such file or directory
             raise  # re-raise exception if a different error occurred
+
+
+def remove_file_in_tree(filename: str, top_dir: str):
+    """Removes all files of name 'filename' in top_dir and its subdirectories."""
+    for file in Path(top_dir).rglob(filename):
+        silent_remove(str(file))
+
+
+def copy_template(src: str, dest: str):
+    """Copy a template dir/file structure and remove readme.txt placeholders."""
+    copytree(src, dest)
+    remove_file_in_tree("readme.txt", dest)
 
 
 def sanitize_name(input_string:str):
