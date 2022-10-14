@@ -119,7 +119,7 @@ class VersionList(QListWidget):
         self.clear()
         if not step:
             return
-        for vnum, version in reversed(list(step.versions.items())):
+        for _, version in reversed(list(step.versions.items())):
             self.add_item(version)
 
 

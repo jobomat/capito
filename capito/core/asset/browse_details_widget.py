@@ -64,14 +64,24 @@ class DetailsWidget(QWidget):
         self._create_ui()
 
     def update(self, version: Version):
+        """On selection change..."""
+        asset_name = ""
+        step = ""
+        kind = ""
         if version:
-            self.asset_name.setText(version.step.asset.name)
+            asset_name = version.asset.name
+            step = version.step.name
+            kind = version.asset.kind
+        self.asset_name.setText(asset_name)
+        self.step.setText(step)
+        self.kind.setText(kind)
 
     def _create_widgets(self):
         self.asset_name = QLabel("")
         self.asset_name.setFont(HeadlineFont())
-        self.asset_kind = QLabel("")
-        self.asset_kind.setFont(HeadlineFont())
+        self.kind = QLabel("")
+        self.kind.setFont(HeadlineFont())
+        self.step = QLabel("")
 
     def _create_ui(self):
         vbox = QVBoxLayout()
@@ -88,6 +98,8 @@ class DetailsWidget(QWidget):
         vbox.addLayout(headline_hbox)
 
         vbox.addWidget(self.asset_name)
+        vbox.addWidget(self.kind)
+        vbox.addWidget(self.step)
 
         vbox.addStretch()
         self.setLayout(vbox)

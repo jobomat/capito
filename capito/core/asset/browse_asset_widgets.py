@@ -113,7 +113,7 @@ class CreateAssetsWindow(QMainWindow):
 class AssetItemWidget(QWidget):
     """Presentation Widget for a single Item in the Asset List."""
 
-    def __init__(self, asset, *args, **kwargs):
+    def __init__(self, asset: Asset, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.asset = asset
         vbox = QVBoxLayout()
@@ -151,15 +151,13 @@ class AssetList(QListWidget):
         self.setEditTriggers(QListWidget.EditKeyPressed)
         self.search_text = ""
         self.kind_filters = []
-        for asset in CONFIG.asset_provider.list():
+        for _, asset in CONFIG.asset_provider.list().items():
             self.add_item(asset)
         capito_event.subscribe("asset_created", self.refresh)
 
     def add_item(self, asset: Asset):
         """Add a RichListItem without hazzle."""
-        self.addItem(
-            RichListItem(AssetItemWidget(CONFIG.asset_provider.get(asset)), self)
-        )
+        self.addItem(RichListItem(AssetItemWidget(asset), self))
 
     def update_list(self):
         """Show/Hide list items based on all filters"""

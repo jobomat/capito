@@ -2,10 +2,10 @@ import json
 import os
 from dataclasses import dataclass, field
 from datetime import datetime
-import pytz
 from pathlib import Path
 from typing import Dict, List, Optional
 
+import pytz
 from capito.conf.config import CONFIG
 from capito.core.helpers import time_from_ntp
 from capito.core.user.models import User
@@ -86,8 +86,7 @@ class Version:
     def get_date(self, pattern: str):
         """Human readable date with specifiable string pattern."""
         return datetime.fromtimestamp(
-            self.timestamp,
-            tz=pytz.timezone(CONFIG.TIMEZONE)
+            self.timestamp, tz=pytz.timezone(CONFIG.TIMEZONE)
         ).strftime(pattern)
 
     @property
@@ -165,8 +164,10 @@ class Step:
 
     def add_version_from_json_file(self, json_file: Path):
         """Add a version from content of its json meta file."""
-        with json_file.open("r", encoding="utf-8") as jf:
-            self.add_version(**json.load(jf))
+        with json_file.open("r", encoding="utf-8") as vjf:
+            version_dict = json.load(vjf)
+            version_dict["step"] = self
+            self.add_version(**version_dict)
 
     def new_version(self, extension: str, comment: str = None, user: User = None):
         """Use next available version number."""

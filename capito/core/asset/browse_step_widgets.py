@@ -77,12 +77,12 @@ class StepMenu(QWidget):
 class StepItemWidget(QWidget):
     """Presentation Widget for a single Item in the Asset List."""
 
-    def __init__(self, step, *args, **kwargs):
+    def __init__(self, step: Step, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.step = step
         hbox = QHBoxLayout()
         hbox.setContentsMargins(5, 2, 5, 2)
-        step_label = QLabel(step)
+        step_label = QLabel(step.name)
         step_label.setFont(HeadlineFont())
         hbox.addWidget(step_label)
 
@@ -95,7 +95,6 @@ class StepList(QListWidget):
     def __init__(self, parent):
         super().__init__()
         self.parent = parent
-        self.asset = None
         self.last_selected_step = None
 
     def add_item(self, step: Step):
@@ -109,11 +108,10 @@ class StepList(QListWidget):
             self.last_selected_step = selected.widget.step
 
         self.clear()
-        self.asset = asset
 
         self.parent.signals.step_selected.emit(None)
         for i, step in enumerate(asset.steps):
-            self.add_item(step)
+            self.add_item(asset.steps[step])
             if self.last_selected_step == step:
                 self.setCurrentRow(i)
 
@@ -144,5 +142,4 @@ class StepsWidget(QWidget):
         if not selected:
             return
         step = selected[0].widget.step
-        asset = self.step_list.asset
-        self.signals.step_selected.emit(asset.steps[step])
+        self.signals.step_selected.emit(step)
