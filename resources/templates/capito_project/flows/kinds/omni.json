@@ -3,7 +3,7 @@
     "description": "",
     "color": "#008080",
     "steps": {
-        "mod":{
+        "mod": {
             "maya": {
                 "filters": {
                     "kind": [],
@@ -13,7 +13,7 @@
                 "publishers": {}
             }
         },
-        "rig":{
+        "rig": {
             "maya": {
                 "filters": {
                     "kind": [],
@@ -23,7 +23,7 @@
                 "publishers": {}
             }
         },
-        "shade":{
+        "shade": {
             "maya": {
                 "filters": {
                     "kind": [],
@@ -33,7 +33,7 @@
                 "publishers": {}
             }
         },
-        "asmbl":{
+        "asmbl": {
             "maya": {
                 "filters": {
                     "kind": [],
@@ -43,7 +43,7 @@
                 "publishers": {}
             }
         },
-        "sim":{
+        "sim": {
             "maya": {
                 "filters": {
                     "kind": [],
@@ -53,7 +53,7 @@
                 "publishers": {}
             }
         },
-        "anim":{
+        "anim": {
             "maya": {
                 "filters": {
                     "kind": [],
@@ -63,7 +63,7 @@
                 "publishers": {}
             }
         },
-        "lgt":{
+        "light": {
             "maya": {
                 "filters": {
                     "kind": [],
@@ -73,7 +73,7 @@
                 "publishers": {}
             }
         },
-        "render":{
+        "render": {
             "maya": {
                 "filters": {
                     "kind": [],

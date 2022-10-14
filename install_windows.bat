@@ -30,6 +30,9 @@ REM add ffmpeg dir to users PATH (Not really necessary but convenient for plumbu
 for /f "usebackq tokens=2,*" %%A in (`reg query HKCU\Environment /v PATH`) do set my_user_path=%%B
 setx PATH "%CD%\vendor\%FFMPEG_DIR%\bin\;%my_user_path%"
 :SKIP
+echo ---------------------
+echo Installation beendet.
+echo ---------------------
 @pause
 
 popd

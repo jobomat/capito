@@ -11,17 +11,15 @@ class MockAssetProvider(AssetProvider):
     def __init__(self) -> None:
         self.assets = {}
         self.assets["bob"] = Asset("bob", "char")
-        self.assets["book"] = Asset("book", "prop")
-        self.assets["chair"] = Asset("chair", "prop")
-        self.assets["chair2"] = Asset("chair2", "prop")
-        self.assets["kitchen"] = Asset("kitchen", "set")
-        self.assets["livingroom"] = Asset("livingroom", "set")
-        self.assets["liz"] = Asset("liz", "char")
-        self.assets["pete"] = Asset("pete", "char")
         self.assets["table"] = Asset("table", "prop")
-        self.assets["table2"] = Asset("table2", "prop")
-        self.assets["vase"] = Asset("vase", "prop")
-        self.assets["vase2"] = Asset("vase2", "prop")
+        self.assets["chair"] = Asset("chair", "prop")
+        self.assets["bowl"] = Asset("bowl", "prop")
+        self.assets["spoon"] = Asset("spoon", "prop")
+        self.assets["kitchen"] = Asset("kitchen", "set")
+        self.assets["breakfast"] = Asset("breakfast", "sequ")
+        self.assets["shot001"] = Asset("shot001", "shot")
+        self.assets["shoe002"] = Asset("shot002", "shot")
+        self.assets["test"] = Asset("test", "omni")
 
     def get(self, name: str) -> Asset:
         """Returns  Asset by name"""

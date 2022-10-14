@@ -11,7 +11,8 @@
     "FRAMERATE": 24,
     "DEFAULT_STARTFRAME": 1001,
     "DEFAULT_ENDFRAME": 1120,
-    "GOOGLE_API_KEY_LOCATION": "",
-    "GOOGLE_SHEETS_NAME": "",
-    "TIMEZONE": "Europe/Berlin"
+    "TIMEZONE": "Europe/Berlin",
+    "ASSET_PROVIDER_TYPE": "Filesystem Based",
+    "GOOGLE_API_KEY_JSON": "",
+    "GOOGLE_SHEETS_NAME": ""
 }

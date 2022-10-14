@@ -13,7 +13,7 @@ from capito.core.asset.flows import FlowProvider
 from capito.core.asset.models import Asset, Step
 from capito.core.asset.providers.baseclass import AssetProvider
 from capito.core.asset.providers.exceptions import AssetExistsError
-from capito.core.asset.providers.filesystem import FilesystemAssetProvider
+from capito.core.asset.providers.FilesystemAssetProvider import FilesystemAssetProvider
 from capito.core.asset.utils import best_match, sanitize_asset_name
 from capito.core.ui.decorators import bind_to_host
 from capito.core.ui.widgets import HeadlineFont, QHLine, QSplitWidget, RichListItem

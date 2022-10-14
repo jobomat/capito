@@ -13,7 +13,7 @@ from capito.core.asset.flows import FlowProvider
 from capito.core.asset.models import Asset, Step, Version
 from capito.core.asset.providers.baseclass import AssetProvider
 from capito.core.asset.providers.exceptions import AssetExistsError
-from capito.core.asset.providers.filesystem import FilesystemAssetProvider
+from capito.core.asset.providers.FilesystemAssetProvider import FilesystemAssetProvider
 from capito.core.asset.utils import best_match, sanitize_asset_name
 from capito.core.ui.decorators import bind_to_host
 from capito.core.ui.widgets import HeadlineFont, QHLine, QSplitWidget, RichListItem
@@ -68,7 +68,7 @@ class VersionItemWidget(QWidget):
         icons_path = CONFIG.CAPITO_PROJECT_DIR
         if not icons_path:
             icons_path = CAPITO_ICONS_PATH
-        
+
         version_thumb = Path(version.absolute_path) / f"{version.file}.jpg"
         version_thumb = (
             str(version_thumb)
@@ -135,7 +135,7 @@ class VersionMenu(QWidget):
         hbox.addWidget(headline)
         hbox.addStretch()
         # add_version_menu(hbox, signals, host)
-        # 
+        #
         try:
             first_version_module = importlib.import_module(
                 f"capito.core.asset.host_modules.{host}_first_version"

@@ -18,8 +18,10 @@ from capito.core.asset.flows import FlowProvider
 from capito.core.asset.models import Asset
 from capito.core.asset.providers.baseclass import AssetProvider
 from capito.core.asset.providers.exceptions import AssetExistsError
-from capito.core.asset.providers.filesystem import FilesystemAssetProvider
-from capito.core.asset.providers.gsheets import GoogleSheetsAssetProvider
+from capito.core.asset.providers.FilesystemAssetProvider import FilesystemAssetProvider
+from capito.core.asset.providers.GoogleSheetsAssetProvider import (
+    GoogleSheetsAssetProvider,
+)
 from capito.core.asset.utils import best_match, sanitize_asset_name
 from capito.core.ui.decorators import bind_to_host
 from capito.core.ui.widgets import QHLine, QSplitWidget, RichListItem
@@ -35,12 +37,12 @@ CAPITO_ICONS_PATH = Path(CONFIG.CAPITO_BASE_DIR) / "resources" / "icons"
 class BrowseToolbar(QWidget):
     """The upper toolbar"""
 
-    def __init__(self, asset_provider, *args, **kwargs):
+    def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         hbox = QHBoxLayout()
         hbox.setContentsMargins(0, 0, 0, 0)
         create_button = QPushButton("Create Asset(s)")
-        create_button.clicked.connect(partial(CreateAssetsWindow, asset_provider))
+        create_button.clicked.connect(CreateAssetsWindow)
         hbox.addWidget(create_button)
         hbox.addStretch()
 
@@ -50,20 +52,17 @@ class BrowseToolbar(QWidget):
 class BrowseWidget(QWidget):
     """The top widget for the BROWSE tab."""
 
-    def __init__(self, host, *args, **kwargs):
-        super().__init__(*args, **kwargs)
+    def __init__(self, host: str):
+        super().__init__()
         self.host = host
-        self.asset_provider = GoogleSheetsAssetProvider(
-            FlowProvider(), CONFIG.GOOGLE_API_KEY_JSON, CONFIG.GOOGLE_SHEETS_NAME
-        )
 
         self._create_widgets()
         self._connect_widgets()
         self._create_ui()
 
     def _create_widgets(self):
-        self.browse_toolbar = BrowseToolbar(self.asset_provider)
-        self.asset_list = SearchableFilteredAssetList(self.asset_provider)
+        self.browse_toolbar = BrowseToolbar()
+        self.asset_list = SearchableFilteredAssetList()
         self.steps_widget = StepsWidget(self.host)
         self.version_widget = VersionWidget(self.host)
         self.details_widget = DetailsWidget(self.host)

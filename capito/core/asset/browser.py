@@ -1,19 +1,16 @@
 """The ui for Asset Browsing"""
+from capito.conf.config import CONFIG
 from capito.conf.setup import SetupUI, SetUserUI
 from capito.core.asset.browse_widgets import BrowseWidget
 from capito.core.asset.input_widgets import InputWidget
+from capito.core.asset.providers.provider_ui import SetAssetProviderUI
 from capito.core.asset.publish_widgets import PublishWidget
 from capito.core.pipe.ui import PipeManager
 from capito.core.ui.decorators import bind_to_host
 from PySide2 import QtCore  # pylint:disable=wrong-import-order
 from PySide2.QtGui import QColor, QFont, QIcon, Qt  # pylint:disable=wrong-import-order
-from PySide2.QtWidgets import (  # pylint:disable=wrong-import-order
-    QAction,
-    QMainWindow,
-    QMenu,
-    QMenuBar,
-    QTabWidget,
-)
+from PySide2.QtWidgets import QAction  # pylint:disable=wrong-import-order
+from PySide2.QtWidgets import QMainWindow, QMenu, QMenuBar, QTabWidget
 
 
 @bind_to_host
@@ -60,6 +57,7 @@ class AssetBrowser(QMainWindow):
         menu_bar.addMenu(project_menu)
         project_menu.addAction(self.set_create_action)
         project_menu.addAction(self.change_user_action)
+        project_menu.addAction(self.set_provider_action)
 
         tool_menu = QMenu("&Tools", self)
         menu_bar.addMenu(tool_menu)
@@ -68,11 +66,13 @@ class AssetBrowser(QMainWindow):
     def _create_actions(self):
         """Add actions for menus (and other controls) here."""
         self.set_create_action = QAction("&Set / Create Project...", self)
-        self.change_user_action = QAction("&Change User...", self)
+        self.change_user_action = QAction("&Change / Create User...", self)
         self.open_pipe_action = QAction("&Pipe Editor...", self)
+        self.set_provider_action = QAction("&Set Asset Info Provider...")
 
     def _connect_actions(self):
         """Connect actions to the function/class calls."""
         self.set_create_action.triggered.connect(SetupUI)
         self.change_user_action.triggered.connect(SetUserUI)
         self.open_pipe_action.triggered.connect(PipeManager)
+        self.set_provider_action.triggered.connect(SetAssetProviderUI)

@@ -3,7 +3,6 @@ import json
 from pathlib import Path
 
 from capito.conf.config import CONFIG
-from capito.core.asset.flows import FlowProvider
 from capito.core.asset.models import Asset
 from capito.core.asset.providers.baseclass import AssetProvider
 

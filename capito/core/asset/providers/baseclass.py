@@ -3,6 +3,7 @@ from abc import ABCMeta, abstractmethod
 from typing import TYPE_CHECKING, Dict, List, Tuple
 
 import capito.core.event as capito_event
+from capito.conf.config import CONFIG
 from capito.core.asset.flows import FlowProvider
 from capito.core.asset.models import Asset
 from capito.core.asset.providers.exceptions import AssetExistsError
@@ -12,8 +13,7 @@ class AssetProvider(object, metaclass=ABCMeta):
     """The base class for Asset Providers."""
 
     @abstractmethod
-    def __init__(self, flow_provider: FlowProvider):
-        self.flow_provider = flow_provider
+    def __init__(self):
         self.assets = {}
 
     @abstractmethod
@@ -28,7 +28,7 @@ class AssetProvider(object, metaclass=ABCMeta):
     def reload(self) -> None:
         """Reloads the asset list."""
 
-    def asset_exists(self, name:str) -> bool:
+    def asset_exists(self, name: str) -> bool:
         if not self.assets.get(name):
             return True
         return False
@@ -41,10 +41,10 @@ class AssetProvider(object, metaclass=ABCMeta):
         """Create a new asset and add it to providers list."""
         if name in self.assets:
             raise AssetExistsError(f"Asset of name '{name}' already exists.")
-        if self.flow_provider is None:
+        if CONFIG.flow_provider is None:
             print("No FlowProvider abailible in AssetProvider.")
             return
-        flow = self.flow_provider.flows.get(kind)
+        flow = CONFIG.flow_provider.flows.get(kind)
         if flow is None:
             print(
                 f"Flow for '{flow}' not availible in FlowProvider (in AssetProvider)."
@@ -58,11 +58,13 @@ class AssetProvider(object, metaclass=ABCMeta):
         capito_event.post("asset_created")
         return asset
 
-    def create_assets(self, asset_tuples: List[Tuple[str, str]]) -> List[Tuple[str, Asset]]:
+    def create_assets(
+        self, asset_tuples: List[Tuple[str, str]]
+    ) -> List[Tuple[str, Asset]]:
         """For bulk creation. Overwrite this, if it's better to
         treat bulk creation differently. Otherwise it will just
         default to multiple calls of self.create_asset.
-        
+
         PLEASE MIND:
         If this method is overridden and doesn't call self.create_asset:
         For each created Asset you HAVE TO POST THE EVENT:

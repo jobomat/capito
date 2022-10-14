@@ -39,11 +39,10 @@ CAPITO_ICONS_PATH = Path(CONFIG.CAPITO_BASE_DIR) / "resources" / "icons"
 class CreateAssetsWindow(QMainWindow):
     """Window for Asset Creation"""
 
-    def __init__(self, asset_provider: AssetProvider, host: str = None, parent=None):
+    def __init__(self, host: str = None, parent=None):
         super().__init__(parent)
         self.host = host
-        self.asset_provider = asset_provider
-        self.kinds = asset_provider.flow_provider.kinds
+        self.kinds = CONFIG.flow_provider.kinds
         self.setWindowTitle("Create Assets")
         self._create_widgets()
         self._create_ui()
@@ -92,14 +91,14 @@ class CreateAssetsWindow(QMainWindow):
             name = sanitize_asset_name(name)
             kind = default_kind if not kind else kind[0].strip()
             kind = best_match(kind, self.kinds)
-            if self.asset_provider.asset_exists(name):
+            if CONFIG.asset_provider.asset_exists(name):
                 assets_to_create.append((name, kind))
             else:
                 updated_text_list.append(f"{name},{kind}")
                 already_existing_names.append(name)
         self.asset_lineedit.setText("\n".join(updated_text_list))
         if assets_to_create:
-            self.asset_provider.create_assets(assets_to_create)
+            CONFIG.asset_provider.create_assets(assets_to_create)
         # capito_event.post("asset_created")
         if updated_text_list:
             msg = QMessageBox()
@@ -147,20 +146,19 @@ class AssetItemWidget(QWidget):
 class AssetList(QListWidget):
     """Asset list widget with thumb and asset name."""
 
-    def __init__(self, asset_provider: AssetProvider, *args, **kwargs):
+    def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.setEditTriggers(QListWidget.EditKeyPressed)
-        self.asset_provider = asset_provider
         self.search_text = ""
         self.kind_filters = []
-        for asset in asset_provider.list():
+        for asset in CONFIG.asset_provider.list():
             self.add_item(asset)
         capito_event.subscribe("asset_created", self.refresh)
 
     def add_item(self, asset: Asset):
         """Add a RichListItem without hazzle."""
         self.addItem(
-            RichListItem(AssetItemWidget(self.asset_provider.get(asset)), self)
+            RichListItem(AssetItemWidget(CONFIG.asset_provider.get(asset)), self)
         )
 
     def update_list(self):
@@ -191,7 +189,7 @@ class AssetList(QListWidget):
     def refresh(self):
         """Rebuild the whole list."""
         self.clear()
-        for asset in self.asset_provider.list():
+        for asset in CONFIG.asset_provider.list():
             self.add_item(asset)
 
     def select_by_name(self, name: str):
@@ -246,17 +244,16 @@ class AssetKindFilters(QWidget):
 class SearchableFilteredAssetList(QWidget):
     """Widget with search field and (filtered) asset list."""
 
-    def __init__(self, asset_provider: AssetProvider, *args, **kwargs):
+    def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.signals = Signals()
-        self.asset_provider = asset_provider
 
         vbox = QVBoxLayout()
         vbox.setContentsMargins(0, 5, 0, 0)
         search_line = QLineEdit()
-        self.asset_list = AssetList(self.asset_provider)
+        self.asset_list = AssetList()
         self.asset_list.itemSelectionChanged.connect(self._asset_selected)
-        kinds = self.asset_provider.flow_provider.kinds
+        kinds = CONFIG.flow_provider.kinds
         if kinds:
             asset_kind_filter = AssetKindFilters(kinds)
             asset_kind_filter.signals.filter_changed.connect(
@@ -280,7 +277,7 @@ class SearchableFilteredAssetList(QWidget):
         add_asset_button = QPushButton("Create Assets")
         add_asset_button.setMinimumWidth(80)
         add_asset_button.setMaximumWidth(80)
-        add_asset_button.clicked.connect(partial(CreateAssetsWindow, asset_provider))
+        add_asset_button.clicked.connect(CreateAssetsWindow)
         headline_hbox.addWidget(add_asset_button)
         vbox.addLayout(headline_hbox)
         vbox.addWidget(search_line)
@@ -288,6 +285,8 @@ class SearchableFilteredAssetList(QWidget):
             vbox.addWidget(asset_kind_filter)
         vbox.addWidget(self.asset_list)
         self.setLayout(vbox)
+
+        capito_event.subscribe("asset_list_changed", self.refresh)
 
     def _asset_selected(self):
         selected = self.asset_list.selectedItems()
@@ -305,7 +304,7 @@ class SearchableFilteredAssetList(QWidget):
         selected = self.asset_list.selectedItems()
         if selected:
             selected = selected[0].widget.asset.name
-        self.asset_provider.reload()
+        CONFIG.asset_provider.reload()
         self.refresh()
         if selected:
             self.asset_list.select_by_name(selected)

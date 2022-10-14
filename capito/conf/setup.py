@@ -2,6 +2,7 @@ import os
 from pathlib import Path
 
 from capito.conf.config import CONFIG
+from capito.core.asset.providers.provider_ui import SetAssetProviderUI
 from capito.core.env import set_os_env_var
 from capito.core.file.utils import copy_template, sanitize_name
 from capito.core.ui.decorators import bind_to_host
@@ -147,6 +148,7 @@ class SetUserUI(QMainWindow):
 
         set_os_env_var("CAPITO_USERNAME", username)
         CONFIG.load(get_user_conf(os.environ.get("CAPITO_USERNAME")), "capito_user")
+        SetAssetProviderUI()
         self.close()
 
 
