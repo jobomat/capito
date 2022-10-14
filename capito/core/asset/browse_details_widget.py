@@ -63,8 +63,9 @@ class DetailsWidget(QWidget):
         self._create_widgets()
         self._create_ui()
 
-    def update(self, asset: Asset, step: Step, version: Version = None):
-        self.asset_name.setText(asset.name)
+    def update(self, version: Version):
+        if version:
+            self.asset_name.setText(version.step.asset.name)
 
     def _create_widgets(self):
         self.asset_name = QLabel("")

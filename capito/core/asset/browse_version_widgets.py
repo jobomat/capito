@@ -61,6 +61,7 @@ class VersionItemWidget(QWidget):
         super().__init__()
         hbox = QHBoxLayout()
         hbox.setContentsMargins(5, 5, 5, 5)
+        self.version = version
 
         left_vbox = QVBoxLayout()
         version_label = QLabel(str(version))
@@ -116,6 +117,8 @@ class VersionList(QListWidget):
     def update(self, step: Step):
         """Update the list (called via signals)."""
         self.clear()
+        if not step:
+            return
         for vnum, version in reversed(list(step.versions.items())):
             self.add_item(version)
 
@@ -149,21 +152,27 @@ class VersionMenu(QWidget):
         self.setLayout(hbox)
 
     def update(self, step: Step):
+        if not step:
+            return
         self.step = step
         if hasattr(self, "first_version_button"):
             self.first_version_button.update(step)
 
 
 class VersionWidget(QWidget):
+    """Widget for listing Verions"""
+
     def __init__(self, host: str):
         super().__init__()
         self.host = host
+        self.signals = Signals()
         vbox = QVBoxLayout()
         vbox.setContentsMargins(0, 0, 0, 0)
 
         self.version_menu = VersionMenu(self.host)
         vbox.addWidget(self.version_menu)
         self.version_list = VersionList(self.host)
+        self.version_list.itemSelectionChanged.connect(self._selection_changed)
 
         self.version_menu.signals.version_added.connect(self.version_list.update)
         self.version_list.setStyleSheet(
@@ -177,8 +186,13 @@ class VersionWidget(QWidget):
 
         self.setLayout(vbox)
 
-    def update(self, asset: Asset, step: Step, version: Version = None):
+    def update(self, step: Step):
         """This method is called when the step list selection changes.
         It delegates the update call to the version_list."""
         self.version_list.update(step)
         self.version_menu.update(step)
+
+    def _selection_changed(self):
+        self.signals.version_selected.emit(
+            self.version_list.currentItem().widget.version
+        )

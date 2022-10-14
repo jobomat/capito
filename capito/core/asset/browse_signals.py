@@ -9,8 +9,9 @@ class Signals(QtCore.QObject):
 
     filter_changed = QtCore.Signal(str, bool)
     asset_selected = QtCore.Signal(Asset)
-    step_selected = QtCore.Signal(Asset, Step, Version)
+    step_selected = QtCore.Signal(Step)
     version_added = QtCore.Signal(Version)
+    version_selected = QtCore.Signal(Version)
 
     def __init__(self):
         super().__init__()

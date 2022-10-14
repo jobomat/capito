@@ -92,8 +92,9 @@ class StepItemWidget(QWidget):
 class StepList(QListWidget):
     """Step list widget."""
 
-    def __init__(self):
+    def __init__(self, parent):
         super().__init__()
+        self.parent = parent
         self.asset = None
         self.last_selected_step = None
 
@@ -110,6 +111,7 @@ class StepList(QListWidget):
         self.clear()
         self.asset = asset
 
+        self.parent.signals.step_selected.emit(None)
         for i, step in enumerate(asset.steps):
             self.add_item(step)
             if self.last_selected_step == step:
@@ -126,7 +128,7 @@ class StepsWidget(QWidget):
         vbox.setContentsMargins(0, 0, 0, 0)
 
         vbox.addWidget(StepMenu())
-        self.step_list = StepList()
+        self.step_list = StepList(self)
         self.step_list.itemSelectionChanged.connect(self._step_selected)
         vbox.addWidget(self.step_list)
 
@@ -143,4 +145,4 @@ class StepsWidget(QWidget):
             return
         step = selected[0].widget.step
         asset = self.step_list.asset
-        self.signals.step_selected.emit(asset, asset.steps[step], None)
+        self.signals.step_selected.emit(asset.steps[step])
