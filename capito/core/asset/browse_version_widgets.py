@@ -1,5 +1,5 @@
 """Module containing the Version related AssetBrowser widgets."""
-import importlib
+import imp
 import os
 from dataclasses import dataclass
 from functools import partial
@@ -10,6 +10,7 @@ import capito.core.event as capito_event
 from capito.conf.config import CONFIG
 from capito.core.asset.browse_signals import Signals
 from capito.core.asset.flows import FlowProvider
+from capito.core.asset.host_modules.version_menu import version_menu_factory
 from capito.core.asset.models import Asset, Step, Version
 from capito.core.asset.providers.baseclass import AssetProvider
 from capito.core.asset.providers.exceptions import AssetExistsError
@@ -109,6 +110,7 @@ class VersionList(QListWidget):
         super().__init__()
         self.setEditTriggers(QListWidget.EditKeyPressed)
         self.host = host
+        self.signals = Signals()
 
     def add_item(self, version: Version):
         """Add a RichListItem without hazzle."""
@@ -116,6 +118,7 @@ class VersionList(QListWidget):
 
     def update(self, step: Step):
         """Update the list (called via signals)."""
+        self.signals.step_selected.emit(step)
         self.clear()
         if not step:
             return
@@ -126,37 +129,27 @@ class VersionList(QListWidget):
 class VersionMenu(QWidget):
     """Menu bar for versions of a specific step."""
 
-    def __init__(self, host):
+    def __init__(self, parent):
         super().__init__()
+        self.parent = parent
         self.step = None
         self.signals = Signals()
         hbox = QHBoxLayout()
         hbox.setContentsMargins(0, 5, 0, 0)
         headline = QLabel("Versions")
-        # headline.setAlignment(Qt.AlignCenter)
         headline.setFont(HeadlineFont())
         hbox.addWidget(headline)
         hbox.addStretch()
-        # add_version_menu(hbox, signals, host)
-        #
-        try:
-            first_version_module = importlib.import_module(
-                f"capito.core.asset.host_modules.{host}_first_version"
-            )
-            self.first_version_button = first_version_module.FirstVersionButton(
-                self.signals.version_added
-            )
-            hbox.addWidget(self.first_version_button)
-        except:
-            print(f"No version handling for {host} implemented.")
+        host_specific_widget = version_menu_factory(self)
+        hbox.addWidget(host_specific_widget)
+
         self.setLayout(hbox)
 
     def update(self, step: Step):
         if not step:
             return
         self.step = step
-        if hasattr(self, "first_version_button"):
-            self.first_version_button.update(step)
+        self.signals.step_selected.emit(step)
 
 
 class VersionWidget(QWidget):
@@ -169,7 +162,7 @@ class VersionWidget(QWidget):
         vbox = QVBoxLayout()
         vbox.setContentsMargins(0, 0, 0, 0)
 
-        self.version_menu = VersionMenu(self.host)
+        self.version_menu = VersionMenu(self)
         vbox.addWidget(self.version_menu)
         self.version_list = VersionList(self.host)
         self.version_list.itemSelectionChanged.connect(self._selection_changed)
@@ -188,11 +181,11 @@ class VersionWidget(QWidget):
 
     def update(self, step: Step):
         """This method is called when the step list selection changes.
-        It delegates the update call to the version_list."""
+        It delegates the update call to the version_list and menu."""
         self.version_list.update(step)
         self.version_menu.update(step)
 
     def _selection_changed(self):
-        self.signals.version_selected.emit(
-            self.version_list.currentItem().widget.version
-        )
+        item = self.version_list.currentItem()
+        if item:
+            self.signals.version_selected.emit(item.widget.version)

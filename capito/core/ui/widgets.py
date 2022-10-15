@@ -1,31 +1,36 @@
 import re
+from ast import Call
+from ctypes.wintypes import WPARAM
 from pathlib import Path
-from typing import Tuple
+from typing import Callable, Tuple
 
+from capito.core.helpers import clamp, get_font_dict, get_font_file, hex_to_rgb_int
 from PySide2.QtCore import (
-    Signal,
-    QObject,
-    QPropertyAnimation,
     QAbstractAnimation,
     QEasingCurve,
+    QObject,
     QPoint,
-    QSize
+    QPropertyAnimation,
+    QSize,
+    Signal,
 )
 from PySide2.QtGui import (
-    Qt, 
     QColor,
-    QIntValidator,
     QFont,
     QFontDatabase,
     QFontInfo,
     QFontMetrics,
-    QTransform,
     QIcon,
+    QIntValidator,
+    Qt,
+    QTextCursor,
+    QTransform,
 )
 from PySide2.QtWidgets import (
     QColorDialog,
     QComboBox,
     QFileDialog,
+    QFrame,
     QGridLayout,
     QHBoxLayout,
     QLabel,
@@ -39,13 +44,11 @@ from PySide2.QtWidgets import (
     QSpinBox,
     QSplitter,
     QStyle,
-    QWidget,
-    QFrame,
     QTabBar,
-    QTextEdit
+    QTextEdit,
+    QVBoxLayout,
+    QWidget,
 )
-
-from capito.core.helpers import clamp, get_font_dict, get_font_file, hex_to_rgb_int
 
 
 class HeadlineFont(QFont):
@@ -92,8 +95,82 @@ class Signals(QObject):
     fontChosen = Signal(str)
     colorChosen = Signal(str)
     opacityChosen = Signal(float)
+    saveClicked = Signal(str)
+
     def __init__(self):
         super().__init__()
+
+
+class EditableTextWidget(QWidget):
+    """Widget to show a locked Text and an edit button.
+    If the edit button is pressed, the text will be editable.
+    If the save button is pressed, saveClicked(text) will be emitted."""
+
+    def __init__(self, text: str, callback: Callable = None):
+        super().__init__()
+        self.text = text
+        self.saveClicked = Signals().saveClicked
+        self._create_widgets()
+        self._connect_widgets()
+        self._create_layout()
+
+    def _create_widgets(self):
+        self.text_box = QTextEdit(self.text)
+        self.text_box.setDisabled(True)
+        self.cancel_btn = QPushButton("Cancel")
+        self.cancel_btn.setMinimumWidth(80)
+        self.cancel_btn.hide()
+        self.edit_btn = QPushButton("Edit")
+        self.edit_btn.setMinimumWidth(80)
+        self.save_btn = QPushButton("Save")
+        self.save_btn.setMinimumWidth(80)
+        self.save_btn.hide()
+
+    def _connect_widgets(self):
+        self.edit_btn.clicked.connect(self._switch_to_editmode)
+        self.cancel_btn.clicked.connect(self._cancel_editmode)
+        self.save_btn.clicked.connect(self._save_text)
+
+    def _create_layout(self):
+        vbox = QVBoxLayout()
+        vbox.setContentsMargins(0, 0, 0, 0)
+        vbox.addWidget(self.text_box)
+        hbox = QHBoxLayout()
+        hbox.setContentsMargins(0, 0, 0, 0)
+        hbox.addStretch()
+        hbox.addWidget(self.cancel_btn)
+        hbox.addWidget(self.edit_btn)
+        hbox.addWidget(self.save_btn)
+        vbox.addLayout(hbox)
+        self.setLayout(vbox)
+
+    def _switch_to_editmode(self):
+        self.text = self.text_box.toPlainText()
+        self.text_box.setDisabled(False)
+        self.cancel_btn.show()
+        self.edit_btn.hide()
+        self.save_btn.show()
+        self.text_box.setFocus()
+        self.text_box.moveCursor(QTextCursor.End)
+
+    def _cancel_editmode(self):
+        self.setText(self.text)
+        self.text_box.setDisabled(True)
+        self.cancel_btn.hide()
+        self.edit_btn.show()
+        self.save_btn.hide()
+
+    def _save_text(self):
+        self.text = self.text_box.toPlainText()
+        self.saveClicked.emit(self.text)
+        self.text_box.setDisabled(True)
+        self.cancel_btn.hide()
+        self.edit_btn.show()
+        self.save_btn.hide()
+
+    def setText(self, text: str):
+        """Set the text of text_box."""
+        self.text_box.setPlainText(text)
 
 
 class RichListItem(QListWidgetItem):
@@ -107,9 +184,16 @@ class RichListItem(QListWidgetItem):
 
 
 class QFileChooserButton(QWidget):
-    def __init__(self, start_file: Path=None, label_text: str="File: ",
-                 button_text: str="...", file_filter: str="JSON (*.json)",
-                 file_must_exist:bool = True, widths=(100, 0, 0), placeholder_text:str=""):
+    def __init__(
+        self,
+        start_file: Path = None,
+        label_text: str = "File: ",
+        button_text: str = "...",
+        file_filter: str = "JSON (*.json)",
+        file_must_exist: bool = True,
+        widths=(100, 0, 0),
+        placeholder_text: str = "",
+    ):
         super().__init__()
         self.file_must_exist = file_must_exist
         self.signals = Signals()
@@ -137,7 +221,7 @@ class QFileChooserButton(QWidget):
         hbox.addWidget(btn)
         hbox.setMargin(0)
         self.setLayout(hbox)
-    
+
     def open_dialog(self):
         if self.file_must_exist:
             filename = QFileDialog.getOpenFileName(
@@ -154,7 +238,15 @@ class QFileChooserButton(QWidget):
 
 
 class QIntSliderGroup(QWidget):
-    def __init__(self, label_text="Percent: ", min_value:int=0, max_value:int=100, value:int=None, widths=(0,50,0), max_width=None):
+    def __init__(
+        self,
+        label_text="Percent: ",
+        min_value: int = 0,
+        max_value: int = 100,
+        value: int = None,
+        widths=(0, 50, 0),
+        max_width=None,
+    ):
         super().__init__()
         if not value:
             value = int((max_value - min_value) / 2)
@@ -191,14 +283,14 @@ class QIntSliderGroup(QWidget):
 
         self.setLayout(hbox)
 
-    def setLineedit(self, val:int):
+    def setLineedit(self, val: int):
         self.lineedit.setText(str(val))
 
-    def setSlider(self, val:str):
+    def setSlider(self, val: str):
         val = 0 if not val else clamp(int(val), self.min_value, self.max_value)
         self.lineedit.setText(str(val))
         self.slider.setValue(val)
-    
+
     def get_value(self):
         return self.slider.value()
 
@@ -207,19 +299,23 @@ class QIntSliderGroup(QWidget):
 
 
 class QColorButtonWidget(QWidget):
-    def __init__(self, label="Color", min_width=30, max_width=30, hex_color=None, label_width=0):
+    def __init__(
+        self, label="Color", min_width=30, max_width=30, hex_color=None, label_width=0
+    ):
         super().__init__()
         if hex_color is None:
             hex_color = "#000000"
         self.color = QColor(*hex_to_rgb_int(hex_color))
-        self.setStyleSheet(f"QPushButton#fontcolorbutton {{background-color: {self.get_hex()};}}")
+        self.setStyleSheet(
+            f"QPushButton#fontcolorbutton {{background-color: {self.get_hex()};}}"
+        )
         hbox = QHBoxLayout()
         hbox.setMargin(0)
         if label:
             label_widget = QLabel(label)
             if not label_width:
                 label_width = label_widget.sizeHint().width()
-        
+
             label_widget.setMinimumWidth(label_widget.sizeHint().width())
             label_widget.setMaximumWidth(label_widget.sizeHint().width())
             hbox.addWidget(label_widget)
@@ -236,7 +332,9 @@ class QColorButtonWidget(QWidget):
 
     def select_color(self):
         self.color = QColorDialog.getColor()
-        self.setStyleSheet(f"QPushButton#fontcolorbutton {{background-color: {self.get_hex()};}}")
+        self.setStyleSheet(
+            f"QPushButton#fontcolorbutton {{background-color: {self.get_hex()};}}"
+        )
 
     def get_color(self):
         return self.color
@@ -246,7 +344,7 @@ class QColorButtonWidget(QWidget):
 
 
 class QFontTypeChooserWidget(QWidget):
-    def __init__(self, font_dir:Path=None, font_tuple:Tuple[str, str]=None):
+    def __init__(self, font_dir: Path = None, font_tuple: Tuple[str, str] = None):
         super().__init__()
         if font_tuple is None:
             font_tuple = ("NotoSansMono_Condensed", "Regular")
@@ -270,7 +368,7 @@ class QFontTypeChooserWidget(QWidget):
         self.font_combo.currentTextChanged.connect(self.font_combo_changed)
 
         self.setLayout(hbox)
-    
+
     def font_combo_changed(self, font):
         self.style_combo.clear()
         for style in self.font_dict[font]:
@@ -279,20 +377,31 @@ class QFontTypeChooserWidget(QWidget):
             self.style_combo.setCurrentText("Regular")
 
     def get_font_file(self) -> Path:
-        return get_font_file(self.font_dir, self.font_combo.currentText(), self.style_combo.currentText())
+        return get_font_file(
+            self.font_dir, self.font_combo.currentText(), self.style_combo.currentText()
+        )
 
     def get_font_tuple(self) -> Tuple[str, str]:
         return (self.font_combo.currentText(), self.style_combo.currentText())
 
 
 class QFfmpegFontChooser(QWidget):
-    def __init__(self, font_folder:Path, hex_color:str=None, opacity=100, font_tuple:Tuple[str, str]=None, size=18):
+    def __init__(
+        self,
+        font_folder: Path,
+        hex_color: str = None,
+        opacity=100,
+        font_tuple: Tuple[str, str] = None,
+        size=18,
+    ):
         super().__init__()
         hbox = QHBoxLayout()
         hbox.setMargin(0)
         self.font_color_button = QColorButtonWidget(hex_color=hex_color)
         hbox.addWidget(self.font_color_button)
-        self.fontopacity_slider = QIntSliderGroup(label_text="Opacity", widths=(50,30,100), max_width=200, value=opacity)
+        self.fontopacity_slider = QIntSliderGroup(
+            label_text="Opacity", widths=(50, 30, 100), max_width=200, value=opacity
+        )
         hbox.addWidget(self.fontopacity_slider)
         self.font_chooser = QFontTypeChooserWidget(font_folder, font_tuple)
         hbox.addWidget(self.font_chooser)
@@ -308,7 +417,7 @@ class QFfmpegFontChooser(QWidget):
 
     def get_color(self):
         return self.font_color_button.get_color()
-    
+
     def get_hex(self):
         return self.font_color_button.get_hex()
 
@@ -361,7 +470,7 @@ class LoadingProgressBar(QProgressBar):
     def __initUi(self):
         self.setValue(0)
         self.setTextVisible(False)
-        self.__animation = QPropertyAnimation(self, b'loading')
+        self.__animation = QPropertyAnimation(self, b"loading")
         self.__animation.setStartValue(self.minimum())
         self.__animation.setEndValue(self.maximum())
         self.__animation.valueChanged.connect(self.__loading)
@@ -381,16 +490,18 @@ class LoadingProgressBar(QProgressBar):
             self.__animation.start()
 
     def setAnimationType(self, type: str):
-        if type == 'fade':
-            self.setStyleSheet('''
+        if type == "fade":
+            self.setStyleSheet(
+                """
                 QProgressBar::chunk {
                     background-color: qlineargradient(x1:0, y1:0, x2:1, y2:0, stop:0 transparent, stop: 0.5 #CCCCCC, stop: 0.6 #CCCCCC, stop:1 transparent);
                 }
-            ''')
+            """
+            )
             self.__animation.setEasingCurve(QEasingCurve.Linear)
             self.__animation.setDuration(500)
-        elif type == 'dynamic':
-            self.setStyleSheet('')
+        elif type == "dynamic":
+            self.setStyleSheet("")
             self.__animation.setEasingCurve(QEasingCurve.InOutQuad)
             self.__animation.setDuration(1000)
 

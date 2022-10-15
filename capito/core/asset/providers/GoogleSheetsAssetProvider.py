@@ -1,12 +1,10 @@
-from typing import Dict, List, Tuple
+from typing import Any, Dict, List, Tuple, Union
 
 import capito.core.event as capito_event
-
-# from oauth2client.service_account import ServiceAccountCredentials
 import gspread
 from capito.conf.config import CONFIG
 from capito.core.asset.flows import FlowProvider
-from capito.core.asset.models import Asset
+from capito.core.asset.models import Asset, Step, Version
 from capito.core.asset.providers.baseclass import AssetProvider
 from capito.core.asset.providers.exceptions import AssetExistsError
 
@@ -22,8 +20,43 @@ class GoogleSheetsAssetProvider(AssetProvider):
         self.asset_sheet = CONFIG.google_connector.open(
             CONFIG.GOOGLE_SHEETS_NAME
         ).sheet1
+        self.keys = {
+            "asset": "A",
+            "kind": "B",
+            "step": "C",
+            "version": "D",
+            "comment": "E",
+            "status": "F",
+            "user": "G",
+            "timestamp": "H",
+            "publish": "I",
+            "extension": "J",
+            "uid": "K",
+        }
         self.assets = {}
+        capito_event.subscribe("version_created", self._add_version_row)
         self.reload()
+
+    def _add_version_row(self, version: Version):
+        self.asset_sheet.append_row(
+            (
+                version.asset.name,
+                None,
+                version.step.name,
+                version.version,
+                version.comment,
+                None,
+                version.user,
+                version.timestamp,
+                None,
+                version.extension,
+                f"uid_{version.asset.name}_{version.step.name}_{version.version}",
+            )
+        )
+        self.asset_sheet.update(
+            self._cell(self._infer_uid(version.step), "status"), "WIP"
+        )
+        self._sort_asset_sheet()
 
     def _sort_asset_sheet(self):
         # sort by asset, step, version
@@ -66,9 +99,11 @@ class GoogleSheetsAssetProvider(AssetProvider):
             )
 
     def get(self, name: str) -> Asset:
+        """Get a single asset by name."""
         return self.assets.get(name, None)
 
     def list(self) -> Dict[str, Asset]:
+        """Returns a dict of all Assets"""
         return self.assets
 
     def create_asset(self, name: str, kind: str):
@@ -81,12 +116,36 @@ class GoogleSheetsAssetProvider(AssetProvider):
 
         # create the first asset line (without steps etc.)
         self.asset_sheet.append_row(
-            (asset.name, asset.kind, 0, 0, None, None, None, None, None, None)
+            (
+                asset.name,
+                asset.kind,
+                0,
+                0,
+                None,
+                None,
+                None,
+                None,
+                None,
+                None,
+                f"uid_{asset.name}_0_0",
+            )
         )
         # create the first step rows (with version number 0)
         for step in asset.steps:
             self.asset_sheet.append_row(
-                (asset.name, None, step, 0, None, "NONE", None, None, None)
+                (
+                    asset.name,
+                    None,
+                    step,
+                    0,
+                    None,
+                    "NONE",
+                    None,
+                    None,
+                    None,
+                    None,
+                    f"uid_{asset.name}_{step}_0",
+                )
             )
 
         self.reload()
@@ -99,11 +158,59 @@ class GoogleSheetsAssetProvider(AssetProvider):
             if not asset:
                 continue
             rows.append(
-                [asset.name, asset.kind, 0, 0, None, None, None, None, None, None]
+                (
+                    asset.name,
+                    asset.kind,
+                    0,
+                    0,
+                    None,
+                    None,
+                    None,
+                    None,
+                    None,
+                    None,
+                    f"uid_{asset.name}_0_0",
+                )
             )
             for step in asset.steps:
                 rows.append(
-                    (asset.name, None, step, 0, None, step.status, None, None, None)
+                    (
+                        asset.name,
+                        None,
+                        step,
+                        0,
+                        None,
+                        step.status,
+                        None,
+                        None,
+                        None,
+                        None,
+                        f"uid_{asset.name}_{step}_0",
+                    )
                 )
-            capito_event.post("asset_created")
         self.asset_sheet.append_rows(rows)
+
+    def setattr(self, obj: Union[Asset, Step, Version], attr: str, value: Any):
+        """Update the given attribute with the given value
+        in asset, asset.step or asset.step.version"""
+        super().setattr(obj, attr, value)
+        self.asset_sheet.update(self._cell(self._infer_uid(obj), attr), value)
+
+    def _infer_uid(self, obj: Union[Asset, Step, Version]):
+        asset = None
+        step = "0"
+        version = 0
+        if isinstance(obj, Asset):
+            asset = obj.name
+        elif isinstance(obj, Step):
+            asset = obj.asset.name
+            step = str(obj)
+        elif isinstance(obj, Version):
+            asset = obj.asset.name
+            step = obj.step.name
+            version = obj.version
+        return f"uid_{asset}_{step}_{version}"
+
+    def _cell(self, uid, key):
+        uid_cell = self.asset_sheet.find(uid)
+        return f"{self.keys[key]}{uid_cell.row}"

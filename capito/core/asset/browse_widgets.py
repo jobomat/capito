@@ -74,6 +74,7 @@ class BrowseWidget(QWidget):
         )
         self.steps_widget.signals.step_selected.connect(self.version_widget.update)
         self.version_widget.signals.version_selected.connect(self.details_widget.update)
+        self.asset_list.signals.asset_selected.connect(self.details_widget.update)
 
     def _create_ui(self):
         vbox = QVBoxLayout()

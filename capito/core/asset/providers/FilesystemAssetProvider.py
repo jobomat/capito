@@ -40,11 +40,14 @@ class FilesystemAssetProvider(AssetProvider):
         self.add_asset(asset)
 
     def get(self, name: str):
+        """Get a single asset by name."""
         return self.assets[name]
 
     def list(self):
+        """Get the asset dictionary. {name: Asset}"""
         return self.assets
 
     def reload(self) -> None:
+        """Reload the whole dictionary."""
         self.assets = {}
         self._read_asset_dir()

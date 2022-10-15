@@ -1,11 +1,11 @@
 """Baseclass module for all AssetProviders."""
 from abc import ABCMeta, abstractmethod
-from typing import TYPE_CHECKING, Dict, List, Tuple
+from typing import TYPE_CHECKING, Any, Dict, List, Tuple, Union
 
 import capito.core.event as capito_event
 from capito.conf.config import CONFIG
 from capito.core.asset.flows import FlowProvider
-from capito.core.asset.models import Asset
+from capito.core.asset.models import Asset, Step, Version
 from capito.core.asset.providers.exceptions import AssetExistsError
 
 
@@ -29,11 +29,12 @@ class AssetProvider(object, metaclass=ABCMeta):
         """Reloads the asset list."""
 
     def asset_exists(self, name: str) -> bool:
+        """Retrurns if asset with name exists."""
         if not self.assets.get(name):
             return True
         return False
 
-    def add_asset(self, asset: Asset):
+    def _add_asset(self, asset: Asset):
         """Convenience for adding to the asset dict."""
         self.assets[asset.name] = asset
 
@@ -54,8 +55,7 @@ class AssetProvider(object, metaclass=ABCMeta):
         for step in flow.steps:
             asset.add_step(step)
         asset.create()
-        self.add_asset(asset)
-        capito_event.post("asset_created")
+        self._add_asset(asset)
         return asset
 
     def create_assets(
@@ -65,10 +65,6 @@ class AssetProvider(object, metaclass=ABCMeta):
         treat bulk creation differently. Otherwise it will just
         default to multiple calls of self.create_asset.
 
-        PLEASE MIND:
-        If this method is overridden and doesn't call self.create_asset:
-        For each created Asset you HAVE TO POST THE EVENT:
-        capito_event.post("asset_created")
         """
         assets = []
         for name, kind in asset_tuples:
@@ -78,3 +74,8 @@ class AssetProvider(object, metaclass=ABCMeta):
                 continue
             assets.append(asset)
         return assets
+
+    def setattr(self, obj: Union[Asset, Step, Version], attr: str, value: Any):
+        """Update the given attribute with the given value
+        in asset, asset.step or asset.step.version"""
+        setattr(obj, attr, value)

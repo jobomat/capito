@@ -187,7 +187,7 @@ class AssetList(QListWidget):
     def refresh(self):
         """Rebuild the whole list."""
         self.clear()
-        for asset in CONFIG.asset_provider.list():
+        for _, asset in CONFIG.asset_provider.list().items():
             self.add_item(asset)
 
     def select_by_name(self, name: str):

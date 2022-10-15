@@ -103,17 +103,10 @@ class StepList(QListWidget):
 
     def update(self, asset: Asset):
         """Update the step list to reflect the selected asset."""
-        selected = self.currentItem()
-        if selected:
-            self.last_selected_step = selected.widget.step
-
         self.clear()
-
-        self.parent.signals.step_selected.emit(None)
-        for i, step in enumerate(asset.steps):
-            self.add_item(asset.steps[step])
-            if self.last_selected_step == step:
-                self.setCurrentRow(i)
+        self.parent.signals.step_selected.emit(None)  # clear details widget
+        for _, step in asset.steps.items():
+            self.add_item(step)
 
 
 class StepsWidget(QWidget):

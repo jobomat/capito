@@ -15,7 +15,7 @@ from capito.core.asset.providers.exceptions import AssetExistsError
 from capito.core.asset.providers.FilesystemAssetProvider import FilesystemAssetProvider
 from capito.core.asset.utils import best_match, sanitize_asset_name
 from capito.core.ui.decorators import bind_to_host
-from capito.core.ui.widgets import HeadlineFont, QHLine, QSplitWidget, RichListItem
+from capito.core.ui.widgets import EditableTextWidget, HeadlineFont, QHLine
 from PySide2 import QtCore  # pylint:disable=wrong-import-order
 from PySide2.QtGui import QFont  # pylint:disable=wrong-import-order
 from PySide2.QtGui import QColor, QIcon, QPixmap, Qt
@@ -59,22 +59,10 @@ class DetailsWidget(QWidget):
     def __init__(self, host):
         super().__init__()
         self.host = host
-
+        self.version = None
         self._create_widgets()
+        self._connect_widgets()
         self._create_ui()
-
-    def update(self, version: Version):
-        """On selection change..."""
-        asset_name = ""
-        step = ""
-        kind = ""
-        if version:
-            asset_name = version.asset.name
-            step = version.step.name
-            kind = version.asset.kind
-        self.asset_name.setText(asset_name)
-        self.step.setText(step)
-        self.kind.setText(kind)
 
     def _create_widgets(self):
         self.asset_name = QLabel("")
@@ -82,6 +70,11 @@ class DetailsWidget(QWidget):
         self.kind = QLabel("")
         self.kind.setFont(HeadlineFont())
         self.step = QLabel("")
+        self.version_number = QLabel("")
+        self.comment = EditableTextWidget("")
+
+    def _connect_widgets(self):
+        self.comment.saveClicked.connect(self._save_comment)
 
     def _create_ui(self):
         vbox = QVBoxLayout()
@@ -100,6 +93,31 @@ class DetailsWidget(QWidget):
         vbox.addWidget(self.asset_name)
         vbox.addWidget(self.kind)
         vbox.addWidget(self.step)
+        vbox.addWidget(self.version_number)
+        vbox.addWidget(self.comment)
 
         vbox.addStretch()
         self.setLayout(vbox)
+
+    def _save_comment(self, text: str):
+        CONFIG.asset_provider.setattr(self.version, "comment", text)
+
+    def update(self, version: Version):
+        """On selection change..."""
+        self.version = version
+        asset_name = ""
+        step = ""
+        kind = ""
+        version_number = ""
+        comment = ""
+        if isinstance(version, Version):
+            asset_name = version.asset.name
+            step = version.step.name
+            kind = version.asset.kind
+            version_number = str(version)
+            comment = version.comment
+        self.asset_name.setText(asset_name)
+        self.step.setText(step)
+        self.kind.setText(kind)
+        self.version_number.setText(version_number)
+        self.comment.setText(comment)
