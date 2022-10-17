@@ -1,8 +1,9 @@
 """The widget for Asset Browsing"""
 from functools import partial
+from pathlib import Path
 
 import pymel.core as pc
-from capito.core.asset.host_modules.maya_utils import open_latest, save_version
+from capito.core.asset.host_modules.maya_utils import open, save_version
 from capito.core.asset.models import Asset, Step
 from PySide2 import QtCore  # pylint:disable=wrong-import-order
 from PySide2.QtGui import QFont  # pylint:disable=wrong-import-order
@@ -11,6 +12,7 @@ from PySide2.QtWidgets import (  # pylint:disable=wrong-import-order
     QHBoxLayout,
     QPushButton,
     QWidget,
+    QMessageBox
 )
 
 
@@ -54,7 +56,22 @@ class MayaVersionMenu(QWidget):
             self.save_first_version_btn.hide()
 
     def _open_latest(self):
-        open_latest(self.step)
+        latest_version = self.step.get_latest_version()
+        latest_filepath = Path(latest_version.filepath)
+        if not latest_filepath.exists():
+            msg = QMessageBox()
+            msg.setIcon(QMessageBox.Warning)
+            msg.setText("File not found.")
+            msg.setInformativeText(f"{latest_version.file}\n\nnot found locally.")
+            msg.setWindowTitle("Warning")
+            msg.setDetailedText(
+                f"The file {latest_version.file}\ndoes not exist in your local assets folder ({latest_version.relative_path}).\n\nMaybe you are getting your asset information from an online source (Google Sheets, REST-API) and your local file-base is not up to date.\n\nYou can fix this by organising the file\n{latest_filepath.name}\n(e.g. via Nextcloud)\nand placing it in the folder\n{latest_version.absolute_path}"
+            )
+            msg.setStandardButtons(QMessageBox.Ok)
+
+            confirm = msg.exec_()
+            return
+        open(str(latest_filepath))
 
     def _save_first_version(self):
         self.step.new_version("ma", "First Version")

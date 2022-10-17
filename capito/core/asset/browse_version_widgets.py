@@ -60,48 +60,60 @@ class VersionItemWidget(QWidget):
 
     def __init__(self, version: Version):
         super().__init__()
+        self.version = version
+        capito_event.subscribe("version_changed", self._update_version_item)
+        self.icons_path = CONFIG.CAPITO_PROJECT_DIR
+        if not self.icons_path:
+            self.icons_path = CAPITO_ICONS_PATH
+
+        self._create_widgets()
+        self._create_layout()
+        self._update_version_item(None)
+
+    def _create_widgets(self):
+        self.version_label = QLabel()
+        self.version_label.setFont(HeadlineFont(12))
+        self.date_label = QLabel()
+        self.user_label = QLabel()
+        self.comment_label = QLabel()
+        self.comment_label.setWordWrap(True)
+        self.thumb_label = QLabel()
+
+    def _create_layout(self):
         hbox = QHBoxLayout()
         hbox.setContentsMargins(5, 5, 5, 5)
-        self.version = version
-
         left_vbox = QVBoxLayout()
-        version_label = QLabel(str(version))
-        version_label.setFont(HeadlineFont(12))
-        icons_path = CONFIG.CAPITO_PROJECT_DIR
-        if not icons_path:
-            icons_path = CAPITO_ICONS_PATH
+        left_vbox.addWidget(self.version_label)
+        left_vbox.addWidget(self.thumb_label)
+        hbox.addLayout(left_vbox)
+        right_vbox = QVBoxLayout()
+        date_user_hbox = QHBoxLayout()
+        date_user_hbox.addWidget(self.date_label)
+        date_user_hbox.addStretch()
+        date_user_hbox.addWidget(self.user_label)
+        right_vbox.addLayout(date_user_hbox)
+        right_vbox.addStretch()
+        right_vbox.addWidget(self.comment_label)
+        hbox.addLayout(right_vbox)
+        self.setLayout(hbox)
 
-        version_thumb = Path(version.absolute_path) / f"{version.file}.jpg"
+    def _update_version_item(self, *args):
+        self.version_label.setText(str(self.version))
+        self.date_label.setText(self.version.date)
+        self.user_label.setText(self.version.user)
+        self.comment_label.setText(self.version.comment)
+        self.thumb_label.setPixmap(self._get_thumb_pixmap())
+
+    def _get_thumb_pixmap(self):
+        version_thumb = Path(f"{self.version.filepath}.jpg")
         version_thumb = (
             str(version_thumb)
             if version_thumb.exists()
-            else str(Path(icons_path) / "flows" / "kinds" / f"{version.asset.kind}.svg")
+            else str(Path(self.icons_path) / "flows" / "kinds" / f"{self.version.asset.kind}.svg")
         )
-        thumb_pixmap = QPixmap(version_thumb).scaled(
+        return QPixmap(version_thumb).scaled(
             80, 80, Qt.KeepAspectRatio, Qt.SmoothTransformation
         )
-        thumb_label = QLabel()
-        thumb_label.setPixmap(thumb_pixmap)
-        left_vbox.addWidget(version_label)
-        left_vbox.addWidget(thumb_label)
-        hbox.addLayout(left_vbox)
-
-        right_vbox = QVBoxLayout()
-        date_user_hbox = QHBoxLayout()
-        date_label = QLabel(version.date)
-        user_label = QLabel(version.user)
-        date_user_hbox.addWidget(date_label)
-        date_user_hbox.addStretch()
-        date_user_hbox.addWidget(user_label)
-        right_vbox.addLayout(date_user_hbox)
-        comment_label = QLabel(version.comment)
-        comment_label.setWordWrap(True)
-        right_vbox.addStretch()
-        right_vbox.addWidget(comment_label)
-        hbox.addLayout(right_vbox)
-
-        self.setLayout(hbox)
-
 
 class VersionList(QListWidget):
     """Version list widget with thumb and asset name."""
@@ -119,6 +131,7 @@ class VersionList(QListWidget):
     def update(self, step: Step):
         """Update the list (called via signals)."""
         self.signals.step_selected.emit(step)
+        capito_event.unsubscribe_by_name("version_changed", "_update_version_item")
         self.clear()
         if not step:
             return

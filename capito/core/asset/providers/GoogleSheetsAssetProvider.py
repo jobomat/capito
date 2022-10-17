@@ -34,6 +34,7 @@ class GoogleSheetsAssetProvider(AssetProvider):
             "uid": "K",
         }
         self.assets = {}
+        capito_event.unsubscribe_by_qualname("version_created", "GoogleSheetsAssetProvider._add_version_row")
         capito_event.subscribe("version_created", self._add_version_row)
         self.reload()
 

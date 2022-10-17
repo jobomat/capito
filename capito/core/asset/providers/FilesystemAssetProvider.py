@@ -37,7 +37,7 @@ class FilesystemAssetProvider(AssetProvider):
             version_folder = Path(step.absolute_path) / "versions"
             for version in version_folder.glob("*.json"):
                 step.add_version_from_json_file(version)
-        self.add_asset(asset)
+        self._add_asset(asset)
 
     def get(self, name: str):
         """Get a single asset by name."""

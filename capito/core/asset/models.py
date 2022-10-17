@@ -64,7 +64,7 @@ class Version:
     step: "Step"
     user: str
     extension: str
-    comment: str = None
+    _comment: str = None
     timestamp: float = None
     representations: Optional[Dict[str, Representation]] = field(default_factory=dict)
 
@@ -81,6 +81,7 @@ class Version:
             "timestamp": self.timestamp,
         }
         json_file = Path(self.absolute_path) / f"{self.file}.json"
+        json_file.parent.mkdir(parents=True, exist_ok=True)
         with json_file.open("w") as jfp:
             json.dump(content, jfp)
 
@@ -121,6 +122,16 @@ class Version:
     def date(self):
         """Human readable date property"""
         return self.get_date("%d.%m.%y - %H:%M")
+
+    @property
+    def comment(self):
+        return self._comment
+
+    @comment.setter
+    def comment(self, comment):
+        self._comment = comment
+        self.save_json()
+        capito_event.post("version_changed", self)
 
     @property
     def asset(self) -> "Asset":

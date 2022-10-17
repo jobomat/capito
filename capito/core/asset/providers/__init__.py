@@ -21,7 +21,7 @@ def change_asset_provider():
         CONFIG.asset_provider = PROVIDERS[CONFIG.ASSET_PROVIDER_TYPE]()
         capito_event.post("asset_list_changed")
 
-
+capito_event.unsubscribe_by_name("asset_provider_changed", "change_asset_provider")
 capito_event.subscribe("asset_provider_changed", change_asset_provider)
 
 change_asset_provider()

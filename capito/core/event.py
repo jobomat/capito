@@ -11,6 +11,24 @@ def unsubscribe(event_type: str, fn):
         if fn in subscribers[event_type]:
             subscribers[event_type].remove(fn)
 
+def unsubscribe_by_name(event_type: str, func_name: str):
+    if event_type in subscribers:
+        to_remove = []
+        for subscriber in subscribers[event_type]:
+            if subscriber.__name__ == func_name:
+                to_remove.append(subscriber)        
+        for func in to_remove:
+            subscribers[event_type].remove(func)
+
+def unsubscribe_by_qualname(event_type: str, qualname: str):
+    if event_type in subscribers:
+        to_remove = []
+        for subscriber in subscribers[event_type]:
+            if subscriber.__qualname__ == qualname:
+                to_remove.append(subscriber)        
+        for func in to_remove:
+            subscribers[event_type].remove(func)
+
 def post(event_type: str, *args, **kwargs):
     if not event_type in subscribers:
         return

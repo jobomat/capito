@@ -10,7 +10,8 @@ def version_menu_factory(parent):
             f"capito.core.asset.host_modules.{parent.parent.host}_version_menu"
         )
         return mod.MayaVersionMenu(parent)
-    except ImportError:
+    except ImportError as error:
+        print(error)
         widget = QWidget()
         widget.hide()
         return widget

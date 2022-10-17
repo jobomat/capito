@@ -74,7 +74,7 @@ class DetailsWidget(QWidget):
         self.comment = EditableTextWidget("")
 
     def _connect_widgets(self):
-        self.comment.saveClicked.connect(self._save_comment)
+        self.comment.signals.saveClicked.connect(self._save_comment)
 
     def _create_ui(self):
         vbox = QVBoxLayout()

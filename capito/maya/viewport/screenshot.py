@@ -22,13 +22,14 @@ class Screenshooter:
         kwargs_on_abort: dict = None,
         use_cam: pc.nodetypes.Transform = None,
         show_settings: bool = True,
+        settings: dict=None
     ):
         self.vp_width = viewport_size[0]
         self.vp_height = viewport_size[1]
         if resize is not None:
             self.img_width = resize[0]
             self.img_height = resize[1]
-        self.filepath = filepath
+        self.filepath = filepath if isinstance(filepath, Path) else Path(filepath)
         self.file_format = file_format
         self.cb_on_accept = callback_on_accept
         self.kwargs_on_accept = kwargs_on_accept or {}
@@ -44,6 +45,8 @@ class Screenshooter:
             self.cam.setRotation((-30, 45, 0))
         pc.select(sel)
         self.show_settings = show_settings
+        self.settings = self._get_std_settings() if settings is None else settings
+
         self.state_string = ""
         self.huds = HUDs()
 
@@ -53,7 +56,10 @@ class Screenshooter:
     def gui(self):
         """Build the window"""
         with pc.window(
-            w=self.vp_width, h=self.vp_height + 30, cc=pc.Callback(self.cleanup)
+            title="Screenshooter",
+            w=self.vp_width, 
+            h=self.vp_height + 30,
+            cc=pc.Callback(self.cleanup)
         ) as self.win:
             with pc.formLayout() as form_layout:
                 self.viewport = pc.modelEditor(camera=self.cam)
@@ -78,15 +84,26 @@ class Screenshooter:
     def setup_viewport(self):
         """Function called before showing gui to set specific viewport options."""
         self.state_string = self.viewport.getStateString()
-        self.viewport.setLineWidth(5)
-        self.viewport.setWireframeOnShaded(1)
-        self.viewport.setGrid(0)
+        for setting, value in self.settings.items():
+            getattr(self.viewport, setting)(value)
 
         self.huds.hide_all()
 
         pc.SCENE.hardwareRenderingGlobals.multiSampleEnable.set(1)
 
         pc.rendering.viewFit(self.cam_shape, all=True)
+
+    def _get_std_settings(self):
+        return {
+            "setLineWidth": 2,
+            "setWireframeOnShaded": 0,
+            "setDisplayTextures": 1,
+            "setGrid": 0,
+            "setDisplayAppearance": "smoothShaded"
+        }
+
+    def _list_viewport_settings(self):
+        print("\n".join(dir(type(self.viewport))))
 
     def reset_viewport(self):
         """Perform the opposite actions of 'setup_viewport' to reset the viewport."""
@@ -126,4 +143,4 @@ class Screenshooter:
         pc.deleteUI(self.win)
 
 
-Screenshooter(show_settings=False)
+# Screenshooter(show_settings=False)

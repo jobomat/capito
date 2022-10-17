@@ -109,7 +109,7 @@ class EditableTextWidget(QWidget):
     def __init__(self, text: str, callback: Callable = None):
         super().__init__()
         self.text = text
-        self.saveClicked = Signals().saveClicked
+        self.signals = Signals()
         self._create_widgets()
         self._connect_widgets()
         self._create_layout()
@@ -162,7 +162,7 @@ class EditableTextWidget(QWidget):
 
     def _save_text(self):
         self.text = self.text_box.toPlainText()
-        self.saveClicked.emit(self.text)
+        self.signals.saveClicked.emit(self.text)
         self.text_box.setDisabled(True)
         self.cancel_btn.hide()
         self.edit_btn.show()
