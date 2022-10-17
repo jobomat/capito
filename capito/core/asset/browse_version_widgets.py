@@ -61,7 +61,6 @@ class VersionItemWidget(QWidget):
     def __init__(self, version: Version):
         super().__init__()
         self.version = version
-        capito_event.subscribe("version_changed", self._update_version_item)
         self.icons_path = CONFIG.CAPITO_PROJECT_DIR
         if not self.icons_path:
             self.icons_path = CAPITO_ICONS_PATH
@@ -109,11 +108,17 @@ class VersionItemWidget(QWidget):
         version_thumb = (
             str(version_thumb)
             if version_thumb.exists()
-            else str(Path(self.icons_path) / "flows" / "kinds" / f"{self.version.asset.kind}.svg")
+            else str(
+                Path(self.icons_path)
+                / "flows"
+                / "kinds"
+                / f"{self.version.asset.kind}.svg"
+            )
         )
         return QPixmap(version_thumb).scaled(
             80, 80, Qt.KeepAspectRatio, Qt.SmoothTransformation
         )
+
 
 class VersionList(QListWidget):
     """Version list widget with thumb and asset name."""
@@ -131,12 +136,27 @@ class VersionList(QListWidget):
     def update(self, step: Step):
         """Update the list (called via signals)."""
         self.signals.step_selected.emit(step)
-        capito_event.unsubscribe_by_name("version_changed", "_update_version_item")
         self.clear()
         if not step:
             return
         for _, version in reversed(list(step.versions.items())):
             self.add_item(version)
+
+    def _get_version_widget(
+        self, version: Version
+    ) -> VersionItemWidget:  # pylint: disable=invalid-name
+        """Helper method to get the widget containing the version item."""
+        for item in self._iterAllItems():
+            if version == item.widget.version:
+                return item.widget
+
+    def _iterAllItems(self) -> RichListItem:  # pylint: disable=invalid-name
+        for i in range(self.count()):
+            yield self.item(i)
+
+    def _update_version_widget(self, version: Version):
+        widget = self._get_version_widget(version)
+        widget._update_version_item()
 
 
 class VersionMenu(QWidget):
@@ -189,8 +209,10 @@ class VersionWidget(QWidget):
             """
         )
         vbox.addWidget(self.version_list)
-
         self.setLayout(vbox)
+        capito_event.subscribe(
+            "version_changed", self.version_list._update_version_widget
+        )
 
     def update(self, step: Step):
         """This method is called when the step list selection changes.

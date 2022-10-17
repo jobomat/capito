@@ -10,13 +10,15 @@ from PySide2.QtGui import QFont  # pylint:disable=wrong-import-order
 from PySide2.QtGui import QColor, QIcon, QPixmap, Qt
 from PySide2.QtWidgets import (  # pylint:disable=wrong-import-order
     QHBoxLayout,
+    QMessageBox,
     QPushButton,
     QWidget,
-    QMessageBox
 )
 
 
 class MayaVersionMenu(QWidget):
+    """Maya specific ui"""
+
     def __init__(self, parent) -> None:
         super().__init__()
         self.parent = parent
@@ -68,9 +70,17 @@ class MayaVersionMenu(QWidget):
                 f"The file {latest_version.file}\ndoes not exist in your local assets folder ({latest_version.relative_path}).\n\nMaybe you are getting your asset information from an online source (Google Sheets, REST-API) and your local file-base is not up to date.\n\nYou can fix this by organising the file\n{latest_filepath.name}\n(e.g. via Nextcloud)\nand placing it in the folder\n{latest_version.absolute_path}"
             )
             msg.setStandardButtons(QMessageBox.Ok)
-
-            confirm = msg.exec_()
             return
+        if pc.isModified():
+            msg = QMessageBox()
+            msg.setIcon(QMessageBox.Warning)
+            msg.setText("The current file has unsaved changes.")
+            msg.setInformativeText("Open anyway?")
+            msg.setWindowTitle("Warning")
+            msg.setStandardButtons(QMessageBox.Ok | QMessageBox.Cancel)
+            confirm = msg.exec_()
+            if confirm != 1024:
+                return
         open(str(latest_filepath))
 
     def _save_first_version(self):

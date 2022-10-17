@@ -1,7 +1,7 @@
 """The ui for Asset Browsing"""
-from capito.conf.config import CONFIG
-import capito.core.event as capito_event
 import capito.core.asset.providers
+import capito.core.event as capito_event
+from capito.conf.config import CONFIG
 from capito.conf.setup import SetupUI, SetUserUI
 from capito.core.asset.browse_widgets import BrowseWidget
 from capito.core.asset.input_widgets import InputWidget
@@ -79,7 +79,13 @@ class AssetBrowser(QMainWindow):
         self.open_pipe_action.triggered.connect(PipeManager)
         self.set_provider_action.triggered.connect(SetAssetProviderUI)
 
-    def closeEvent(self,event):
+    def closeEvent(self, event):
+        """cleanup the capito_event subscriptions."""
         capito_event.unsubscribe_by_qualname("asset_created", "AssetList.refresh")
-        capito_event.unsubscribe_by_qualname("asset_list_changed", "SearchableFilteredAssetList.refresh")
+        capito_event.unsubscribe_by_qualname(
+            "asset_list_changed", "SearchableFilteredAssetList.refresh"
+        )
+        capito_event.unsubscribe_by_qualname(
+            "version_changed", "VersionList._update_version_widget"
+        )
         event.accept()
