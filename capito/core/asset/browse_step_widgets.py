@@ -92,9 +92,9 @@ class StepItemWidget(QWidget):
 class StepList(QListWidget):
     """Step list widget."""
 
-    def __init__(self, parent):
+    def __init__(self, parent_widget:QWidget):
         super().__init__()
-        self.parent = parent
+        self.parent_widget = parent_widget
         self.last_selected_step = None
 
     def add_item(self, step: Step):
@@ -104,16 +104,32 @@ class StepList(QListWidget):
     def update(self, asset: Asset):
         """Update the step list to reflect the selected asset."""
         self.clear()
-        self.parent.signals.step_selected.emit(None)  # clear details widget
+        self.parent_widget.signals.step_selected.emit(None)  # clear details widget
         for _, step in asset.steps.items():
             self.add_item(step)
+    
+    def select_by_name(self, name: str):
+        """Select a list item by step name."""
+        index = self._getIndex(name)
+        self.setCurrentRow(index)
+
+    def _iterAllItems(self) -> RichListItem:  # pylint: disable=invalid-name
+        for i in range(self.count()):
+            yield self.item(i)
+
+    def _getIndex(self, wanted_item: str) -> int:  # pylint: disable=invalid-name
+        """Helper method to get the index of a specific item."""
+        for i, item in enumerate(self._iterAllItems()):
+            if wanted_item == item.widget.step.name:
+                return i
 
 
 class StepsWidget(QWidget):
     """Menu and List concerning steps."""
 
-    def __init__(self, host: str):
+    def __init__(self, parent_widget: QWidget):
         super().__init__()
+        self.parent_widget = parent_widget
         self.signals = Signals()
         vbox = QVBoxLayout()
         vbox.setContentsMargins(0, 0, 0, 0)
@@ -136,3 +152,6 @@ class StepsWidget(QWidget):
             return
         step = selected[0].widget.step
         self.signals.step_selected.emit(step)
+
+    def select_by_name(self, asset_name:str, step:str, version:str):
+        self.step_list.select_by_name(step)

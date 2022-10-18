@@ -35,5 +35,5 @@ class InputWidget(QWidget):
         super().__init__(*args, **kwargs)
 
         layout = QVBoxLayout()
-        layout.addWidget(QPushButton("IN"))
+        layout.addWidget(QLabel("IN"))
         self.setLayout(layout)

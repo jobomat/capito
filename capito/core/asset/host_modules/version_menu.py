@@ -4,14 +4,24 @@ import importlib
 from PySide2.QtWidgets import QWidget
 
 
-def version_menu_factory(parent):
+def version_menu_factory(parent_widget):
     try:
         mod = importlib.import_module(
-            f"capito.core.asset.host_modules.{parent.parent.host}_version_menu"
+            f"capito.core.asset.host_modules.{parent_widget.parent_widget.host}_version_menu"
         )
-        return mod.MayaVersionMenu(parent)
+        return mod.VersionMenu(parent_widget)
     except ImportError as error:
         print(error)
         widget = QWidget()
         widget.hide()
         return widget
+
+
+def version_context_actions_factory(parent_widget):
+    try:
+        mod = importlib.import_module(
+            f"capito.core.asset.host_modules.{parent_widget.parent_widget.host}_version_context_actions"
+        )
+        return mod.version_context_actions(parent_widget)
+    except ImportError as error:
+        return []

@@ -117,6 +117,11 @@ class EditableTextWidget(QWidget):
     def _create_widgets(self):
         self.text_box = QTextEdit(self.text)
         self.text_box.setDisabled(True)
+        self.text_box.setStyleSheet(
+            """
+            QTextEdit:disabled {background-color:#000000;color:#cccccc;}
+            """
+        )
         self.cancel_btn = QPushButton("Cancel")
         self.cancel_btn.setMinimumWidth(80)
         self.cancel_btn.hide()

@@ -185,7 +185,10 @@ class Step:
         """Use next available version number."""
         user = user or os.environ.get("CAPITO_USERNAME")
         self.add_version(self.get_latest_version_number() + 1, user, extension, comment)
-        capito_event.post("version_created", self.get_latest_version())
+        version = self.get_latest_version()
+        if not Path(version.absolute_path).exists():
+            self.create()
+        capito_event.post("version_created", version)
 
     def get_latest_version(self):
         """Get latest Version Instance of this Asset.step"""

@@ -63,9 +63,9 @@ class BrowseWidget(QWidget):
     def _create_widgets(self):
         self.browse_toolbar = BrowseToolbar()
         self.asset_list = SearchableFilteredAssetList()
-        self.steps_widget = StepsWidget(self.host)
-        self.version_widget = VersionWidget(self.host)
-        self.details_widget = DetailsWidget(self.host)
+        self.steps_widget = StepsWidget(self)
+        self.version_widget = VersionWidget(self)
+        self.details_widget = DetailsWidget(self)
 
     def _connect_widgets(self):
         self.asset_list.signals.asset_selected.connect(self.steps_widget.update)
@@ -75,6 +75,10 @@ class BrowseWidget(QWidget):
         self.steps_widget.signals.step_selected.connect(self.version_widget.update)
         self.version_widget.signals.version_selected.connect(self.details_widget.update)
         self.asset_list.signals.asset_selected.connect(self.details_widget.update)
+        #reveal:
+        self.details_widget.signals.reveal_clicked.connect(self.asset_list.select_by_name)
+        self.details_widget.signals.reveal_clicked.connect(self.steps_widget.select_by_name)
+        self.details_widget.signals.reveal_clicked.connect(self.version_widget.select_by_name)
 
     def _create_ui(self):
         vbox = QVBoxLayout()

@@ -10,7 +10,7 @@ import capito.core.event as capito_event
 from capito.conf.config import CONFIG
 from capito.core.asset.browse_signals import Signals
 from capito.core.asset.flows import FlowProvider
-from capito.core.asset.host_modules.version_menu import version_menu_factory
+from capito.core.asset.host_modules.version_menu import version_menu_factory, version_context_actions_factory
 from capito.core.asset.models import Asset, Step, Version
 from capito.core.asset.providers.baseclass import AssetProvider
 from capito.core.asset.providers.exceptions import AssetExistsError
@@ -19,8 +19,7 @@ from capito.core.asset.utils import best_match, sanitize_asset_name
 from capito.core.ui.decorators import bind_to_host
 from capito.core.ui.widgets import HeadlineFont, QHLine, QSplitWidget, RichListItem
 from PySide2 import QtCore  # pylint:disable=wrong-import-order
-from PySide2.QtGui import QFont  # pylint:disable=wrong-import-order
-from PySide2.QtGui import QColor, QIcon, QPixmap, Qt
+from PySide2.QtGui import QColor, QIcon, QPixmap, Qt, QCursor # pylint:disable=wrong-import-order
 from PySide2.QtWidgets import (  # pylint:disable=wrong-import-order
     QAbstractItemView,
     QAction,
@@ -58,9 +57,10 @@ CAPITO_ICONS_PATH = Path(CONFIG.CAPITO_BASE_DIR) / "resources" / "icons"
 class VersionItemWidget(QWidget):
     """Presentation Widget for a single Item in the Version List."""
 
-    def __init__(self, version: Version):
+    def __init__(self, version: Version, parent_widget: QWidget):
         super().__init__()
         self.version = version
+        self.parent_widget = parent_widget
         self.icons_path = CONFIG.CAPITO_PROJECT_DIR
         if not self.icons_path:
             self.icons_path = CAPITO_ICONS_PATH
@@ -68,6 +68,11 @@ class VersionItemWidget(QWidget):
         self._create_widgets()
         self._create_layout()
         self._update_version_item(None)
+
+        self.setContextMenuPolicy(Qt.CustomContextMenu)
+        self.customContextMenuRequested.connect(
+            partial(self._context_menu, self.version)
+        )
 
     def _create_widgets(self):
         self.version_label = QLabel()
@@ -103,6 +108,17 @@ class VersionItemWidget(QWidget):
         self.comment_label.setText(self.version.comment)
         self.thumb_label.setPixmap(self._get_thumb_pixmap())
 
+    def _context_menu(self, version:Version, point: QtCore.QPoint):
+        menu = QMenu(self)
+
+        for action in version_context_actions_factory(self):
+            menu.addAction(action)
+
+        menu.exec_(QCursor.pos())
+
+    def _test(self, version:Version):
+        print(version.comment)
+
     def _get_thumb_pixmap(self):
         version_thumb = Path(f"{self.version.filepath}.jpg")
         version_thumb = (
@@ -123,15 +139,16 @@ class VersionItemWidget(QWidget):
 class VersionList(QListWidget):
     """Version list widget with thumb and asset name."""
 
-    def __init__(self, host: str):
+    def __init__(self, parent_widget: QWidget):
         super().__init__()
         self.setEditTriggers(QListWidget.EditKeyPressed)
-        self.host = host
+        self.parent_widget = parent_widget
+        self.host = self.parent_widget.host
         self.signals = Signals()
 
     def add_item(self, version: Version):
         """Add a RichListItem without hazzle."""
-        self.addItem(RichListItem(VersionItemWidget(version), self))
+        self.addItem(RichListItem(VersionItemWidget(version, self), self))
 
     def update(self, step: Step):
         """Update the list (called via signals)."""
@@ -141,6 +158,11 @@ class VersionList(QListWidget):
             return
         for _, version in reversed(list(step.versions.items())):
             self.add_item(version)
+
+    def select_by_name(self, number_name: str):
+        """Select a list item by version number."""
+        index = self._getIndex(number_name)
+        self.setCurrentRow(index)
 
     def _get_version_widget(
         self, version: Version
@@ -154,6 +176,12 @@ class VersionList(QListWidget):
         for i in range(self.count()):
             yield self.item(i)
 
+    def _getIndex(self, wanted_item: str) -> int:  # pylint: disable=invalid-name
+        """Helper method to get the index of a specific item."""
+        for i, item in enumerate(self._iterAllItems()):
+            if int(wanted_item) == item.widget.version.version:
+                return i
+
     def _update_version_widget(self, version: Version):
         widget = self._get_version_widget(version)
         widget._update_version_item()
@@ -162,9 +190,9 @@ class VersionList(QListWidget):
 class VersionMenu(QWidget):
     """Menu bar for versions of a specific step."""
 
-    def __init__(self, parent):
+    def __init__(self, parent_widget: QWidget):
         super().__init__()
-        self.parent = parent
+        self.parent_widget = parent_widget
         self.step = None
         self.signals = Signals()
         hbox = QHBoxLayout()
@@ -188,16 +216,17 @@ class VersionMenu(QWidget):
 class VersionWidget(QWidget):
     """Widget for listing Verions"""
 
-    def __init__(self, host: str):
+    def __init__(self, parent_widget: QWidget):
         super().__init__()
-        self.host = host
+        self.parent_widget = parent_widget
+        self.host = self.parent_widget.host
         self.signals = Signals()
         vbox = QVBoxLayout()
         vbox.setContentsMargins(0, 0, 0, 0)
 
         self.version_menu = VersionMenu(self)
         vbox.addWidget(self.version_menu)
-        self.version_list = VersionList(self.host)
+        self.version_list = VersionList(self)
         self.version_list.itemSelectionChanged.connect(self._selection_changed)
 
         self.version_menu.signals.version_added.connect(self.version_list.update)
@@ -224,3 +253,6 @@ class VersionWidget(QWidget):
         item = self.version_list.currentItem()
         if item:
             self.signals.version_selected.emit(item.widget.version)
+
+    def select_by_name(self, asset, step, version):
+        self.version_list.select_by_name(version)

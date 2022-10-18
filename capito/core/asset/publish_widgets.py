@@ -35,5 +35,5 @@ class PublishWidget(QWidget):
         super().__init__(*args, **kwargs)
 
         layout = QVBoxLayout()
-        layout.addWidget(QPushButton("OUT"))
+        layout.addWidget(QLabel("Publish"))
         self.setLayout(layout)

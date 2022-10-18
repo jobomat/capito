@@ -2,6 +2,7 @@
 from functools import partial
 from pathlib import Path
 from typing import List
+import shutil
 
 import capito.core.asset.ui_constants as ui_constants
 import capito.core.event as capito_event
@@ -13,18 +14,21 @@ from capito.core.asset.providers.exceptions import AssetExistsError
 from capito.core.asset.utils import best_match, sanitize_asset_name
 from capito.core.ui.decorators import bind_to_host
 from capito.core.ui.widgets import HeadlineFont, RichListItem
+
 from PySide2 import QtCore  # pylint:disable=wrong-import-order
-from PySide2.QtGui import QFont  # pylint:disable=wrong-import-order
-from PySide2.QtGui import QColor, QIcon, QPixmap, Qt
+from PySide2.QtGui import QColor, QIcon, QPixmap, Qt, QCursor, QFont  # pylint:disable=wrong-import-order
 from PySide2.QtWidgets import QCheckBox  # pylint:disable=wrong-import-order
 from PySide2.QtWidgets import (
+    QAction,
     QComboBox,
+    QFileDialog,
     QGridLayout,
     QHBoxLayout,
     QLabel,
     QLineEdit,
     QListWidget,
     QMainWindow,
+    QMenu,
     QMessageBox,
     QPushButton,
     QTextEdit,
@@ -116,32 +120,80 @@ class AssetItemWidget(QWidget):
     def __init__(self, asset: Asset, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.asset = asset
+        
+        self.icons_path = CONFIG.CAPITO_PROJECT_DIR
+        if not self.icons_path:
+            self.icons_path = CAPITO_ICONS_PATH
+        self.icons_path = Path(self.icons_path)
+
+        self.setContextMenuPolicy(Qt.CustomContextMenu)
+        self.customContextMenuRequested.connect(
+            partial(self._context_menu)
+        )
+
+        self._create_widgets()
+        self._create_layout()
+        self._update()
+
+    def _create_widgets(self):
+        self.asset_label = QLabel("") #self.asset.name)
+        self.asset_label.setFont(HeadlineFont())
+        self.thumb_label = QLabel()
+
+
+    def _create_layout(self):
         vbox = QVBoxLayout()
         vbox.setContentsMargins(5, 2, 0, 2)
-
         hbox = QHBoxLayout()
-        asset_label = QLabel(asset.name)
-        asset_label.setFont(HeadlineFont())
-        icons_path = CONFIG.CAPITO_PROJECT_DIR
-        if not icons_path:
-            icons_path = "."
-        thumb_svg = Path(icons_path) / "flows" / "kinds" / f"{self.asset.kind}.svg"
-        thumb_svg = (
-            thumb_svg
-            if thumb_svg.exists()
-            else CAPITO_ICONS_PATH / "default_kind_thumb.svg"
-        )
-        thumb_pixmap = QPixmap(str(thumb_svg)).scaled(
-            80, 80, Qt.KeepAspectRatio, Qt.SmoothTransformation
-        )
-        thumb_label = QLabel()
-        thumb_label.setPixmap(thumb_pixmap)
-        hbox.addWidget(asset_label)
+        hbox.addWidget(self.asset_label)
         hbox.addStretch()
-        hbox.addWidget(thumb_label)
+        hbox.addWidget(self.thumb_label)
         vbox.addLayout(hbox)
         self.setLayout(vbox)
 
+    def _get_thumb(self):
+        thumb_path =  self.icons_path / CONFIG.ASSETS_PATH / self.asset.name
+        thumb_file = thumb_path / f"{self.asset.name}.jpg"
+        # specific thumbnail for the asset
+        if thumb_file.exists():
+            return thumb_file
+        # thumbnail for the kind of asset 
+        thumb_file = self.icons_path / "flows" / "kinds" / f"{self.asset.kind}.svg"
+        if thumb_file.exists():
+            return thumb_file
+        # last resort: generic default thumb
+        return self.icons_path / "default_kind_thumb.svg"
+
+    def _get_thumb_pixmap(self):
+        return QPixmap(str(self._get_thumb())).scaled(
+            80, 80, Qt.KeepAspectRatio, Qt.SmoothTransformation
+        )
+
+    def _update(self):
+        self.asset_label.setText(self.asset.name)
+        self.thumb_label.setPixmap(self._get_thumb_pixmap())
+
+    def _context_menu(self, qpoint):
+        menu = QMenu(self)
+
+        define_thumb_action = QAction("Set Thumbnail...")
+        define_thumb_action.triggered.connect(partial(self._set_thumb))
+        menu.addAction(define_thumb_action)
+
+        menu.exec_(QCursor.pos())
+
+    def _set_thumb(self):
+        thumb_file = QFileDialog.getOpenFileName(
+            self,
+            "Select Asset Thumbnail",
+            str(Path(CONFIG.CAPITO_PROJECT_DIR)),
+            "JPEG File (*.jpeg, *jpg)",
+        )
+        if not thumb_file:
+            return
+        dest = Path(CONFIG.CAPITO_PROJECT_DIR) / CONFIG.ASSETS_PATH / self.asset.name / f"{self.asset.name}.jpg"
+        shutil.copy2(thumb_file[0], dest)
+        self._update()
 
 class AssetList(QListWidget):
     """Asset list widget with thumb and asset name."""
@@ -306,3 +358,6 @@ class SearchableFilteredAssetList(QWidget):
         self.refresh()
         if selected:
             self.asset_list.select_by_name(selected)
+
+    def select_by_name(self, asset_name:str, step=None, version=None):
+        self.asset_list.select_by_name(asset_name)

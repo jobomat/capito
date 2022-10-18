@@ -13,7 +13,9 @@ from capito.core.asset.models import Asset, Step, Version
 from capito.core.asset.providers.baseclass import AssetProvider
 from capito.core.asset.providers.exceptions import AssetExistsError
 from capito.core.asset.providers.FilesystemAssetProvider import FilesystemAssetProvider
+from capito.core.asset.browse_signals import Signals
 from capito.core.asset.utils import best_match, sanitize_asset_name
+from capito.core.asset.host_modules.detail_actions import reveal_button_factory
 from capito.core.ui.decorators import bind_to_host
 from capito.core.ui.widgets import EditableTextWidget, HeadlineFont, QHLine
 from PySide2 import QtCore  # pylint:disable=wrong-import-order
@@ -56,10 +58,12 @@ CAPITO_ICONS_PATH = Path(CONFIG.CAPITO_BASE_DIR) / "resources" / "icons"
 class DetailsWidget(QWidget):
     """Widget for showing all Details for a selected Version."""
 
-    def __init__(self, host):
+    def __init__(self, parent_widget):
         super().__init__()
-        self.host = host
+        self.parent_widget = parent_widget
+        self.host = self.parent_widget.host
         self.version = None
+        self.signals = Signals()
         self._create_widgets()
         self._connect_widgets()
         self._create_ui()
@@ -68,10 +72,12 @@ class DetailsWidget(QWidget):
         self.asset_name = QLabel("")
         self.asset_name.setFont(HeadlineFont())
         self.kind = QLabel("")
-        self.kind.setFont(HeadlineFont())
         self.step = QLabel("")
+        self.step.setFont(HeadlineFont())
         self.version_number = QLabel("")
+        self.version_number.setFont(HeadlineFont())
         self.comment = EditableTextWidget("")
+        self.comment.setMaximumHeight(125)
 
     def _connect_widgets(self):
         self.comment.signals.saveClicked.connect(self._save_comment)
@@ -84,16 +90,23 @@ class DetailsWidget(QWidget):
         headline_hbox.setContentsMargins(0, 5, 0, 0)
         headline = QLabel("Details")
         headline.setMinimumHeight(ui_constants.BROWSER_HEADLINE_HEIGHT)
-        # headline.setAlignment(Qt.AlignCenter)
         headline.setFont(HeadlineFont())
         headline_hbox.addWidget(headline)
+        headline_hbox.addStretch()
+        reveal_button = reveal_button_factory(self)
+        headline_hbox.addWidget(reveal_button)
 
         vbox.addLayout(headline_hbox)
 
-        vbox.addWidget(self.asset_name)
-        vbox.addWidget(self.kind)
-        vbox.addWidget(self.step)
-        vbox.addWidget(self.version_number)
+        fact_hbox = QHBoxLayout()
+        fact_hbox.addWidget(self.asset_name)
+        fact_hbox.addWidget(self.step)
+        fact_hbox.addWidget(self.version_number)
+        fact_hbox.addWidget(self.kind)
+        fact_hbox.addStretch()
+        
+        vbox.addLayout(fact_hbox)
+
         vbox.addWidget(self.comment)
 
         vbox.addStretch()
@@ -105,7 +118,7 @@ class DetailsWidget(QWidget):
     def update(self, version: Version):
         """On selection change..."""
         self.version = version
-        asset_name = ""
+        asset_name = "No Version selected"
         step = ""
         kind = ""
         version_number = ""
@@ -113,7 +126,7 @@ class DetailsWidget(QWidget):
         if isinstance(version, Version):
             asset_name = version.asset.name
             step = version.step.name
-            kind = version.asset.kind
+            kind = f" | Kind: {version.asset.kind}"
             version_number = str(version)
             comment = version.comment
         self.asset_name.setText(asset_name)
