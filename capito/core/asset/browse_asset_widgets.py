@@ -8,7 +8,7 @@ import capito.core.asset.ui_constants as ui_constants
 import capito.core.event as capito_event
 from capito.conf.config import CONFIG
 from capito.core.asset.browse_signals import Signals
-from capito.core.asset.models import Asset
+from capito.core.asset.models import Asset, Version
 from capito.core.asset.providers.baseclass import AssetProvider
 from capito.core.asset.providers.exceptions import AssetExistsError
 from capito.core.asset.utils import best_match, sanitize_asset_name
@@ -359,5 +359,5 @@ class SearchableFilteredAssetList(QWidget):
         if selected:
             self.asset_list.select_by_name(selected)
 
-    def select_by_name(self, asset_name:str, step=None, version=None):
-        self.asset_list.select_by_name(asset_name)
+    def select_by_name(self, version:Version):
+        self.asset_list.select_by_name(version.asset.name)

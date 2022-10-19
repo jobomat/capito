@@ -1,7 +1,32 @@
 """Helper functions for asset"""
 import re
 from difflib import SequenceMatcher
-from typing import List
+from typing import List, Dict
+
+from capito.conf.config import CONFIG
+from capito.core.asset.models import Version
+
+VERSION_REGEX = re.compile(r"\{(.*?)\}")
+VERSION_KEYS = VERSION_REGEX.findall(CONFIG.VERSION_FILE)
+
+
+def get_asset_info_by_filename(filename:str) -> Dict[str, str]:
+    """Get asset info extracted out of the filename.
+    Returns a dictionary with string keys and values of form:
+    {"asset": "ASSET.NAME", "step": "STEP.NAME", "version": "000x",...}
+    """
+    value_string, extension = filename.split(".")
+    values = value_string.split("_")
+    values.append(extension)
+    map = {k: v for k, v in zip(VERSION_KEYS, values)}
+    if map.get("asset") and map.get("step") and map.get("version"):
+        return map
+    return None
+
+def get_version_by_filename(filename: str) -> Version:
+    map = get_asset_info_by_filename(filename)
+    if map:
+        return CONFIG.asset_provider.get(map["asset"]).steps[map["step"]].versions[int(map["version"])]
 
 
 def similarity(string1, string2):

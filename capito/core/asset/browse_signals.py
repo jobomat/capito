@@ -13,7 +13,7 @@ class Signals(QtCore.QObject):
     version_added = QtCore.Signal(Version)
     version_selected = QtCore.Signal(Version)
     version_changed = QtCore.Signal(Version)
-    reveal_clicked = QtCore.Signal(str, str, str)
+    reveal_clicked = QtCore.Signal(Version)
 
     def __init__(self):
         super().__init__()

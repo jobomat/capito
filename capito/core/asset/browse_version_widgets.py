@@ -10,7 +10,7 @@ import capito.core.event as capito_event
 from capito.conf.config import CONFIG
 from capito.core.asset.browse_signals import Signals
 from capito.core.asset.flows import FlowProvider
-from capito.core.asset.host_modules.version_menu import version_menu_factory, version_context_actions_factory
+from capito.core.asset.host_modules.version_actions import version_menu_factory, version_context_actions_factory
 from capito.core.asset.models import Asset, Step, Version
 from capito.core.asset.providers.baseclass import AssetProvider
 from capito.core.asset.providers.exceptions import AssetExistsError
@@ -159,9 +159,9 @@ class VersionList(QListWidget):
         for _, version in reversed(list(step.versions.items())):
             self.add_item(version)
 
-    def select_by_name(self, number_name: str):
+    def select_by_name(self, version:Version):
         """Select a list item by version number."""
-        index = self._getIndex(number_name)
+        index = self._getIndex(version)
         self.setCurrentRow(index)
 
     def _get_version_widget(
@@ -176,10 +176,10 @@ class VersionList(QListWidget):
         for i in range(self.count()):
             yield self.item(i)
 
-    def _getIndex(self, wanted_item: str) -> int:  # pylint: disable=invalid-name
+    def _getIndex(self, wanted_item: Version) -> int:  # pylint: disable=invalid-name
         """Helper method to get the index of a specific item."""
         for i, item in enumerate(self._iterAllItems()):
-            if int(wanted_item) == item.widget.version.version:
+            if wanted_item.version == item.widget.version.version:
                 return i
 
     def _update_version_widget(self, version: Version):
@@ -254,5 +254,5 @@ class VersionWidget(QWidget):
         if item:
             self.signals.version_selected.emit(item.widget.version)
 
-    def select_by_name(self, asset, step, version):
+    def select_by_name(self, version:Version):
         self.version_list.select_by_name(version)

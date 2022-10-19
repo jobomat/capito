@@ -3,7 +3,7 @@ from functools import partial
 from pathlib import Path
 
 import pymel.core as pc
-from capito.core.asset.host_modules.maya_utils import open, save_version
+from capito.core.asset.host_modules.maya.maya_utils import open, save_version
 from capito.core.asset.models import Asset, Step
 from PySide2 import QtCore  # pylint:disable=wrong-import-order
 from PySide2.QtGui import QFont  # pylint:disable=wrong-import-order

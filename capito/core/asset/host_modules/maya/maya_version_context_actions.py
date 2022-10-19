@@ -1,7 +1,7 @@
 from functools import partial
 from pathlib import Path
 from PySide2.QtWidgets import QAction, QMessageBox
-from capito.core.asset.host_modules.maya_utils import open
+from capito.core.asset.host_modules.maya.maya_utils import open
 
 
 def open_from_context_menu(version):

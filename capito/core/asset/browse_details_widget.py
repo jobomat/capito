@@ -15,7 +15,7 @@ from capito.core.asset.providers.exceptions import AssetExistsError
 from capito.core.asset.providers.FilesystemAssetProvider import FilesystemAssetProvider
 from capito.core.asset.browse_signals import Signals
 from capito.core.asset.utils import best_match, sanitize_asset_name
-from capito.core.asset.host_modules.detail_actions import reveal_button_factory
+from capito.core.asset.host_modules.detail_actions import reveal_button_factory, detail_actions_widget_factory
 from capito.core.ui.decorators import bind_to_host
 from capito.core.ui.widgets import EditableTextWidget, HeadlineFont, QHLine
 from PySide2 import QtCore  # pylint:disable=wrong-import-order
@@ -77,7 +77,8 @@ class DetailsWidget(QWidget):
         self.version_number = QLabel("")
         self.version_number.setFont(HeadlineFont())
         self.comment = EditableTextWidget("")
-        self.comment.setMaximumHeight(125)
+        self.comment.setMaximumHeight(120)
+        self.detail_actions_widget = detail_actions_widget_factory(self)
 
     def _connect_widgets(self):
         self.comment.signals.saveClicked.connect(self._save_comment)
@@ -110,6 +111,7 @@ class DetailsWidget(QWidget):
         vbox.addWidget(self.comment)
 
         vbox.addStretch()
+        vbox.addWidget(self.detail_actions_widget)
         self.setLayout(vbox)
 
     def _save_comment(self, text: str):
@@ -129,6 +131,9 @@ class DetailsWidget(QWidget):
             kind = f" | Kind: {version.asset.kind}"
             version_number = str(version)
             comment = version.comment
+            self.signals.version_selected.emit(version)
+        else:
+            self.signals.version_selected.emit(None)
         self.asset_name.setText(asset_name)
         self.step.setText(step)
         self.kind.setText(kind)

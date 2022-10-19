@@ -10,7 +10,7 @@ import capito.core.event as capito_event
 from capito.conf.config import CONFIG
 from capito.core.asset.browse_signals import Signals
 from capito.core.asset.flows import FlowProvider
-from capito.core.asset.models import Asset, Step
+from capito.core.asset.models import Asset, Step, Version
 from capito.core.asset.providers.baseclass import AssetProvider
 from capito.core.asset.providers.exceptions import AssetExistsError
 from capito.core.asset.providers.FilesystemAssetProvider import FilesystemAssetProvider
@@ -153,5 +153,5 @@ class StepsWidget(QWidget):
         step = selected[0].widget.step
         self.signals.step_selected.emit(step)
 
-    def select_by_name(self, asset_name:str, step:str, version:str):
-        self.step_list.select_by_name(step)
+    def select_by_name(self, version:Version):
+        self.step_list.select_by_name(version.step.name)
