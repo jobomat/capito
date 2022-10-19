@@ -360,4 +360,5 @@ class SearchableFilteredAssetList(QWidget):
             self.asset_list.select_by_name(selected)
 
     def select_by_name(self, version:Version):
-        self.asset_list.select_by_name(version.asset.name)
+        if version:
+            self.asset_list.select_by_name(version.asset.name)

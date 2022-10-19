@@ -15,6 +15,8 @@ def get_asset_info_by_filename(filename:str) -> Dict[str, str]:
     Returns a dictionary with string keys and values of form:
     {"asset": "ASSET.NAME", "step": "STEP.NAME", "version": "000x",...}
     """
+    if not filename:
+        return None
     value_string, extension = filename.split(".")
     values = value_string.split("_")
     values.append(extension)

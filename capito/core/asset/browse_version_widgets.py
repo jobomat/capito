@@ -255,4 +255,5 @@ class VersionWidget(QWidget):
             self.signals.version_selected.emit(item.widget.version)
 
     def select_by_name(self, version:Version):
-        self.version_list.select_by_name(version)
+        if version:
+            self.version_list.select_by_name(version)

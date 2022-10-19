@@ -154,4 +154,5 @@ class StepsWidget(QWidget):
         self.signals.step_selected.emit(step)
 
     def select_by_name(self, version:Version):
-        self.step_list.select_by_name(version.step.name)
+        if version:
+            self.step_list.select_by_name(version.step.name)

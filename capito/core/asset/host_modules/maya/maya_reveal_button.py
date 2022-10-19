@@ -32,14 +32,14 @@ class RevealButton(QPushButton):
 
     def _reveal(self):
         scene_name = str(pc.sceneName().name)
-        try:
-            self.parent_widget.signals.reveal_clicked.emit(
-                get_version_by_filename(scene_name)
-            )
-        except:
-            msg = QMessageBox()
-            msg.setIcon(QMessageBox.Information)
-            msg.setText("Current scene is not part of the project.")
-            msg.setStandardButtons(QMessageBox.Ok)
-            msg.exec_()
+        if scene_name:
+            version = get_version_by_filename(scene_name)
+            if version:
+                self.parent_widget.signals.reveal_clicked.emit(version)
+                return
+        msg = QMessageBox()
+        msg.setIcon(QMessageBox.Information)
+        msg.setText("Current scene is not part of the project.")
+        msg.setStandardButtons(QMessageBox.Ok)
+        msg.exec_()
 
