@@ -116,9 +116,6 @@ class VersionItemWidget(QWidget):
 
         menu.exec_(QCursor.pos())
 
-    def _test(self, version:Version):
-        print(version.comment)
-
     def _get_thumb_pixmap(self):
         version_thumb = Path(f"{self.version.filepath}.jpg")
         version_thumb = (
@@ -150,9 +147,8 @@ class VersionList(QListWidget):
         """Add a RichListItem without hazzle."""
         self.addItem(RichListItem(VersionItemWidget(version, self), self))
 
-    def update(self, step: Step):
+    def on_step_selected(self, step: Step):
         """Update the list (called via signals)."""
-        self.signals.step_selected.emit(step)
         self.clear()
         if not step:
             return
@@ -206,14 +202,8 @@ class VersionMenu(QWidget):
 
         self.setLayout(hbox)
 
-    def update(self, step: Step):
-        if not step:
-            return
-        self.step = step
-        self.signals.step_selected.emit(step)
 
-
-class VersionWidget(QWidget):
+class VersionsWidget(QWidget):
     """Widget for listing Verions"""
 
     def __init__(self, parent_widget: QWidget):
@@ -234,7 +224,7 @@ class VersionWidget(QWidget):
             """
             QListWidget::item {background-color:#363636; margin-bottom: 3px;}
             QListWidget::item:hover {background-color:#666666}
-            QListWidget::item:selected {background-color:#555555}
+            QListWidget::item:selected {background-color:#445566}
             """
         )
         vbox.addWidget(self.version_list)
@@ -243,11 +233,15 @@ class VersionWidget(QWidget):
             "version_changed", self.version_list._update_version_widget
         )
 
-    def update(self, step: Step):
+    def on_asset_selected(self, asset:Asset):
+        self.version_list.clear()
+        self.signals.asset_selected.emit(asset)
+
+    def on_step_selected(self, step: Step):
         """This method is called when the step list selection changes.
         It delegates the update call to the version_list and menu."""
-        self.version_list.update(step)
-        self.version_menu.update(step)
+        self.version_list.on_step_selected(step)
+        self.signals.step_selected.emit(step)
 
     def _selection_changed(self):
         item = self.version_list.currentItem()

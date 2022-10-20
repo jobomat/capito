@@ -104,7 +104,6 @@ class StepList(QListWidget):
     def update(self, asset: Asset):
         """Update the step list to reflect the selected asset."""
         self.clear()
-        self.parent_widget.signals.step_selected.emit(None)  # clear details widget
         for _, step in asset.steps.items():
             self.add_item(step)
     
@@ -141,7 +140,7 @@ class StepsWidget(QWidget):
 
         self.setLayout(vbox)
 
-    def update(self, asset: Asset):
+    def on_asset_selected(self, asset: Asset):
         """This method is called when the asset list changes.
         It delegates the update call to the step_list."""
         self.step_list.update(asset)
@@ -149,6 +148,7 @@ class StepsWidget(QWidget):
     def _step_selected(self):
         selected = self.step_list.selectedItems()
         if not selected:
+            self.signals.step_selected.emit(None)
             return
         step = selected[0].widget.step
         self.signals.step_selected.emit(step)

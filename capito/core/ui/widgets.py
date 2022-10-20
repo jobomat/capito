@@ -1,8 +1,8 @@
 import re
 from ast import Call
-from ctypes.wintypes import WPARAM
+from itertools import zip_longest
 from pathlib import Path
-from typing import Callable, Tuple
+from typing import Callable, Tuple, Dict
 
 from capito.core.helpers import clamp, get_font_dict, get_font_file, hex_to_rgb_int
 from PySide2.QtCore import (
@@ -29,10 +29,12 @@ from PySide2.QtGui import (
 from PySide2.QtWidgets import (
     QColorDialog,
     QComboBox,
+    QDialog,
     QFileDialog,
     QFrame,
     QGridLayout,
     QHBoxLayout,
+    QInputDialog,
     QLabel,
     QLayout,
     QLineEdit,
@@ -56,6 +58,28 @@ class HeadlineFont(QFont):
         super().__init__(*args, **kwargs)
         self.setBold(True)
         self.setPointSize(size)
+
+
+class MultipleLineDialog(QInputDialog):
+    """Ask for mulitple Lines at once."""
+    def getMultipleTexts(self, title:str, label:str, placeholders:Tuple[str], texts:Tuple[str]):
+        """The longer tuple of placeholders and texts will determine the number of lineedits created.
+        The values of 'texts' tuple will be prefilled text in the lineedit.
+        """
+        self.setWindowTitle(title)
+        self.setLabelText(label)
+        self.show()
+        self.findChild(QLineEdit).hide()
+        lineedits = []
+        i = 1
+        for placeholder, text in zip_longest(placeholders, texts, fillvalue=""):
+            lineedit = QLineEdit(text=text)
+            lineedit.setPlaceholderText(placeholder)
+            self.layout().insertWidget(i, lineedit)
+            lineedits.append(lineedit)
+            i += 1
+        ret = self.exec_() == QDialog.Accepted
+        return [lineedit.text() for lineedit in lineedits], ret
 
 
 class QSplitWidget(QWidget):

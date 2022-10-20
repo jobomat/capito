@@ -1,11 +1,13 @@
 import os
 from pathlib import Path
+import json
 
 from capito.conf.config import CONFIG
 from capito.core.asset.providers.provider_ui import SetAssetProviderUI
 from capito.core.env import set_os_env_var
 from capito.core.file.utils import copy_template, sanitize_name
 from capito.core.ui.decorators import bind_to_host
+from capito.core.ui.widgets import MultipleLineDialog
 from PySide2 import QtCore  # pylint:disable=wrong-import-order
 from PySide2.QtGui import QColor, QFont, QIcon, Qt  # pylint:disable=wrong-import-order
 from PySide2.QtWidgets import (  # pylint:disable=wrong-import-order
@@ -179,7 +181,7 @@ def set_capito_project(path: Path):
         print("Project conf not found.")
 
 
-def create_capito_project(path: Path, name: str, template: Path = None):
+def create_capito_project(path: Path, name: str, nice_name: str, template: Path = None):
     """Create a capito project folder named 'name' in 'path'.
     Use the template project structure 'template'."""
     template = (
@@ -191,6 +193,12 @@ def create_capito_project(path: Path, name: str, template: Path = None):
     )
     dst = path / name
     copy_template(template, dst)
+    with (dst / "capito_conf.json").open("r", encoding="utf-8") as conf_pointer:
+        conf = json.load(conf_pointer)
+        conf["PROJECT_NAME"] = nice_name
+    with (dst / "capito_conf.json").open("w", encoding="utf-8") as conf_pointer:
+        json.dump(conf, conf_pointer)
+
     set_capito_project(dst)
 
 
@@ -201,24 +209,29 @@ class SetupUI(QMainWindow):
     def __init__(self, host: str = None, parent=None):
         super().__init__(parent)
         self.setWindowTitle("Capito Setup")
+        self._create_widgets()
+        self._connect_widgets()
+        self._create_layout()
 
+    def _create_widgets(self):
+        self.existing_btn = QPushButton("Set an existing Project...")
+        self.new_btn = QPushButton("Create a new Project...")
+
+    def _connect_widgets(self):
+        self.existing_btn.clicked.connect(self._set_existing)
+        self.new_btn.clicked.connect(self._create_new)
+
+    def _create_layout(self):
         vbox = QVBoxLayout()
-
         vbox.addWidget(QLabel("Capito Project Setter"), stretch=1)
-
-        existing_btn = QPushButton("Set an existing Project...")
-        existing_btn.clicked.connect(self.set_existing)
-        new_btn = QPushButton("Create a new Project...")
-        new_btn.clicked.connect(self.create_new)
-
-        vbox.addWidget(existing_btn)
-        vbox.addWidget(new_btn)
+        vbox.addWidget(self.existing_btn)
+        vbox.addWidget(self.new_btn)
 
         central_widget = QWidget()
         central_widget.setLayout(vbox)
         self.setCentralWidget(central_widget)
 
-    def set_existing(self):
+    def _set_existing(self):
         """Let the user choose a capito project folder and check if it's valid."""
         result = QFileDialog.getExistingDirectory(
             self,
@@ -241,7 +254,7 @@ class SetupUI(QMainWindow):
             set_capito_project(Path(result))
             self.close()
 
-    def create_new(self):
+    def _create_new(self):
         """Let user choose the place and foldername of project."""
         path = QFileDialog.getExistingDirectory(
             self,
@@ -249,17 +262,32 @@ class SetupUI(QMainWindow):
             QtCore.QDir().home().path(),
             QFileDialog.Option.ShowDirsOnly,
         )
-        listed_name = sanitize_name(f"{QtCore.QDir().home().dirName()}s_project")
+        ok = False
+        name = ""
+        nice_name = ""
+
+        placeholders = ("Nice project name", "Short name (for directory etc.)")
+        texts = ("", "")
         while True:
-            name, ok = QInputDialog().getText(
-                self, "Set project name", "Project name:", QLineEdit.Normal, listed_name
+            names, ok = MultipleLineDialog().getMultipleTexts(
+                "Set project names", "Project long name and short name:", placeholders, texts
             )
             if not ok:
                 break
-            name = sanitize_name(name)
-            listed_name = name
+            name = sanitize_name(names[1])
+            nice_name = names[0]
+            texts = (nice_name, name)
             full_path = Path(path) / name
-            if full_path.exists():
+            if not name or not nice_name:
+                qm = QMessageBox()
+                ret = qm.question(
+                    self,
+                    "Oops",
+                    "Pleace provide a nice name as well as a short name.",
+                    qm.Ok,
+                )
+                continue
+            elif full_path.exists():
                 qm = QMessageBox()
                 ret = qm.question(
                     self,
@@ -271,7 +299,7 @@ class SetupUI(QMainWindow):
             else:
                 break
 
-        if path and ok and name:
+        if ok and path and name and nice_name:
             msg = QMessageBox()
             msg.setIcon(QMessageBox.Question)
             msg.setText("The project will be created here:")
@@ -286,5 +314,5 @@ class SetupUI(QMainWindow):
             confirm = msg.exec_()
 
             if confirm == 1024:
-                create_capito_project(Path(path), name)
+                create_capito_project(Path(path), name, nice_name)
                 self.close()

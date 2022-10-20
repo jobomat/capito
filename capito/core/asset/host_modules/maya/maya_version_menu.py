@@ -9,6 +9,7 @@ from PySide2 import QtCore  # pylint:disable=wrong-import-order
 from PySide2.QtGui import QFont  # pylint:disable=wrong-import-order
 from PySide2.QtGui import QColor, QIcon, QPixmap, Qt
 from PySide2.QtWidgets import (  # pylint:disable=wrong-import-order
+    QInputDialog,
     QHBoxLayout,
     QMessageBox,
     QPushButton,
@@ -27,44 +28,54 @@ class VersionMenu(QWidget):
         self._create_layout()
 
     def _create_widgets(self):
-        self.save_first_version_btn = QPushButton("First Version")
-        self.save_first_version_btn.setMinimumWidth(80)
-        self.save_first_version_btn.setMaximumWidth(80)
-        self.save_first_version_btn.hide()
+        self.save_version_btn = QPushButton("First Version")
+        self.save_version_btn.setMinimumWidth(80)
+        self.save_version_btn.setMaximumWidth(80)
+        self.save_version_btn.hide()
         self.open_latest_btn = QPushButton("Open Latest")
         self.open_latest_btn.setMinimumWidth(80)
         self.open_latest_btn.setMaximumWidth(80)
         self.open_latest_btn.hide()
 
     def _connect_widgets(self):
-        self.parent_widget.parent_widget.signals.version_selected.connect(self._on_version_selected)
-        self.parent_widget.signals.step_selected.connect(self._on_step_selected)
-        self.save_first_version_btn.clicked.connect(self._save_first_version)
+        version_widget = self.parent_widget.parent_widget
+        version_widget.signals.asset_selected.connect(self._on_asset_selected)
+        version_widget.signals.step_selected.connect(self._on_step_selected)
+        version_widget.signals.version_selected.connect(self._on_version_selected)
+        self.save_version_btn.clicked.connect(self._save_version)
         self.open_latest_btn.clicked.connect(self._open_latest)
 
     def _create_layout(self):
         hbox = QHBoxLayout()
         hbox.setContentsMargins(0, 0, 0, 0)
         hbox.addWidget(self.open_latest_btn)
-        hbox.addWidget(self.save_first_version_btn)
+        hbox.addWidget(self.save_version_btn)
         self.setLayout(hbox)
+
+    def _on_asset_selected(self, asset):
+        self.save_version_btn.hide()
+        self.open_latest_btn.hide()
 
     def _on_version_selected(self, version):
         self.version = version
 
-    def _on_step_selected(self, step: Step = None):
+    def _on_step_selected(self, step: Step=None):
         self.step = step
+        if not step:
+            self.open_latest_btn.hide()
+            self.save_version_btn.hide()
+            return
+        self.save_version_btn.show()
         if not step.versions:
             self.open_latest_btn.hide()
-            self.save_first_version_btn.show()
+            self.save_version_btn.setText("First Version")
         else:
             self.open_latest_btn.show()
-            self.save_first_version_btn.hide()
+            self.save_version_btn.setText(f"Save V{step.get_latest_version().version + 1}")
 
     def _open_latest(self):
         latest_version = self.step.get_latest_version()
         latest_filepath = Path(latest_version.filepath)
-        print(latest_filepath)
         if not latest_filepath.exists():
             msg = QMessageBox()
             msg.setIcon(QMessageBox.Warning)
@@ -89,9 +100,22 @@ class VersionMenu(QWidget):
                 return
         open(str(latest_filepath))
 
-    def _save_first_version(self):
-        self.step.new_version("ma", "First Version")
-        version = self.step.get_latest_version()
-        save_version(version)
-        self.save_first_version_btn.hide()
-        self.parent_widget.parent_widget.update(version.step)
+    def _save_version(self):
+        comment, ok = QInputDialog.getText(self, 'Add Comment', 'Enter your Comment:')
+        if ok:
+            comment = comment or "No Comment"
+            self.step.new_version("ma", str(comment))
+            version = self.step.get_latest_version()
+            save_version(version)
+            self.save_version_btn.setText(f"Save V{version.version + 1}")
+            version_widget = self.parent_widget.parent_widget
+            version_widget.parent_widget.steps_widget.signals.step_selected.emit(version.step)
+            version_widget.select_by_name(version)
+            return
+        msgBox = QMessageBox()
+        msgBox.setIcon(QMessageBox.Information)
+        msgBox.setText("Version not saved!")
+        msgBox.setWindowTitle("Save Aborted")
+        msgBox.setStandardButtons(QMessageBox.Ok)
+        msgBox.exec()
+        

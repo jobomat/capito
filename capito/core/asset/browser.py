@@ -24,7 +24,7 @@ class AssetBrowser(QMainWindow):
         self.host = host
 
         self.setMinimumSize(1024, 768)
-        self.setWindowTitle("Capito")
+        self.setWindowTitle(CONFIG.PROJECT_NAME)
 
         self._create_actions()
         self._connect_actions()

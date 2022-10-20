@@ -13,7 +13,7 @@ from capito.core.asset.browse_asset_widgets import (
 )
 from capito.core.asset.browse_details_widget import DetailsWidget
 from capito.core.asset.browse_step_widgets import StepsWidget
-from capito.core.asset.browse_version_widgets import VersionWidget
+from capito.core.asset.browse_version_widgets import VersionsWidget
 from capito.core.asset.flows import FlowProvider
 from capito.core.asset.models import Asset
 from capito.core.asset.providers.baseclass import AssetProvider
@@ -62,33 +62,35 @@ class BrowseWidget(QWidget):
 
     def _create_widgets(self):
         self.browse_toolbar = BrowseToolbar()
-        self.asset_list = SearchableFilteredAssetList()
+        self.assets_widget = SearchableFilteredAssetList()
         self.steps_widget = StepsWidget(self)
-        self.version_widget = VersionWidget(self)
+        self.versions_widget = VersionsWidget(self)
         self.details_widget = DetailsWidget(self)
 
     def _connect_widgets(self):
-        self.asset_list.signals.asset_selected.connect(self.steps_widget.update)
-        self.asset_list.signals.asset_selected.connect(
-            self.version_widget.version_list.clear()
-        )
-        self.steps_widget.signals.step_selected.connect(self.version_widget.update)
-        self.version_widget.signals.version_selected.connect(self.details_widget.update)
-        self.asset_list.signals.asset_selected.connect(self.details_widget.update)
+        # asset selected
+        self.assets_widget.signals.asset_selected.connect(self.steps_widget.on_asset_selected)
+        self.assets_widget.signals.asset_selected.connect(self.details_widget.on_asset_selected)
+        self.assets_widget.signals.asset_selected.connect(self.versions_widget.on_asset_selected)
+        # step selected
+        self.steps_widget.signals.step_selected.connect(self.versions_widget.on_step_selected)
+        self.steps_widget.signals.step_selected.connect(self.details_widget.on_step_selected)
+        # version selected
+        self.versions_widget.signals.version_selected.connect(self.details_widget.on_version_selected)
         #reveal:
-        self.details_widget.signals.reveal_clicked.connect(self.asset_list.select_by_name)
+        self.details_widget.signals.reveal_clicked.connect(self.assets_widget.select_by_name)
         self.details_widget.signals.reveal_clicked.connect(self.steps_widget.select_by_name)
-        self.details_widget.signals.reveal_clicked.connect(self.version_widget.select_by_name)
+        self.details_widget.signals.reveal_clicked.connect(self.versions_widget.select_by_name)
 
     def _create_ui(self):
         vbox = QVBoxLayout()
         # vbox.addWidget(self.browse_toolbar)
         vsplitter = QSplitter(Qt.Horizontal)
         vsplitter.setHandleWidth(10)
-        vsplitter.addWidget(self.asset_list)
+        vsplitter.addWidget(self.assets_widget)
         step_version_splitter = QSplitter(Qt.Vertical)
         step_version_splitter.addWidget(self.steps_widget)
-        step_version_splitter.addWidget(self.version_widget)
+        step_version_splitter.addWidget(self.versions_widget)
         step_version_splitter.setSizes([200, 700])
         vsplitter.addWidget(step_version_splitter)
         vsplitter.addWidget(self.details_widget)

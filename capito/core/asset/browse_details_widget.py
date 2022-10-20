@@ -76,6 +76,8 @@ class DetailsWidget(QWidget):
         self.step.setFont(HeadlineFont())
         self.version_number = QLabel("")
         self.version_number.setFont(HeadlineFont())
+        self.user = QLabel("")
+        self.date = QLabel("")
         self.comment = EditableTextWidget("")
         self.comment.setMaximumHeight(120)
         self.detail_actions_widget = detail_actions_widget_factory(self)
@@ -105,6 +107,8 @@ class DetailsWidget(QWidget):
         fact_hbox.addWidget(self.version_number)
         fact_hbox.addWidget(self.kind)
         fact_hbox.addStretch()
+        fact_hbox.addWidget(self.user)
+        fact_hbox.addWidget(self.date)
         
         vbox.addLayout(fact_hbox)
 
@@ -117,25 +121,42 @@ class DetailsWidget(QWidget):
     def _save_comment(self, text: str):
         CONFIG.asset_provider.setattr(self.version, "comment", text)
 
-    def update(self, version: Version):
+
+    def on_asset_selected(self, asset: Asset):
+        self.on_version_selected(None)
+
+    def on_step_selected(self, step:Step):
+        self.on_version_selected(None)
+        self.signals.step_selected.emit(step)
+
+    def on_version_selected(self, version: Version=None):
         """On selection change..."""
         self.version = version
+        self._update()
+
+    def _update(self):
         asset_name = "No Version selected"
         step = ""
         kind = ""
         version_number = ""
         comment = ""
-        if isinstance(version, Version):
-            asset_name = version.asset.name
-            step = version.step.name
-            kind = f" | Kind: {version.asset.kind}"
-            version_number = str(version)
-            comment = version.comment
-            self.signals.version_selected.emit(version)
-        else:
-            self.signals.version_selected.emit(None)
+        user = ""
+        date = ""
+        if self.version is not None:
+            asset_name = self.version.asset.name
+            step = self.version.step.name
+            kind = f" | Kind: {self.version.asset.kind}"
+            version_number = str(self.version)
+            comment = self.version.comment
+            user = self.version.user
+            date = self.version.date
+            self.signals.version_selected.emit(self.version)
+
         self.asset_name.setText(asset_name)
         self.step.setText(step)
         self.kind.setText(kind)
         self.version_number.setText(version_number)
         self.comment.setText(comment)
+        self.user.setText(user)
+        self.date.setText(date)
+

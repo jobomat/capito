@@ -1,4 +1,5 @@
 {
+    "PROJECT_NAME": "",
     "ASSETS_PATH": "assets",
     "RELEASE_PATH": "{ASSETS_PATH}/{asset}",
     "STEP_PATH": "{ASSETS_PATH}/{asset}/{step}",

@@ -1,8 +1,10 @@
 """The Version Menu Widget in Maya"""
 from functools import partial
 from pathlib import Path
+from typing import Union
 
 import pymel.core as pc
+from capito.maya.viewport.screenshot import Screenshooter
 from capito.core.asset.utils import get_version_by_filename
 from capito.core.asset.host_modules.maya.maya_utils import open, save_version
 from capito.core.asset.models import Asset, Step, Version
@@ -29,34 +31,36 @@ class DetailActionsWidget(QWidget):
         self._create_layout()
 
     def _create_widgets(self):
-        self.save_version_btn = QPushButton(f"Save Version")
-        self.save_version_btn.hide()
+        self.screenshot_btn = QPushButton(f"Screenshot")
+        self.screenshot_btn.hide()
 
     def _connect_widgets(self):
         self.parent_widget.signals.version_selected.connect(self._on_version_selected)
-        self.save_version_btn.clicked.connect(self._save_version)
+        self.parent_widget.signals.step_selected.connect(self._on_step_selected)
+        self.screenshot_btn.clicked.connect(self._save_screenshot)
 
     def _create_layout(self):
         vbox = QVBoxLayout()
-        vbox.addWidget(self.save_version_btn)
+        vbox.addWidget(self.screenshot_btn)
         self.setLayout(vbox)
 
-    def _on_version_selected(self, version:Version):
-        self.save_version_btn.hide()
+    def _on_version_selected(self, version: Version):
+        self.screenshot_btn.hide()
         current_version = get_version_by_filename(str(pc.sceneName().name))
-        if not version or not current_version:
-            return
-        is_same_asset = version.asset.name == current_version.asset.name
-        is_same_step = version.step.name == current_version.step.name
-        if is_same_asset and is_same_step:
-            self.save_version_btn.show()
+        if version == current_version:
+            self.screenshot_btn.show()
             self.version = version
 
+    def _on_step_selected(self, step: Step):
+        self.screenshot_btn.hide()
 
-    def _save_version(self):
-        self.version.step.new_version("ma", "TEST")
-        version = self.version.step.get_latest_version()
-        save_version(version)
-        self.parent_widget.parent_widget.version_widget.update(version.step)
-        self.parent_widget.parent_widget.version_widget.select_by_name(version)
+
+    def _save_screenshot(self):
+        thumbnail_file = Path(f"{self.version.filepath}.jpg")
+        Screenshooter(filepath=thumbnail_file, callback_on_accept=self._update_version_item)
+
+    def _update_version_item(self):
+        browse_widget = self.parent_widget.parent_widget
+        browse_widget.versions_widget.on_step_selected(self.version.step)
+        browse_widget.versions_widget.select_by_name(self.version)
         

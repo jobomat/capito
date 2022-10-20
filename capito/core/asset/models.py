@@ -141,6 +141,13 @@ class Version:
     def __str__(self) -> str:
         return str(self.version).zfill(4)
 
+    def __eq__(self, other):
+        return all((
+            self.asset.name == other.asset.name,
+            self.step.name == other.step.name,
+            self.version == other.version
+        ))
+
 
 @dataclass
 class Release:
@@ -189,12 +196,13 @@ class Step:
         if not Path(version.absolute_path).exists():
             self.create()
         capito_event.post("version_created", version)
+        version.save_json()
 
-    def get_latest_version(self):
+    def get_latest_version(self) -> Version:
         """Get latest Version Instance of this Asset.step"""
         return self.versions[self.get_latest_version_number()]
 
-    def get_latest_version_number(self):
+    def get_latest_version_number(self) -> str:
         """Get latest version number."""
         return len(self.versions.keys())
 
