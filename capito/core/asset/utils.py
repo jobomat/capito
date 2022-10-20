@@ -7,16 +7,15 @@ from capito.conf.config import CONFIG
 from capito.core.asset.models import Version
 
 VERSION_REGEX = re.compile(r"\{(.*?)\}")
-VERSION_KEYS = VERSION_REGEX.findall(CONFIG.VERSION_FILE)
-
 
 def get_asset_info_by_filename(filename:str) -> Dict[str, str]:
     """Get asset info extracted out of the filename.
     Returns a dictionary with string keys and values of form:
     {"asset": "ASSET.NAME", "step": "STEP.NAME", "version": "000x",...}
     """
-    if not filename:
+    if not filename or not CONFIG.VERSION_FILE:
         return None
+    VERSION_KEYS = VERSION_REGEX.findall(CONFIG.VERSION_FILE)
     value_string, extension = filename.split(".")
     values = value_string.split("_")
     values.append(extension)
