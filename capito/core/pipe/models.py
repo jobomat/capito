@@ -14,6 +14,7 @@ class PipeableCategory:
     POSTPROCESS = "Postprocess"
     INPUT = "User Input"
     IMPORT = "Import"
+    DEBUG = "Debug"
 
     @classmethod
     def list(cls):
@@ -26,6 +27,7 @@ class PipeableCategory:
             cls.INPUT,
             cls.EXPORT,
             cls.POSTPROCESS,
+            cls.DEBUG
         ]
 
 
