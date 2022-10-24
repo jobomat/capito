@@ -69,18 +69,36 @@ class BrowseWidget(QWidget):
 
     def _connect_widgets(self):
         # asset selected
-        self.assets_widget.signals.asset_selected.connect(self.steps_widget.on_asset_selected)
-        self.assets_widget.signals.asset_selected.connect(self.details_widget.on_asset_selected)
-        self.assets_widget.signals.asset_selected.connect(self.versions_widget.on_asset_selected)
+        self.assets_widget.signals.asset_selected.connect(
+            self.steps_widget.on_asset_selected
+        )
+        self.assets_widget.signals.asset_selected.connect(
+            self.details_widget.on_asset_selected
+        )
+        self.assets_widget.signals.asset_selected.connect(
+            self.versions_widget.on_asset_selected
+        )
         # step selected
-        self.steps_widget.signals.step_selected.connect(self.versions_widget.on_step_selected)
-        self.steps_widget.signals.step_selected.connect(self.details_widget.on_step_selected)
+        self.steps_widget.signals.step_selected.connect(
+            self.versions_widget.on_step_selected
+        )
+        self.steps_widget.signals.step_selected.connect(
+            self.details_widget.on_step_selected
+        )
         # version selected
-        self.versions_widget.signals.version_selected.connect(self.details_widget.on_version_selected)
-        #reveal:
-        self.details_widget.signals.reveal_clicked.connect(self.assets_widget.select_by_name)
-        self.details_widget.signals.reveal_clicked.connect(self.steps_widget.select_by_name)
-        self.details_widget.signals.reveal_clicked.connect(self.versions_widget.select_by_name)
+        self.versions_widget.signals.version_selected.connect(
+            self.details_widget.on_version_selected
+        )
+        # reveal:
+        self.details_widget.signals.reveal_clicked.connect(
+            self.assets_widget.select_by_name
+        )
+        self.details_widget.signals.reveal_clicked.connect(
+            self.steps_widget.select_by_name
+        )
+        self.details_widget.signals.reveal_clicked.connect(
+            self.versions_widget.select_by_name
+        )
 
     def _create_ui(self):
         vbox = QVBoxLayout()
@@ -94,6 +112,6 @@ class BrowseWidget(QWidget):
         step_version_splitter.setSizes([200, 700])
         vsplitter.addWidget(step_version_splitter)
         vsplitter.addWidget(self.details_widget)
-        vsplitter.setSizes([180, 290, 480])
+        vsplitter.setSizes([200, 280, 470])
         vbox.addWidget(vsplitter, stretch=1)
         self.setLayout(vbox)

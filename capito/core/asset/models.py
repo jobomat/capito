@@ -125,6 +125,7 @@ class Version:
 
     @property
     def comment(self):
+        """comment getter"""
         return self._comment
 
     @comment.setter
@@ -142,11 +143,15 @@ class Version:
         return str(self.version).zfill(4)
 
     def __eq__(self, other):
-        return all((
-            self.asset.name == other.asset.name,
-            self.step.name == other.step.name,
-            self.version == other.version
-        ))
+        if not isinstance(other, Version):
+            return False
+        return all(
+            (
+                self.asset.name == other.asset.name,
+                self.step.name == other.step.name,
+                self.version == other.version,
+            )
+        )
 
 
 @dataclass
@@ -175,6 +180,7 @@ class Step:
         extension: str,
         comment: str = None,
         timestamp: int = None,
+        step: "Step" = None
     ):
         """Append a Version explicitly"""
         self.versions[version] = Version(

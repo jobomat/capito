@@ -1,29 +1,30 @@
 """Module providing the core publishing class."""
 import importlib
 import sys
-import os
 from pathlib import Path
 from typing import Any, Dict, List, Tuple
+
+from capito.conf.config import CONFIG
 
 from .models import Pipeable, PipeableCategory
 
 
-def get_pipeable_project_modules(hosts: List[str]):
+def get_pipeable_project_modules():
     """Get pipeable_module folders for each host
     CAPITO_PROJECT_DIR/code/pipeable_modules/HOST
     CAPITO_PROJECT_DIR/users/CAPITO_USERNAME/code/pipeable_modules/HOST
     """
     folders = []
-    project_dir = os.environ.get("CAPITO_PROJECT_DIR")
-    project_path = Path(project_dir)
+    project_dir = CONFIG.CAPITO_PROJECT_DIR
 
-    if project_dir is not None and project_path.exists():
-        for host in hosts:
-            if host is None:
-                continue
-            project_system_modules = project_path / "flows" / "pipeable_modules" / host
-            folders.append(str(project_system_modules))
-            user_modules = project_path / "users" / os.environ.get("CAPITO_USERNAME") / "pipeable_modules" / host
+    if project_dir:
+        project_path = Path(project_dir)
+        if project_path.exists():
+            project_modules = project_path / "flows" / "pipeable_modules"
+            folders.append(str(project_modules))
+            user_modules = (
+                project_path / "users" / CONFIG.CAPITO_USERNAME / "pipeable_modules"
+            )
             if user_modules.exists():
                 folders.append(str(user_modules))
     return folders
@@ -41,15 +42,12 @@ class PipeProvider:
         if hosts is not None:
             self.hosts.extend(hosts)
 
-        cwd = Path(__file__).parent
-        default_system_modules = cwd / "pipeables"
-        self.add_module_folder(str(default_system_modules))
-        default_maya_modules = cwd.parent.parent / "maya" / "pipeable_modules"
-        self.add_module_folder(str(default_maya_modules))
-
-        for folder in get_pipeable_project_modules(self.hosts):
+        # add std modules
+        self.add_module_folder(Path(__file__).parent / "pipeable_modules")
+        # add project and user modules:
+        for folder in get_pipeable_project_modules():
             self.add_module_folder(folder)
-
+        # add any additional provided modules:
         if module_folders:
             for mf in module_folders:
                 self.add_module_folder(mf)

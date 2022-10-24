@@ -3,6 +3,7 @@ import json
 from pathlib import Path
 from typing import Callable, List
 
+from capito.conf.config import CONFIG
 from capito.core.pipe.models import Pipeable
 from capito.core.pipe.provider import PipeProvider
 
@@ -140,3 +141,18 @@ class PipePlayer:
         to_save = {"description": self.description, "playlist": self.as_list()}
         with playlist_file.open("w") as json_file:
             json.dump(to_save, json_file, indent=4)
+
+
+# from capito.core.pipe.provider import PipeProvider
+# from capito.core.pipe.player import PipePlayer
+# from pathlib import Path
+
+# provider = PipeProvider(
+#     hosts=["maya"],
+#     module_folders=
+# )
+# player = PipePlayer(provider)
+
+# player.load(
+#     Path(CONFIG.CAPITO_PROJECT_DIR) / "code" / "pipe_playlists" / "char_export.json"
+# )
