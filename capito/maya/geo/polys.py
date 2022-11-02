@@ -9,8 +9,8 @@ def set_vertex_wire_color(
 ):
     """Sets vertex and wireframe color of
     all shapes in'transform' to 'color'."""
-    pc.polyColorPerVertex(obj, colorRGB=color, a=alpha, cdo=True)
-    wireframe.colorize(obj, color)
+    pc.polyColorPerVertex(transform, colorRGB=color, a=alpha, cdo=True)
+    wireframe.colorize(transform, color)
 
 
 def read_faceverts(faces: List[pc.MeshFace]):
