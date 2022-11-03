@@ -13,7 +13,7 @@ def set_vertex_wire_color(
     wireframe.colorize(transform, color)
 
 
-def read_faceverts(faces: List[pc.MeshFace]):
+def read_faceverts(faces: List[pc.MeshFace]) -> List[List[List[float]]]:
     """
     Reads all vertex positions of all faces into a simple data structure.
     [
