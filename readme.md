@@ -22,5 +22,8 @@ Click the green "Code" Button above and download the repo as zip file. Unpack to
 
 # 3 Setup
 
-## 3.1 Setup for Maya
+## 3.1 System Setup (Windows only)
+If you just want to use the Maya portion of capito (Rig-Tools etc. for Übungen CG) you can skip this and continue with 3.2. To setup the Captio pipelining tools on Windows right-click on install_windows.bat and choose "Run as Administrator". The installation process will take several minutes depending on your internet connection. The install script will create various Python virtiual envs, set some system environment variables. You will be asked, if you would like to download FFMPEG. If you don't already have FFMPEG installed or are not familiar with setting environment variables, I recommend to say yes. Otherwise you can create an environment variable called "FFMPEG" which points to the installed ffmpeg executable (fmpeg.exe on windows).
+
+## 3.2 Setup for Maya
 Just drop the file *maya_drop_installer.py* into the *viewport* of a running Maya instance (Outliner or other editors will not work!). You will be presented with a summary of the installation process. If you have already created a userSetup.py the installer will ask if you want to replace it with the userSetup for capito. If a replacement is not desired it's recommended to backup your version, let the installer write it's version and merge the two files manually. If your userSetup.py was created by an old version of capito (or cg3) and you did not edit the userSetup.py you can safely replace the userSetup.py.
