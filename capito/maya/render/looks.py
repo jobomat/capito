@@ -72,7 +72,11 @@ class Look:
         """
         shading_groups = []
         shapes = []
-        transforms = [t for t in transforms if isinstance(t, pc.nodetypes.Transform)]
+        transforms = [
+            t for t in transforms 
+            if isinstance(t, pc.nodetypes.Transform) and get_visible_shape(t)
+        ]
+        print(transforms)
         # get a list of all shapes and all shading groups:
         for obj in transforms:
             visible_shape = get_visible_shape(obj)
