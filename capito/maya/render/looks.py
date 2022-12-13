@@ -169,6 +169,11 @@ class Look:
             return
         except TypeError:
             pc.select([f"*:{obj}" for obj in self.objectNames])
+        except ValueError:
+            objects = []
+            for obj in self.objectNames:
+                objects.extend(pc.ls(regex=f"*{obj}"))
+            pc.select(objects)
 
     @property
     def shadingGroups(self):
