@@ -12,6 +12,14 @@ from typing import Any, List
 import pymel.core as pc
 
 
+def get_visible_shape(obj: pc.nodetypes.Transform):
+    if not hasattr(obj, 'getShapes'):
+        return None
+    shapes = [s for s in obj.getShapes() if not s.intermediateObject.get()]
+    if shapes:
+        return shapes[0]
+
+
 def create_look_node(name: str, asset: str = None) -> pc.nodetypes.Network:
     """Creates a node of type 'Network' and adds the look node attributes."""
     look_node = pc.createNode("network", name=f"{name}_look")
@@ -64,11 +72,15 @@ class Look:
         """
         shading_groups = []
         shapes = []
+        transforms = [t for t in transforms if isinstance(t, pc.nodetypes.Transform)]
         # get a list of all shapes and all shading groups:
         for obj in transforms:
-            shapes.append(obj.getShape())
+            visible_shape = get_visible_shape(obj)
+            if not visible_shape:
+                continue
+            shapes.append(visible_shape)
             shading_groups.extend(
-                obj.getShape().connections(type="shadingEngine"))
+                visible_shape.connections(type="shadingEngine"))
 
         for shading_group in shading_groups:
             if not shading_group.hasAttr("sg"):

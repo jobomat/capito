@@ -11,6 +11,35 @@ def get_curve_length(curve: pc.nodetypes.NurbsCurve) -> float:
     return crv_len
 
 
+def local_min_indices(arr: list):
+    num = len(arr) - 1
+    minima_indices = []
+    for i, item in enumerate(arr):
+       if i == 0 or i == num:
+           continue
+       if arr[i - 1] > item < arr[i + 1]:
+           minima_indices.append(i)
+    return minima_indices
+
+
+def tightest_curve_u(curve:pc.nodetypes.NurbsCurve, samples=50, max_radius=10000000):
+    poci = pc.createNode("pointOnCurveInfo")
+    curve.attr("worldSpace[0]") >> poci.inputCurve
+    step = curve.findParamFromLength(curve.length()) / samples
+    params = [i * step for i in range(samples)]
+    crv_radii = []
+    for param in params:
+        poci.parameter.set(param)
+        radius = poci.curvatureRadius.get()
+        if radius < max_radius:
+            crv_radii.append(radius)
+        else:
+            crv_radii.append(max_radius)
+    pc.delete(poci)
+    indices = local_min_indices(crv_radii)
+    return [params[i] for i in indices]
+
+
 def combine_shapes(transforms, delete=True):
     """
     Takes a list of pymel.nt.Transform nodes. Returns the "combined" transform.
