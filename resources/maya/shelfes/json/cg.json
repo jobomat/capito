@@ -124,6 +124,14 @@
             "command": "from capito.core.encoder.ui import SequenceEncoderUI\nSequenceEncoderUI()",
             "image1": "sequence_encoder.png",
             "annotation": "Encode image sequences with FFMPEG and add text burnins."
+        },
+        {
+            "sourceType": "python",
+            "image": "hlrs_export.png",
+            "label": "Export Scene for HLRS",
+            "command": "from capito.maya.render.hlrs import HLRSExporter\nHLRSExporter()",
+            "image1": "sequence_encoder.png",
+            "annotation": "Export Scene for Rendering at HLRS."
         }
     ], 
     "name": "cg", 
