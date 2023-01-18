@@ -79,13 +79,11 @@ def get_pathmap(resources: List[Path]) -> Dict[str, Dict[str, str]]:
     """Returns a pathmap for the given list of resource files
     suitable for creating a Arnold pathmap json file.
     """
-    res = {p: f"<ABSOLUTE_PROJECT_PATH>/{FOLDERS['RESOURCES']}" for p in get_resource_paths(resources)}
+    res = {p: f"<ABSOLUTE_WS_PATH>/{FOLDERS['RESOURCES']}" for p in get_resource_paths(resources)}
     ocio_conf_file = pc.colorManagementPrefs(q=1, configFilePath=1)
     ocio = str(Path(ocio_conf_file).parent.parent).replace("\\", "/")
     res[ocio] = "OCIO"
     return {
-        "windows": res,
-        "mac": res,
         "linux": res
     }
 

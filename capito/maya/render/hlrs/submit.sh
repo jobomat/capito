@@ -1,11 +1,19 @@
 #!/bin/bash
 
 jobname=$1
-job_dir="${PWD}/$jobname/jobfiles"
-echo "$job_dir"
-status_file="$job_dir/status.txt"
+project_dir="${PWD}/$jobname"
+job_dir="$project_dir/jobfiles"
 
+status_file="$job_dir/status.txt"
 touch $status_file
+
+json_file="$project_dir/pathmap.json"
+sed -i "s+<ABSOLUTE_WS_PATH>+$project_dir+g" $json_file
+
+echo "project_dir: $project_dir"
+echo "job_dir: $job_dir"
+echo "status_file: $status_file"
+echo "json_file: $json_file"
 
 all_submitted=0
 

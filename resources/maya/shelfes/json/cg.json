@@ -129,8 +129,8 @@
             "sourceType": "python",
             "image": "hlrs_export.png",
             "label": "Export Scene for HLRS",
-            "command": "from capito.maya.render.hlrs import HLRSExporter\nHLRSExporter()",
-            "image1": "sequence_encoder.png",
+            "command": "from capito.maya.render.hlrs.ui import HlrsExporter\nHlrsExporter()",
+            "image1": "hlrs_export.png",
             "annotation": "Export Scene for Rendering at HLRS."
         }
     ], 

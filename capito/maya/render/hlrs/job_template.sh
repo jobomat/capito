@@ -11,6 +11,7 @@ export WS_BASE_PATH=$(ws_find {LUSTRE_WORKSPACE_NAME})
 export ARNOLD_PATH=~/arnold_7.1.3.1
 export ADSKFLEX_LICENSE_FILE="@ca-lic.hdm-stuttgart.de"
 export ARNOLD_TEXTURE_PATH=$WS_BASE_PATH/{SHOT}/resources
+export ARNOLD_PATHMAP=$WS_BASE_PATH/{SHOT}/pathmap.json
 
 PATH=$PATH:$ARNOLD_PATH/bin/:$ARNOLD_PATH/bin
 export PATH
