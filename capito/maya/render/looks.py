@@ -167,9 +167,9 @@ class Look:
         try:
             pc.select([f":{obj}" for obj in self.objectNames])
             return
-        except TypeError:
-            pc.select([f"*:{obj}" for obj in self.objectNames])
-        except ValueError:
+        # except TypeError:
+        #     pc.select([f"*:{obj}" for obj in self.objectNames])
+        except:
             objects = []
             for obj in self.objectNames:
                 objects.extend(pc.ls(regex=f"*{obj}"))
