@@ -101,13 +101,15 @@ def create_filename(job_name, framenumber, renderlayer):
     return f"{job_name}_{rl_name}.{framenumber:04d}"
 
 
-def export_ass_files(folder, jobname, startframe, endframe, renderlayers):
+def export_ass_files(folder, jobname, startframe, endframe, renderlayers, arnold_kwargs=None):
+    if arnold_kwargs is None:
+        arnold_kwargs = {"expandProcedurals": False, "asciiAss": False}
     current = renderlayers[0].currentLayer()
     for renderlayer in renderlayers:
         renderlayer.setCurrent()
         pc.other.arnoldExportAss(
             f=f"{folder}/{jobname}/ass/{jobname}_<RenderLayer>.ass",
-            startFrame=startframe, endFrame=endframe, preserveReferences=True
+            startFrame=startframe, endFrame=endframe, **arnold_kwargs
         )
     current.setCurrent()
 
