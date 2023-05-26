@@ -176,3 +176,27 @@ def edit_soft_cluster_weights(cluster_handle, weight_dict=None):
 
     for i in range(count):
         weight_plug.elementByLogicalIndex(ids[i]).setFloat(weight_dict.get(i, 0.0))
+
+
+def copy_weights(source_geo:pc.nodetypes.Transform, target_geo:pc.nodetypes.Transform, vertex_set:pc.nodetypes.ObjectSet):
+    """Copy the weights from source_geo to target_geo
+    but only for the verts specified via vertex_set.
+    """
+    source_shape = source_geo.getShape()
+    target_shape = target_geo.getShape()
+    target_sc = target_geo.listHistory(type="skinCluster")[0]
+    normalize_mode = target_sc.normalizeWeights.get()
+    
+    target_sc.normalizeWeights.set(0)
+
+    pc.select(vertex_set.members())
+    vertex_ids = [v.index() for v in pc.selected(fl=True)]
+    pc.select(cl=True)
+
+    source_verts = [source_shape.vtx[id] for id in vertex_ids]
+    target_verts = [target_shape.vtx[id] for id in vertex_ids]
+    
+    pc.select(*source_verts, *target_verts)
+
+    pc.copySkinWeights(noMirror=True, surfaceAssociation="closestPoint", influenceAssociation="closestJoint")
+    target_sc.normalizeWeights.set(normalize_mode)

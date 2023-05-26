@@ -2,3 +2,4 @@ gspread
 plumbum
 fonttools
 pytz
+psutil

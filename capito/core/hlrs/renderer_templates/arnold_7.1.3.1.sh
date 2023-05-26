@@ -2,7 +2,7 @@
 #PBS -N {ASS_FILE}
 #PBS -l select=1:node_type=rome,walltime=0:20:00
 
-export WS_BASE_PATH=$(ws_find {LUSTRE_WORKSPACE_NAME})
+export WS_BASE_PATH=$(ws_find render)
 export OCIO=$WS_BASE_PATH/OCIO/aces_1.2/config.ocio
 
 # Arnold vars

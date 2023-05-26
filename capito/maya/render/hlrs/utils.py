@@ -3,8 +3,64 @@ import json
 from pathlib import Path
 from shutil import copy
 from typing import Tuple, List, Set, Dict
+import sys
+from subprocess import TimeoutExpired
+import math
+import os
+
+from plumbum import local
+import psutil
 
 import pymel.core as pc
+
+
+def get_recommended_parallel_mayapys():
+    """Will return the estimated number of parallel runable mayapy instances.
+    The recommended number is either the number of cores
+    or the number of mayapys (+ scene) that will fit into the availible memory.
+    """
+    free_mem = psutil.virtual_memory()[4]
+    ma_size = Path(pc.sceneName()).stat().st_size
+    maya_mem = 2_000_000_000
+    return min(
+        os.cpu_count(),
+        math.floor(free_mem / (ma_size + maya_mem))
+    )
+
+
+def parallel_ass_export(ass_file, startframe, endframe):
+    parapy = get_recommended_parallel_mayapys()
+    frames_per_core = math.ceil(
+        (endframe - startframe) / parapy
+    )
+    print(f"Exporting {(endframe - startframe)} frames...")
+    print(f"Starting {parapy} mayapy instances...")
+    print(f"Exporting {frames_per_core} frames per instance...")
+    s = startframe
+    e = startframe + frames_per_core - 1
+    
+    mayapy = local[str(Path(sys.executable).parent / "mayapy.exe")]
+    processes = []
+
+    python_script = str(Path(__file__).parent / 'parallelExporter.py')
+    
+    while e < endframe + frames_per_core:
+        params = [
+            python_script,
+            str(pc.sceneName()),
+            ass_file,
+            s,
+            min(e, endframe)
+        ]
+        p = mayapy.popen(params)
+        processes.append(p)
+        
+        try:
+            p.communicate(timeout=1)
+        except TimeoutExpired:
+            pass
+        s += frames_per_core
+        e += frames_per_core
 
 
 FOLDERS = {
@@ -22,6 +78,40 @@ def create_shot_folders(location: Path, shot: str):
     shot_dir.mkdir()
     for folder in FOLDERS.values():
         (shot_dir / folder).mkdir()
+
+
+def get_links_in_ass(ass_file: str) -> List[str]:
+    """Traverses the given ass file recursively.
+    Returns a list of path-strings of all image and procedural
+    nodes that where found in all traversed ass files."""
+    nodes = ["image\n", "procedural\n"]
+    with Path(ass_file).open("r") as file:
+        lines = file.readlines()
+    links = []
+    in_node = False
+    for line in lines:
+        if line in nodes:
+            in_node = True
+            continue
+        if in_node and line.startswith(" filename"):
+            filename = line.replace('"', '')[10:-1]
+            links.append(filename)
+            if filename.endswith(".ass"):
+                links.extend(get_links_in_ass(filename))
+            in_node = False
+    return links
+
+
+def get_standin_links() -> List[str]:
+    """Returns paths-strings to all aiStandIn resources in the scene.
+    StandIns containing ASS files  will be traversed recursively."""
+    files = []
+    for standin in pc.ls(type="aiStandIn"):
+        file = standin.dso.get()
+        files.append(file)
+        if file.endswith(".ass"):
+            files.extend(get_links_in_ass(file))
+    return list(set(files))
 
 
 def collect_resources(image_suffix_list: list=None) -> List[Path]:
