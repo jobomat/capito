@@ -28,7 +28,6 @@ $BLENDER_PATH/blender \
 -b $SCENE_FILE \
 --log-file $LOG_PATH/{jobfile_name}.log \
 -o $OUTPUT_PATH/{global_job_name}.{frame_padding_hashes} \
--F OPEN_EXR \
 -E CYCLES \
 -s {start_frame} \
 -e {end_frame} \
