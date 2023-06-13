@@ -13,6 +13,7 @@
 
 export WS_BASE_PATH=$(ws_find {workspace_name})
 export BLENDER_PATH=$WS_BASE_PATH/renderers/{renderer}
+export OCIO=$WS_BASE_PATH/Blender-ACES-Config/config.ocio
 
 PATH=$PATH:$BLENDER_PATH/
 export PATH
