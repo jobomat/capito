@@ -25,7 +25,7 @@ LOG_PATH=$WS_BASE_PATH/{share_name}/hlrs/{global_job_name}/logs
 # Start rendering
 $BLENDER_PATH/blender \
 -b $SCENE_FILE \
---log-file $LOG_PATH/blenderlog/{jobfile_name}.log \
+--log-file $LOG_PATH/{jobfile_name}.log \
 -o $OUTPUT_PATH/{global_job_name}.{frame_padding_hashes} \
 -F OPEN_EXR \
 -E CYCLES \
