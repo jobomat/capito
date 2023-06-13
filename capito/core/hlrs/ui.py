@@ -23,7 +23,7 @@ class HLRSConnectorUI(QMainWindow):
         super().__init__(parent)
 
         self.setWindowTitle("HLRS")
-        self.setMinimumSize(800, 500)
+        self.setMinimumSize(1024, 640)
 
         vbox = QVBoxLayout()
         

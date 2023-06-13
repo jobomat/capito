@@ -6,12 +6,17 @@ import pymel.core as pc
 
 from capito.core.ui.decorators import bind_to_host
 from capito.core.ui.widgets import QHLine
-import capito.maya.render.hlrs.utils as hlrsutils
+from capito.core.hlrs.utils import create_job_folders
+from capito.maya.render.hlrs.tools import write_syncfile, parallel_ass_export
+
+
+FIRST_COL_WIDTH = 100
 
 
 class SceneStatusWidget(QWidget):
     def __init__(self):
         super().__init__()
+        self.hlrs_folder = Path(pc.sceneName()[:3]) / "hlrs"
         self.setContentsMargins(0, 0, 0, 0)
         self._create_widgets()
         self._create_layout()
@@ -20,7 +25,8 @@ class SceneStatusWidget(QWidget):
     def _create_widgets(self):
         self.startframe_label = QLabel()
         self.endframe_label = QLabel()
-        self.rendercam_label = QLabel()
+        self.rendercam_label = QLabel() 
+        self.hlrs_folder_label = QLabel(str(self.hlrs_folder))
 
     def _create_layout(self):
         vbox = QVBoxLayout()
@@ -29,7 +35,7 @@ class SceneStatusWidget(QWidget):
         hbox = QHBoxLayout()
         label = QLabel("Framerange:")
         label.setStyleSheet("font-weight: bold;")
-        label.setMinimumWidth(80)
+        label.setMinimumWidth(FIRST_COL_WIDTH)
         hbox.addWidget(label)
         hbox.addWidget(self.startframe_label)
         label = QLabel(" - ")
@@ -41,9 +47,18 @@ class SceneStatusWidget(QWidget):
         hbox = QHBoxLayout()
         label = QLabel("Rendercam:")
         label.setStyleSheet("font-weight: bold;")
-        label.setMinimumWidth(80)
+        label.setMinimumWidth(FIRST_COL_WIDTH)
         hbox.addWidget(label)
         hbox.addWidget(self.rendercam_label)
+        hbox.addStretch()
+        vbox.addLayout(hbox)
+        
+        hbox = QHBoxLayout()
+        label = QLabel("HLRS Folder:")
+        label.setStyleSheet("font-weight: bold;")
+        label.setMinimumWidth(FIRST_COL_WIDTH)
+        hbox.addWidget(label)
+        hbox.addWidget(self.hlrs_folder_label)
         hbox.addStretch()
         vbox.addLayout(hbox)
         
@@ -69,6 +84,7 @@ class SceneStatusWidget(QWidget):
             self.rendercam_label.setStyleSheet("color: rgb(187,187,187);")
             status = True
         self.rendercam_label.setText(rendercam_label)
+        
         return status
 
 
@@ -146,15 +162,6 @@ class HlrsExporter(QMainWindow):
         
 
     def _create_widgets(self):
-        self.dir_lineedit = QLineEdit()
-        self.dir_lineedit.setEnabled(False)
-        self.dir_lineedit.setText("")
-        self.dir_lineedit.setPlaceholderText("Please select export folder")
-        self.dir_lineedit.setStyleSheet("QLineEdit{color: grey;}")
-        self.choose_folder_button = QPushButton("")
-        icon = self.style().standardIcon(QStyle.SP_DirIcon)
-        self.choose_folder_button.setIcon(icon)
-
         self.job_name_lineedit = QLineEdit()
         self.job_name_lineedit.setText(Path(pc.sceneName()).stem)
 
@@ -162,32 +169,30 @@ class HlrsExporter(QMainWindow):
 
         self.scene_status_widget = SceneStatusWidget()
 
-        self.workspace_name_lineedit = QLineEdit()
-        self.workspace_name_lineedit.setText("zmcjbomm_render")
+        self.cache_dir_lineedit = QLineEdit()
+        self.cache_dir_lineedit.setEnabled(False)
+        self.cache_dir_lineedit.setText("")
+        self.cache_dir_lineedit.setPlaceholderText("Caching dir not set")
+        self.cache_dir_lineedit.setStyleSheet("QLineEdit{color: grey;}")
+        self.choose_folder_button = QPushButton("")
+        icon = self.style().standardIcon(QStyle.SP_DirIcon)
+        self.choose_folder_button.setIcon(icon)
+
 
         self.export_button = QPushButton("Export")
         self.export_button.setEnabled(False)
  
     def _connect_widgets(self):
-        self.choose_folder_button.clicked.connect(self._set_job_folder)
+        self.choose_folder_button.clicked.connect(self._set_cache_folder)
         self.job_name_lineedit.textChanged.connect(self._check_job_dir)
         self.export_button.clicked.connect(self._export)
 
     def _create_layout(self):
         vbox = QVBoxLayout()
 
-        dir_hbox = QHBoxLayout()
-        label = QLabel("Export Folder:")
-        label.setMinimumWidth(80)
-        label.setStyleSheet("font-weight: bold;")
-        dir_hbox.addWidget(label)
-        dir_hbox.addWidget(self.dir_lineedit, stretch=1)
-        dir_hbox.addWidget(self.choose_folder_button)
-        vbox.addLayout(dir_hbox)
-
         jobname_hbox = QHBoxLayout()
         label = QLabel("Job Name:")
-        label.setMinimumWidth(80)
+        label.setMinimumWidth(FIRST_COL_WIDTH)
         label.setStyleSheet("font-weight: bold;")
         jobname_hbox.addWidget(label)
         jobname_hbox.addWidget(self.job_name_lineedit, stretch=1)
@@ -199,8 +204,16 @@ class HlrsExporter(QMainWindow):
 
         vbox.addWidget(QHLine())
         vbox.addWidget(self.scene_status_widget)
-
-        vbox.addWidget(self.workspace_name_lineedit) 
+        vbox.addWidget(QHLine())
+        cache_dir_hbox = QHBoxLayout()
+        cache_dir_label = QLabel("Local Cache Dir:")
+        cache_dir_label.setMinimumWidth(FIRST_COL_WIDTH)
+        cache_dir_hbox.addWidget(cache_dir_label)
+        cache_dir_hbox.addWidget(self.cache_dir_lineedit)
+        cache_dir_hbox.addWidget(self.choose_folder_button)
+        vbox.addLayout(cache_dir_hbox)
+        vbox.addWidget(QHLine())
+ 
         vbox.addStretch()
         vbox.addWidget(self.export_button)
         #vbox.addWidget(QHLine())
@@ -208,27 +221,25 @@ class HlrsExporter(QMainWindow):
         central_widget = QWidget()
         central_widget.setLayout(vbox)
         self.setCentralWidget(central_widget)
-
-    def _set_job_folder(self):
+    
+    def _set_cache_folder(self):
         folder = QFileDialog.getExistingDirectory(
-            self, "Choose Directory",
+            self, "Choose Caching Directory",
             str(pc.Workspace().path),
             QFileDialog.ShowDirsOnly
         )
-        self.dir_lineedit.setText(folder)
-        self._check_job_dir(False)
+        self.cache_dir_lineedit.setText(folder)
 
     def _check_job_dir(self, *arg):
         jobname = self.job_name_lineedit.text()
-        folder = self.dir_lineedit.text()
-        if not folder:
-            self.statusBar().showMessage("Please specify an export folder.")
-            return False
         if not jobname:
             self.statusBar().showMessage("Please specify a job name.")
             return False
-        if (Path(folder) / jobname).exists():
+        if (self.scene_status_widget.hlrs_folder / jobname).exists():
             self.statusBar().showMessage("Subfolder with job name already exists.")
+            return False
+        if not self.renderlayer_widget.get_selected_renderlayers():
+            self.statusBar().showMessage("Please select at least one render layer.")
             return False
         self.statusBar().showMessage("Ready for export!")
         return True
@@ -237,19 +248,18 @@ class HlrsExporter(QMainWindow):
         renderglobals = pc.PyNode("defaultRenderGlobals")
         startframe = int(renderglobals.startFrame.get())
         endframe = int(renderglobals.endFrame.get())
-        folder = self.dir_lineedit.text()
         jobname = self.job_name_lineedit.text()
+        folder = self.scene_status_widget.hlrs_folder / jobname
         renderlayers = self.renderlayer_widget.get_selected_renderlayers()
-        workspace_name = self.workspace_name_lineedit.text()
+        cache_dir = self.cache_dir_lineedit.text()
 
-        hlrsutils.create_shot_folders(folder, jobname)
-        hlrsutils.export_ass_files(folder, jobname, startframe, endframe, renderlayers)
-        hlrsutils.write_jobfiles(folder, jobname, workspace_name)
+        export_file = str(folder / "scenes" / jobname)
+        if cache_dir:
+            export_file = str(Path(cache_dir) / jobname / "scenes" / jobname)
 
-        resources = hlrsutils.collect_resources()
-        hlrsutils.copy_resources(resources, Path(folder) / jobname / "resources")
-        pathmap = hlrsutils.get_pathmap(resources)
-        hlrsutils.write_pathmap(pathmap, Path(folder) / jobname)
+        create_job_folders(folder)
+        write_syncfile(folder)
+        parallel_ass_export(export_file, startframe, endframe, renderlayers)
 
     def closeEvent(self, event):
         for job in self.script_jobs:

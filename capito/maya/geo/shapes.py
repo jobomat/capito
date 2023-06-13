@@ -33,6 +33,17 @@ def randomize_components(components, mini=(-0.1, -0.1, -0.1), maxi=(0.1, 0.1, 0.
         components[0].node().updateCurve()
 
 
+def transfer_subdivs_to_arnold(meshes: pc.nodetypes.Mesh):
+    """Disable subdiv-viewport preview and shift the subdiv settings
+    to arnold aiSudivType and aiSubdivIterations attributes."""
+    for shape in meshes:
+        if shape.displaySmoothMesh.get():
+            level = shape.smoothLevel.get()
+            shape.aiSubdivType.set(1)
+            shape.aiSubdivIterations.set(level)
+            shape.displaySmoothMesh.set(0)
+
+
 def rotate_shapes(transform, amount=(90, 0, 0), pivot=None):
     """
     Rotates the components (shapes) of a given pymel-transform
