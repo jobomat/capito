@@ -34,12 +34,18 @@ def create_job_folders(jobdir:Path):
 def create_blender_jobfiles(ws_name: str, share_name: str, renderer:str, global_job_name:str, start:int, end:int, size:int):
     template_file = Path(__file__).parent / "renderer_templates" / f"{renderer}.sh"
     template = template_file.read_text(encoding="UTF-8")
+    
+    touch_template_file = Path(__file__).parent / "renderer_templates" / "blender_touch_snip.template.sh"
+    touch_template = touch_template_file.read_text(encoding="UTF-8")
 
     scene_folder = Path(share_name) / "hlrs" / global_job_name / "scenes"
     blend_files = list(scene_folder.glob("*.blend"))
+    share = MOUNT_MAP[share_name].replace("/", "")
+    frame_padding = 4
+    frame_padding_hashes = "#" * frame_padding
 
     if not blend_files or len(blend_files) > 1:
-        print("Please place exactly one *.blend file in the scenes folder.")
+        print("Please save exactly one *.blend file in the scenes folder.")
         print("Aborted.")
         return
     
@@ -48,16 +54,27 @@ def create_blender_jobfiles(ws_name: str, share_name: str, renderer:str, global_
     jobfile_name = ""
     for i in range(start, end + 1, size):
         e = min(end, i+size-1)
+        touch_snips = []
+        for framenumber in range(i, e + 1):
+            touch_snips.append(
+                touch_template.format(
+                    share_name=share,
+                    global_job_name=global_job_name,
+                    padded_framenumber=str(framenumber).zfill(frame_padding)
+                )
+            )
         jobfile_name = f"{global_job_name}_{i}_{e}"
         jobtext = template.format(
             global_job_name=global_job_name,
             workspace_name=ws_name,
             renderer=renderer,
             blender_file=blend_files[0].name,
-            share_name=MOUNT_MAP[share_name].replace("/", ""),
+            share_name=share,
             start_frame=i,
             end_frame=e,
-            jobfile_name=jobfile_name
+            jobfile_name=jobfile_name,
+            frame_padding_hashes=frame_padding_hashes,
+            touch_snip="\n".join(touch_snips)
         )
         jobfile = Path(share_name) / "hlrs" / global_job_name / "jobs" / f"{jobfile_name}.sh"
         jobfile.write_text(jobtext, encoding="UTF-8")
@@ -81,6 +98,7 @@ def create_arnold_jobfiles(ws_name: str, ws_path:str, share_name: str, renderer:
 
     scene_folder = Path(share_name) / "hlrs" / global_job_name / "scenes"
     ass_files = list(scene_folder.glob("*.ass"))
+    share = MOUNT_MAP[share_name].replace("/", "")
 
     filecounter = len(ass_files)
 
@@ -96,7 +114,7 @@ def create_arnold_jobfiles(ws_name: str, ws_path:str, share_name: str, renderer:
             if filecounter < 0:
                 break
             kick_snip += snip_template.format(
-                share_name=MOUNT_MAP[share_name].replace("/", ""),
+                share_name=share,
                 job_name=global_job_name,
                 ass_file=ass_files[filecounter].name,
                 jobfile_name=ass_files[filecounter].stem
@@ -109,7 +127,7 @@ def create_arnold_jobfiles(ws_name: str, ws_path:str, share_name: str, renderer:
             jobfile_name=jobfile_name,
             workspace_name=ws_name,
             renderer=renderer,
-            share_name=MOUNT_MAP[share_name].replace("/", ""),
+            share_name=share,
             job_name=global_job_name
         )
         jobfile = Path(share_name) / "hlrs" / global_job_name / "jobs" / f"{jobfile_name}.sh"

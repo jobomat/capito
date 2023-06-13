@@ -1,0 +1,1 @@
+touch $WS_BASE_PATH/{share_name}/hlrs/{global_job_name}/transferable/{global_job_name}.{padded_framenumber}

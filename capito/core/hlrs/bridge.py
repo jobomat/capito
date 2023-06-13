@@ -9,7 +9,7 @@ class Bridge:
         #self.hlrs_user = hlrs_user
         self.bridge_server = bridge_server
         self.bridge_username = bridge_username
-        self.bridgekeyfile = key_filename or r"C:\Users\jobo\.ssh\ca-hlrs.pub"
+        self.bridgekeyfile = key_filename or r"K:\pipeline\hlrs\ca-hlrs.pub"
         self.ssh = self.ssh_connect()
 
     def ssh_connect(self):
