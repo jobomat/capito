@@ -128,6 +128,12 @@ class Look:
         """
         transform_shape_map = defaultdict(list)
         for transform in transforms:
+            shape = None
+            try:
+                shape = transform.getShape()
+            except AttributeError:
+                pc.warning(f"Name clash for {transform} (type {type(transform)}). Mind your naming convention!")
+                continue
             if not isinstance(transform.getShape(), pc.nodetypes.Mesh):
                 continue
             shape = [s for s in transform.getShapes(
@@ -140,10 +146,15 @@ class Look:
         for i in range(self.look_node.sg.numElements()):
             sg_attr = self.look_node.attr(f"sg[{i}]")
             faces_dict = json.loads(sg_attr.get())
-            shading_group = sg_attr.listConnections()[0]
+            try:
+                shading_group = sg_attr.listConnections()[0]
+            except IndexError:
+                pc.warning(f"Skipped missing connection '{i}' for {self.look_node}.")
+                continue
             # assign faces, or whole object if list is empty
             for transform, faces in faces_dict.items():
                 for shape in transform_shape_map.get(transform, []):
+                    print(shape)
                     if shape is None:
                         print(
                             f"Node {transform} not found in list of supplied transforms.")
