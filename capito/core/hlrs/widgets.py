@@ -300,7 +300,7 @@ class RendererWidget(QWidget):
         hbox.addWidget(self.jobsize_label)
         self.jobsize_input = QLineEdit()
         self.jobsize_input.setValidator(QIntValidator(1,9))
-        self.jobsize_input.setText("2")
+        self.jobsize_input.setText("1")
         self.jobsize_input.setMaxLength(1)
         self.jobsize_input.setMaximumWidth(30)
         hbox.addWidget(self.jobsize_input)
