@@ -410,6 +410,9 @@ class MainWidget(QWidget):
 
     def push_transfer_files(self):
         rsync_file = self.get_rsync_file()
+        if not rsync_file.exists():
+            message("Please create the jobfiles before transfering.")
+            return
         sync_file = str(rsync_file).replace(
             self.current_hlrs_folder,
             f"{MOUNT_MAP[self.current_hlrs_folder]}/"
