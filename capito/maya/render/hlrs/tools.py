@@ -3,14 +3,28 @@ from pathlib import Path
 from shutil import copy
 from typing import Tuple, List, Set, Dict
 import sys
-from subprocess import TimeoutExpired
+from subprocess import TimeoutExpired, check_output
 import math
 import os
 
 from plumbum import local
-import psutil
+import platform
 
 import pymel.core as pc
+
+
+def get_free_mem():
+    """Notloesung wegen Prism psutil import-Konflikt."""
+    try:
+        import psutil
+        return psutil.virtual_memory()[4]
+    except:
+        if platform.system() == 'Windows':
+            systeminfo = check_output(["systeminfo"], encoding="437", universal_newlines=True).split("\n")
+            memline = [l for l in systeminfo if l.startswith("Verfügbarer physischer Speicher:")][0]
+            mem = int("".join([c for c in memline if c.isnumeric()])) * 1000000
+            return mem
+    return 0
 
 
 def get_recommended_parallel_mayapys():
@@ -18,7 +32,7 @@ def get_recommended_parallel_mayapys():
     The recommended number is either the number of cores
     or the number of mayapys (+ scene) that will fit into the availible memory.
     """
-    free_mem = psutil.virtual_memory()[4]
+    free_mem = get_free_mem()
     ma_size = Path(pc.sceneName()).stat().st_size
     maya_mem = 2_000_000_000
     return min(
