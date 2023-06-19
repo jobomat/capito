@@ -33,6 +33,6 @@ $BLENDER_PATH/blender \
 -s {start_frame} \
 -e {end_frame} \
 -x 1 \
--a 
+-a &> $WS_BASE_PATH/{share_name}/hlrs/{global_job_name}/streams/{jobfile_name}
 
 {touch_snip}
