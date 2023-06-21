@@ -1,3 +1,6 @@
+"""Module for communicating with hlrs (e.g. hawk).
+This module needs the haleres venv interpreter (fabric)
+"""
 import os
 from pathlib import Path
 from subprocess import Popen, check_output, CalledProcessError
@@ -5,13 +8,12 @@ import time
 from datetime import datetime
 from typing import List
 
-import paramiko
+import fabric
 
 
 WS_LIST = "/opt/hlrs/non-spack/system/ws/1.4.0/bin/ws_list"
 WS_FIND = "/opt/hlrs/non-spack/system/ws/1.4.0/bin/ws_find"
 QSTAT = "/opt/hlrs/non-spack/system/wrappers/bin/qstat"
-
 
 def vpn_running() -> bool:
     try:
@@ -32,67 +34,85 @@ def vpn_stop(self):
     return not vpn_running()
 
 
+def parse_ws_list_result(ws_list_result: list):
+    workspaces = []
+    ws_info = {}
+    for line in ws_list_result:
+        key, *val = line.split(":")
+        if not key:
+            continue
+        if key == "id":
+            if ws_info:
+                workspaces.append(ws_info)
+        ws_info[key.strip()] = ":".join(val).strip()
+        
+    if ws_info:
+        workspaces.append(ws_info)
+
+    return workspaces
+
+
+class HLRSWorkspace:
+    def __init__(self, ws_dict: dict):
+        self.ws_dict = ws_dict 
+        self.name: str = ws_dict.get("id")
+        self.path: str = ws_dict.get("workspace directory")
+        self.remaining_time: str = ws_dict.get("remaining time")
+        self.creation_date: str = ws_dict.get("creation time")
+        self.expiration_date: str = ws_dict.get("expiration date")
+        self.filesystem_name: str = ws_dict.get("filesystem name")
+        self.available_extensions: int = int(ws_dict.get("available extensions", 0))
+
+
 class HLRS:
-    def __init__(self, 
-                 login_server:str="hawk.hww.hlrs.de",
-                 username:str="zmcjbomm"):
+    def __init__(self, login_server:str="hawk.hww.hlrs.de", username:str="zmcjbomm", workspace_name:str=None):
         self.login_server = login_server
         self.username = username
         self.mountpoint = "/mnt"
 
-        self.workspace = None
-        self.workspace_path = None
-
         if not vpn_running():
             vpn_start()
-        self._ssh = self.ssh_connect()
-        ws_list = self.list_workspaces()
-        if ws_list:
-            self.set_workspace(ws_list[0])
 
-    def ssh_connect(self) -> paramiko.client.SSHClient:
-        ssh = paramiko.SSHClient()
-        ssh.load_host_keys(os.path.expanduser("~/.ssh/known_hosts"))
-        ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
-        ssh.connect(self.login_server, username=self.username, timeout=5)
-        return ssh
+        self.connection = self.connect()
+
+        self.workspaces = self.load_workspaces()
+        self.workspace:HLRSWorkspace = None
+        self.set_current_workspace(workspace_name)
+
+    def connect(self) -> fabric.Connection:
+        return fabric.Connection(host=self.login_server, user=self.username)
     
     def connection_established(self) -> bool:
-        i, o, e = self._ssh.exec_command("pwd")
-        if o.readlines() and not e.readlines():
+        pass
+    
+    def run(self, cmd: str) -> List[str]:
+        result = self.connection.run(cmd, hide=True)
+        return [line.rstrip() for line in result.stdout.strip().split("\n")]
+    
+    def load_workspaces(self) -> List[dict]:
+        return parse_ws_list_result(self.run(WS_LIST))
+    
+    def set_current_workspace(self, workspace_name:str=None):
+        if not self.workspaces:
+            # print("There are no workspaces found on HLRS.")
+            return False
+        if workspace_name is None:
+            workspace_name = self.workspaces[0]["id"]
+        ws = next((w for w in self.workspaces if w['id'] == workspace_name), None)
+        if ws is not None:
+            self.workspace = HLRSWorkspace(ws)
+            # print(f"Workspace {self.workspace.name} set.")
             return True
-        return False
-    
-    def _cmd(self, cmd: str) -> List[str]:
-        i, o, e = self._ssh.exec_command(cmd)
-        return [line.rstrip() for line in o.readlines()]
-    
-    def list_workspaces(self) -> List[str]:
-        return [
-            line.split(": ")[-1]
-            for line in self._cmd(WS_LIST)
-            if line.startswith("id: ")
-        ]
-        
-    def get_workspace_path(self, workspace_name:str):
-        result = self._cmd(f"{WS_FIND} {workspace_name}")
-        return result[0]
-    
-    def set_workspace(self, workspace_name:str):
-        self.workspace = workspace_name
-        self.workspace_path = self.get_workspace_path(workspace_name)
+        # print(f"Workspace {workspace_name} doesn't seem to exist.")       
+
+    def list_renderers(self):
+        return self.folder_listing("renderers")
 
     def qstat(self) -> list:
-        return self._cmd(QSTAT)
-    
-    def ls(self, directory: str):
-        return self._cmd(f"ls {directory}")
-
-    def ls_workspace(self, directory: str=""):
-        return self.ls(f"{self.workspace_path}/{directory}")
+        return self.run(QSTAT)
     
     def folder_listing(self, directory: str):
-        return self._cmd(f"ls -l -g {self.workspace_path}/{directory}")
-    
-    def list_renderers(self):
-        return self.ls(f"{self.workspace_path}/renderers")
+        d = f"{self.workspace.path}/{directory}"
+        files = f'find {d} -maxdepth 1 -type f -printf "%f*%s\\n" | sort'
+        folders = f'find {d} -maxdepth 1 -type d -not -path "./" -printf "%f\\n" | sort'
+        return self.run(f'{folders} && {files}')

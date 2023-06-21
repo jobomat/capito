@@ -1,16 +1,14 @@
 {
     "hlrs_server": "hawk.hww.hlrs.de",
     "hlrs_user": "zmcjbomm",
-    "hlrs_binaries": {
-        "WS_LIST": "/opt/hlrs/non-spack/system/ws/1.4.0/bin/ws_list",
-        "WS_FIND": "/opt/hlrs/non-spack/system/ws/1.4.0/bin/ws_find",
-        "QSTAT": "/opt/hlrs/non-spack/system/wrappers/bin/qstat"
-    },
+    "ws_list": "/opt/hlrs/non-spack/system/ws/1.4.0/bin/ws_list",
+    "ws_find": "/opt/hlrs/non-spack/system/ws/1.4.0/bin/ws_find",
+    "qstat": "/opt/hlrs/non-spack/system/wrappers/bin/qstat",
     "bridge_server": "141.62.110.225",
     "bridge_user": "root",
     "bridge_key": "",
     "mount_point": "/mnt",
-    "drive_map": {
+    "share_map": {
         "cg": "K:",
         "cg1": "L:",
         "cg2": "M:",

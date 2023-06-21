@@ -26,7 +26,7 @@ class CABridge:
         self.user = user or "root"
         self.ip = ip or "141.62.110.225"
         self.interpreter = interpreter or "/root/hlrs/bin/python"
-        self.bridge = bridge or "/mnt/cg/pipeline/hlrs/haleres/bridge.py"
+        self.bridge = bridge or "/mnt/cg/pipeline/capito/capito/haleres/hlrs_caller.py"
 
         self.ssh = ["ssh", "-i", self.key, f"{self.user}@{self.ip}", self.interpreter, self.bridge]
         self._workspace_path = None
