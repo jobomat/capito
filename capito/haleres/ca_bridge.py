@@ -65,9 +65,11 @@ class CABridge:
         from_file = communication_folder / "filelist.txt"
         with open(str(from_file), mode="w", encoding="UTF-8", newline="\n") as f:
             f.write(filelist_text)
+
+        hlrs_full_qualified_path = f"zmcjbomm@hawk.hww.hlrs.de:{self.workspace_path}"
         
-        source = self.workspace_path if direction == "pull" else "/mnt"
-        target = "/mnt" if direction == "pull" else self.workspace_path
+        source = hlrs_full_qualified_path if direction == "pull" else "/mnt"
+        target = "/mnt" if direction == "pull" else hlrs_full_qualified_path
 
         # TODO: path from settings (?)        
         self.hdm_subprocess(
