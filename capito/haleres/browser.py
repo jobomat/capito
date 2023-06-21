@@ -215,6 +215,9 @@ class HLRSBrowser(QMainWindow):
 
     def on_download_clicked(self):
         to_download = [f"{self.current_folder}/{f}" for f in self.list_widget.get_selected_items()]
+        if not to_download:
+            print("Nothing selected.")
+            return
         self.ca_bridge.rsync(to_download)
 
 
