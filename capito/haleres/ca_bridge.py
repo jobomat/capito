@@ -2,6 +2,7 @@ from pathlib import Path
 from subprocess import check_output, TimeoutExpired
 import shlex
 from uuid import uuid4
+import os
 
 from plumbum import local
 
@@ -20,7 +21,8 @@ def format_file_size(file_size):
 
 class CABridge:
     def __init__(self, key:str=None, user:str=None, ip:str=None, interpreter:str=None, bridge:str=None):
-        self.key = key or r"C:\Users\jobo\.ssh\ca-hlrs.pub"
+        user_dir = os.path.expanduser('~').replace("\\", "/")
+        self.key = key or f"{user_dir}/.ssh/ca-hlrs.pub"
         self.user = user or "root"
         self.ip = ip or "141.62.110.225"
         self.interpreter = interpreter or "/root/hlrs/bin/python"
