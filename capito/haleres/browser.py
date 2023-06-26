@@ -148,12 +148,12 @@ class LocationWidget(QWidget):
 
 @bind_to_host
 class HLRSBrowser(QMainWindow):
-    def __init__(self, host: str=None, parent=None):
+    def __init__(self, settings, host: str=None, parent=None):
         super().__init__(parent)
         self.setWindowTitle("HLRS Browser")
         self.setMinimumSize(400, 640)
         
-        self.ca_bridge = CABridge()
+        self.ca_bridge = CABridge(settings)
         self.current_folder = ""
 
         self._create_widgets()

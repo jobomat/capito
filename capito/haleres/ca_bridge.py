@@ -1,8 +1,9 @@
+import os
 from pathlib import Path
 from subprocess import check_output, TimeoutExpired
 import shlex
+from typing import List
 from uuid import uuid4
-import os
 
 from plumbum import local
 
@@ -20,15 +21,16 @@ def format_file_size(file_size):
 
 
 class CABridge:
-    def __init__(self, key:str=None, user:str=None, ip:str=None, interpreter:str=None, bridge:str=None):
+    def __init__(self, settings):
         user_dir = os.path.expanduser('~').replace("\\", "/")
-        self.key = key or f"{user_dir}/.ssh/ca-hlrs.pub"
-        self.user = user or "root"
-        self.ip = ip or "141.62.110.225"
-        self.interpreter = interpreter or "/root/hlrs/bin/python"
-        self.bridge = bridge or "/mnt/cg/pipeline/capito/capito/haleres/hlrs_caller.py"
+        self.key = f"{user_dir}/.ssh/ca-hlrs.pub"
+        self.settings = settings
 
-        self.ssh = ["ssh", "-i", self.key, f"{self.user}@{self.ip}", self.interpreter, self.bridge]
+        self.ssh = [
+            "ssh", "-i", self.key,
+            f"{self.settings.bridge_user}@{self.settings.bridge_server}",
+            self.settings.bridge_interpreter, self.settings.bridge_hlrs_caller
+        ]
         self._workspace_path = None
 
     @property
@@ -43,7 +45,11 @@ class CABridge:
 
     def hdm_subprocess(self, command, *args):
         ssh = local["ssh"]
-        parameters = ["-i", self.key, f"{self.user}@{self.ip}", self.interpreter, command, *args]
+        parameters = [
+            "-i", self.key,
+            f"{self.settings.bridge_user}@{self.settings.bridge_server}",
+            self.settings.bridge_interpreter, command, *args
+        ]
 
         process = ssh.popen(parameters)
         try:
@@ -96,6 +102,30 @@ class CABridge:
             else:
                 listing["folders"].append(item)
         return listing
-    
 
-    
+    def list_job_folders(self):
+        folders = []
+        for share in self.settings.shares:
+            folders.extend(self.folder_listing(f"{share}/hlrs")["folders"])
+        return folders
+
+    def get_current_running_jobs(self):
+        current_running_jobs = 0
+        qstat = self.hlrs_command(self.settings.qstat)
+        if qstat:
+            current_running_jobs = len(qstat) - 2
+        return current_running_jobs
+
+    def get_free_nodes(self):
+        return self.settings.hlrs_node_limit - self.get_current_running_jobs()
+
+    def get_pending_jobs(self):
+        list_jobs_file = Path(__file__).parent / "sh_list_pending_jobs.template"
+        cmd = list_jobs_file.read_text().replace("<WS_PATH>", self.workspace_path)
+
+        job_list = {}
+        for line in self.cmd(cmd):
+            job, num = line.split(":")
+            job_list[job] = int(num)
+
+        return job_list

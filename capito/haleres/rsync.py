@@ -15,7 +15,8 @@ def call_rsync(source: str, target: str, communication_folder: str):
     rsync = local["rsync"]
 
     process = rsync.popen([
-        "-avr",
+        "-ar",
+        "--info=COPY2,DEL2,NAME2,BACKUP2,REMOVE2,SKIP2",
         "--ignore-missing-args",
         f"--files-from={from_file}",
         f"--log-file={log_file}",

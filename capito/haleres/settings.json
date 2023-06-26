@@ -1,17 +1,33 @@
 {
     "hlrs_server": "hawk.hww.hlrs.de",
     "hlrs_user": "zmcjbomm",
+    "hlrs_node_limit": 60,
     "ws_list": "/opt/hlrs/non-spack/system/ws/1.4.0/bin/ws_list",
     "ws_find": "/opt/hlrs/non-spack/system/ws/1.4.0/bin/ws_find",
     "qstat": "/opt/hlrs/non-spack/system/wrappers/bin/qstat",
     "bridge_server": "141.62.110.225",
     "bridge_user": "root",
     "bridge_key": "",
+    "bridge_interpreter": "/root/hlrs/bin/python",
+    "bridge_hlrs_caller": "",
     "mount_point": "/mnt",
     "share_map": {
         "cg": "K:",
         "cg1": "L:",
         "cg2": "M:",
         "cg3": "N:"
+    },
+    "job_folders":{
+        "scenes": "input/scenes",
+        "jobs": "input/jobs",
+        "images": "output/images",
+        "logs": "output/logs",
+        "status": "ipc/status",
+        "rsync_push_logs": "ipc/rsync_pull_logs",
+        "rsync_pull_logs": "ipc/rsync_push_logs",
+        "images_expected": "ipc/images_expected",
+        "images_rendering": "ipc/images_rendering",
+        "images_rendered": "ipc/images_rendered",
+        "logs_expected": "ipc/logs_expected"
     }
 }

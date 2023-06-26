@@ -10,10 +10,8 @@ from typing import List
 
 import fabric
 
+from capito.haleres.settings import Settings
 
-WS_LIST = "/opt/hlrs/non-spack/system/ws/1.4.0/bin/ws_list"
-WS_FIND = "/opt/hlrs/non-spack/system/ws/1.4.0/bin/ws_find"
-QSTAT = "/opt/hlrs/non-spack/system/wrappers/bin/qstat"
 
 def vpn_running() -> bool:
     try:
@@ -65,10 +63,8 @@ class HLRSWorkspace:
 
 
 class HLRS:
-    def __init__(self, login_server:str="hawk.hww.hlrs.de", username:str="zmcjbomm", workspace_name:str=None):
-        self.login_server = login_server
-        self.username = username
-        self.mountpoint = "/mnt"
+    def __init__(self, settings:Settings): #login_server:str="hawk.hww.hlrs.de", username:str="zmcjbomm", workspace_name:str=None):
+        self.settings = settings
 
         if not vpn_running():
             vpn_start()
@@ -77,10 +73,10 @@ class HLRS:
 
         self.workspaces = self.load_workspaces()
         self.workspace:HLRSWorkspace = None
-        self.set_current_workspace(workspace_name)
+        self.set_current_workspace()
 
     def connect(self) -> fabric.Connection:
-        return fabric.Connection(host=self.login_server, user=self.username)
+        return fabric.Connection(host=self.settings.hlrs_server, user=self.settings.hlrs_user)
     
     def connection_established(self) -> bool:
         pass
@@ -90,11 +86,11 @@ class HLRS:
         return [line.rstrip() for line in result.stdout.strip().split("\n")]
     
     def load_workspaces(self) -> List[dict]:
-        return parse_ws_list_result(self.run(WS_LIST))
+        return parse_ws_list_result(self.run(self.settings.ws_list))
     
     def set_current_workspace(self, workspace_name:str=None):
         if not self.workspaces:
-            # print("There are no workspaces found on HLRS.")
+            # There are no workspaces found on HLRS
             return False
         if workspace_name is None:
             workspace_name = self.workspaces[0]["id"]
@@ -109,7 +105,7 @@ class HLRS:
         return self.folder_listing("renderers")
 
     def qstat(self) -> list:
-        return self.run(QSTAT)
+        return self.run(self.settings.qstat)
     
     def folder_listing(self, directory: str):
         d = f"{self.workspace.path}/{directory}"
