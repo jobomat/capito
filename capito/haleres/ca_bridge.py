@@ -21,16 +21,21 @@ def format_file_size(file_size):
 
 
 class CABridge:
+    """Class to execute commands 
+        - on the CA bridge linux-system (hdm_command method)
+        - as well as on a HLRS login node. (hlrs_command method)
+    To use it the user has to have the ssh pub key for the CA bridge in
+    the user-home-dir/.ssh subfolder. The key must be named ca-hlrs.pub."""
     def __init__(self, settings):
         user_dir = os.path.expanduser('~').replace("\\", "/")
         self.key = f"{user_dir}/.ssh/ca-hlrs.pub"
         self.settings = settings
 
-        self.ssh = [
+        self.hdm_ssh = [
             "ssh", "-i", self.key,
-            f"{self.settings.bridge_user}@{self.settings.bridge_server}",
-            self.settings.bridge_interpreter, self.settings.bridge_hlrs_caller
+            f"{self.settings.bridge_user}@{self.settings.bridge_server}"
         ]
+        self.hlrs_ssh = self.hdm_ssh + [self.settings.bridge_interpreter, self.settings.bridge_hlrs_caller]
         self._workspace_path = None
 
     @property
@@ -39,9 +44,13 @@ class CABridge:
             return self._workspace_path
         self._workspace_path = self.hlrs_command(["workspace.path"])[0]
         return self._workspace_path
+    
+    @property
+    def ca_shell_path(self) -> Path:
+        return Path(__file__).parent / "ca_shell"
 
     def hdm_command(self, command):
-        result = check_output(command, universal_newlines=True, shell=True)
+        return check_output(command, universal_newlines=True, shell=True)
 
     def hdm_subprocess(self, command, *args):
         ssh = local["ssh"]
@@ -57,8 +66,14 @@ class CABridge:
         except TimeoutExpired:
             pass
 
+    def hdm_execute_from_template(self, template:str, **data):
+        cmd = (self.ca_shell_path / template).read_text()
+        cmd = cmd % data
+        ssh_cmd = self.hdm_ssh + [cmd]
+        return self.hdm_command(ssh_cmd)
+    
     def hlrs_command(self, commands:list):
-        ssh_cmd = self.ssh + [shlex.quote(cmd) for cmd in commands]
+        ssh_cmd = self.hlrs_ssh + [shlex.quote(cmd) for cmd in commands]
         
         answer = check_output(ssh_cmd, universal_newlines=True, shell=True)   
         return eval(answer)

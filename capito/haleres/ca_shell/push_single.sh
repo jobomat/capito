@@ -1,7 +1,19 @@
 #!/bin/bash
-touch $2/PUSHING
-rsync -avr --ignore-missing-args --files-from=$1/rsync/files_to_push.txt --log-file=$1/rsync/pushlog.log $3 $4
+IPC=$1
+STATUS=$2
+MOUNT_POINT=$3
+HLRS_REMOTE_PATH=$4
+
+touch $STATUS/PUSHING
+
+rsync -avr --ignore-missing-args \
+      --files-from=$IPC/rsync/files_to_push.txt \
+      --log-file=$IPC/rsync/pushlog.log \
+      $MOUNT_POINT \
+      $HLRS_REMOTE_PATH
+
 if [ $? -eq 0 ]; then
-    touch $2/ALL_FILES_PUSHED
+    touch $STATUS/ALL_FILES_PUSHED
 fi
-rm $2/PUSHING
+
+rm $STATUS/PUSHING

@@ -25,15 +25,15 @@ class Job:
         self.name = name
         self.settings = settings
 
-        # ALTERING job_folders dict may break backwards compatibility!
+        # Altering job_folders dict may break backwards compatibility!
         self.job_folders = {
             "scenes": "input/scenes",
             "jobs": "input/jobs",
             "images": "output/images",
             "logs": "output/logs",
+            "ipc": "ipc",
             "status": "ipc/status",
-            "rsync_push_logs": "ipc/rsync_pull_logs",
-            "rsync_pull_logs": "ipc/rsync_push_logs",
+            "rsync": "ipc/rsync",
             "submitted": "ipc/submitted",
             "images_expected": "ipc/images_expected",
             "images_rendering": "ipc/images_rendering",
@@ -50,9 +50,31 @@ class Job:
     def jobfolder(self) -> Path:
         return self.base_path / self.name
     
+    @property
+    def linked_files(self) -> Path:
+        return self.get_folder("rsync") / "linked_files.txt"
+    
     def exists(self):
+        """Returns True if the jobfolder exists."""
         return self.jobfolder.exists()
 
+    def get_linked_files_content(self):
+        """If linked_files.txt exists, returns its content. Else empty string."""
+        if not self.linked_files.exists():
+            return ""
+        return self.linked_files.read_text()
+    
+    def create_rsync_push_file(self):
+        """Write a linux & rsync compatible file for rsync --files_from flag."""
+        conformed_jobfolder = str(self.jobfolder).replace(':', ':\\')
+        content = f"{self.get_linked_files_content()}\n{conformed_jobfolder}"
+        linux_conformed_content = content.replace(
+            self.settings.share_map[self.share], self.share
+        ).replace("\\", "/")
+        rsync_push_file = self.get_folder("rsync") / "files_to_push.txt"
+        with open(str(rsync_push_file), mode="w", encoding="UTF-8", newline="\n") as f:
+            f.write(linux_conformed_content)   
+    
     def create_job_folders(self):
         """Create all job packet folders."""
         self.jobfolder.mkdir(parents=True, exist_ok=True)
