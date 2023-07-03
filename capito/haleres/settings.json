@@ -16,18 +16,5 @@
         "cg1": "L:",
         "cg2": "M:",
         "cg3": "N:"
-    },
-    "job_folders":{
-        "scenes": "input/scenes",
-        "jobs": "input/jobs",
-        "images": "output/images",
-        "logs": "output/logs",
-        "status": "ipc/status",
-        "rsync_push_logs": "ipc/rsync_pull_logs",
-        "rsync_pull_logs": "ipc/rsync_push_logs",
-        "images_expected": "ipc/images_expected",
-        "images_rendering": "ipc/images_rendering",
-        "images_rendered": "ipc/images_rendered",
-        "logs_expected": "ipc/logs_expected"
     }
 }

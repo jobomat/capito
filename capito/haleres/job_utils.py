@@ -65,3 +65,32 @@ def create_frame_list(frame_text: str, job_size: int) -> List[Tuple[int,int]]:
         last = f
         
     return result
+
+
+def get_job_limit_map(free_nodes: int, pending_job_map: Dict[str, int]) -> Dict[str, int]:
+    """
+    pending_job_map is a map of jobnames and pending jobfiles for this jobname.
+    A jobname is put together py the share (cg1, 2, 3) plus the actual jobname.
+    e.g. {"cg1/shot01": 25, "cg1/shot3": 5, "cg3/shot12": 10, ...}
+
+    returns a dict with the suggested limits for each jobname.
+    e.g. {"cg1/shot01": 10, "cg1/shot3": 5, "cg3/shot12": 10, ...}
+
+    these limits can be used as first parameter of the submit.sh script.
+    """
+    pending_jobs = sum(pending_job_map.values())
+    limit_map = {jobname: 0 for jobname in pending_job_map}
+
+    while free_nodes > 0 and pending_jobs > 0:
+        num_jobs = sum(n != 0 for n in pending_job_map.values())
+        even_share = int(free_nodes / num_jobs) or 1
+        # even_share = even_share or 1
+
+        for job, num in pending_job_map.items():
+            chunk = min(num, even_share, free_nodes)
+            limit_map[job] += chunk
+            pending_job_map[job] -= chunk
+            free_nodes -= chunk
+            pending_jobs -= chunk
+
+    return limit_map

@@ -121,7 +121,7 @@ class CABridge:
 
     def get_pending_jobs(self):
         list_jobs_file = Path(__file__).parent / "sh_list_pending_jobs.template"
-        cmd = list_jobs_file.read_text().replace("<WS_PATH>", self.workspace_path)
+        cmd = list_jobs_file.read_text().replace("<WS_PATH>", self._workspace_path)
 
         job_list = {}
         for line in self.cmd(cmd):

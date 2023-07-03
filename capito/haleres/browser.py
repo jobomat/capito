@@ -219,11 +219,3 @@ class HLRSBrowser(QMainWindow):
             print("Nothing selected.")
             return
         self.ca_bridge.rsync(to_download)
-
-
-def main():
-    HLRSBrowser()
-
-
-if __name__ == "__main__":
-    main()

@@ -1,11 +1,9 @@
-SCRIPT_PATH=$(dirname $(realpath -s $0))
-
 IPC_FOLDERS=( "submitted" "images_rendering" "images_rendered" )
 
-for HLRS_FOLDER in $SCRIPT_PATH/cg[123]/hlrs/*; do
+for JOBFOLDER in %(ws_path)/cg[123]/hlrs/*; do
     for IPC_FOLDER in "${IPC_FOLDERS[@]}"; do
-        FOLDER=$HLRS_FOLDER/ipc/$IPC_FOLDER
-        num=$(ls -f  $FOLDER | wc -l)
+        FOLDER=$JOBFOLDER/ipc/$IPC_FOLDER
+        num=$(find $FOLDER -type f maxdepth 1 | wc -l)
         echo "${FOLDER}:${num}"
     done
 done

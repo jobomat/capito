@@ -7,19 +7,25 @@ from capito.haleres.settings import Settings
 
 
 class JobStatus(Enum):
-    ready_to_push = "ready_to_push"
-    pushing = "pushing"
-    ready_to_render = "ready_to_render"
-    all_jobs_submitted = "all_jobs_submitted"
-    paused = "paused"
+    ready_to_push = "READY_TO_PUSH"
+    pushing = "PUSHING"
+    all_files_pushed = "ALL_FILES_PUSHED"
+    ready_to_render = "READY_TO_RENDER"
+    all_jobs_submitted = "ALL_JOBS_SUBMITTED"
+    paused = "PAUSED"
 
 
 class Job:
+    """Represents a complete job packet for rendering at HLRS.
+    Job packets are a collection of files and information
+    not to confuse with the job files that will be submitted at HLRS.
+    These job files are just one little part of job packets."""
     def __init__(self, share:str, name:str, settings:Settings):
         self.share = share
         self.name = name
         self.settings = settings
 
+        # ALTERING job_folders dict may break backwards compatibility!
         self.job_folders = {
             "scenes": "input/scenes",
             "jobs": "input/jobs",
@@ -36,58 +42,44 @@ class Job:
         }
         
         if platform.system() == "Windows":
-            self.base_path = Path(settings.share_to_letter(share)) / "hlrs_tests"
+            self.base_path = Path(settings.share_to_letter(share)) / "hlrs"
         else:
-            self.base_path = Path(settings.mount_point) / share
+            self.base_path = Path(settings.mount_point) / share / "hlrs"
+    
+    @property
+    def jobfolder(self) -> Path:
+        return self.base_path / self.name
+    
+    def exists(self):
+        return self.jobfolder.exists()
 
     def create_job_folders(self):
-        self.jobfolder = self.base_path / self.name
+        """Create all job packet folders."""
         self.jobfolder.mkdir(parents=True, exist_ok=True)
         for folder in self.job_folders.values():
             (self.jobfolder / folder).mkdir(parents=True, exist_ok=True)
 
     def status_file(self, status:JobStatus) -> Path:
+        """Returns the hypothetic path to a certain status file."""
         return self.jobfolder / self.job_folders["status"] / status.value
     
     def get_status(self, status:JobStatus) -> bool:
+        """Returns True or False for the requestet JobStatus.
+        This is determined by the existens of the status file in ipc/status folder."""
         return self.status_file(status).exists()
     
     def set_status(self, status:JobStatus, value):
+        """Sets the given status according to the given value.
+        This is done by creating or deleting the corresponding file in ipc/status."""
         if value:
             self.status_file(status).touch()
         else:
             with contextlib.suppress(FileNotFoundError):
                 self.status_file(status).unlink()
 
-    def list_submitted_jobs(self):
-        pass
+    def get_folder(self, folder:str="") -> Path:
+        """Get the full path to the requested folder."""
+        return self.jobfolder / self.job_folders.get(folder, "")
 
-    def list_unsubmitted_jobs(self):
-        pass
-    
-    def list_rendered_images(self):
-        pass
-
-    def get_push_max(self):
-        pass
-    
-    def get_push_progress(self):
-        pass
-
-    def get_submit_max(self):
-        pass
-    
-    def get_submit_progress(self):
-        pass
-        
-    def get_render_max(self):
-        pass
-    
-    def get_render_progress(self):
-        pass
-        
-    def get_pull_max(self):
-        pass
-    
-    def get_pull_progress(self):
-        pass
+    def __eq__(self, other: "Job") -> bool:
+        return self.jobfolder == other.jobfolder

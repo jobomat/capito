@@ -3,4 +3,4 @@ PySide2
 plumbum
 fonttools
 pytz
-paramiko[all]
+fabric

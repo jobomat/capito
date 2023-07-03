@@ -32,7 +32,7 @@ def vpn_stop(self):
     return not vpn_running()
 
 
-def parse_ws_list_result(ws_list_result: list):
+def parse_ws_list_result(ws_list_result: list) -> List[dict]:
     workspaces = []
     ws_info = {}
     for line in ws_list_result:
@@ -101,7 +101,7 @@ class HLRS:
             return True
         # print(f"Workspace {workspace_name} doesn't seem to exist.")       
 
-    def list_renderers(self):
+    def list_renderers(self) -> List[str]:
         return self.folder_listing("renderers")
 
     def qstat(self) -> list:
