@@ -1,4 +1,7 @@
 import argparse
+import sys
+
+sys.path.append("/mnt/cg/pipeline/capito")
 
 import hlrs
 
