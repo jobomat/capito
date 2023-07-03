@@ -6,7 +6,7 @@ HLRS_REMOTE_PATH=$4
 
 touch $STATUS/PUSHING
 
-rsync -avr --ignore-missing-args \
+rsync -ar --ignore-missing-args \
       --files-from=$IPC/rsync/files_to_push.txt \
       --log-file=$IPC/rsync/pushlog.log \
       $MOUNT_POINT \

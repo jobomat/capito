@@ -70,11 +70,15 @@ class CABridge:
         except TimeoutExpired:
             pass
 
-    def hdm_execute_from_template(self, template:str, *args, **data):
+    def hdm_execute_shell_template(self, template:str, **data):
         cmd = (self.ca_shell_path / template).read_text()
         cmd = cmd % data
-        cmd = cmd
-        ssh_cmd = self.hdm_ssh + [cmd] + list(args)
+        ssh_cmd = self.hdm_ssh + [cmd] 
+        return self.hdm_command(ssh_cmd)
+    
+    def hdm_execute_shell_script(self, script_name:str, *args):
+        ca_script = f"{self.settings.bridge_hlrs_caller[:-14]}ca_shell/{script_name}"
+        ssh_cmd = self.hdm_ssh + [ca_script] + list(args)
         return self.hdm_command(ssh_cmd)
     
     def hlrs_command(self, commands:list):

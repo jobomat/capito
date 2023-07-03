@@ -67,10 +67,10 @@ class Job:
     def create_rsync_push_file(self):
         """Write a linux & rsync compatible file for rsync --files_from flag."""
         conformed_jobfolder = str(self.jobfolder).replace(':', ':\\')
-        content = f"{self.get_linked_files_content()}\n{conformed_jobfolder}"
+        content = "\n".join([self.get_linked_files_content(), conformed_jobfolder])
         linux_conformed_content = content.replace(
             self.settings.share_map[self.share], self.share
-        ).replace("\\", "/")
+        ).replace("\\", "/").strip()
         rsync_push_file = self.get_folder("rsync") / "files_to_push.txt"
         with open(str(rsync_push_file), mode="w", encoding="UTF-8", newline="\n") as f:
             f.write(linux_conformed_content)   
