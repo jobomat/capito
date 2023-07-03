@@ -48,6 +48,10 @@ class CABridge:
     @property
     def ca_shell_path(self) -> Path:
         return Path(__file__).parent / "ca_shell"
+    
+    @property
+    def hlrs_full_qualified_path(self):
+        return f"{self.settings.hlrs_user}@{self.settings.hlrs_server}:{self.workspace_path}"
 
     def hdm_command(self, command):
         return check_output(command, universal_newlines=True, shell=True)
@@ -66,10 +70,11 @@ class CABridge:
         except TimeoutExpired:
             pass
 
-    def hdm_execute_from_template(self, template:str, **data):
+    def hdm_execute_from_template(self, template:str, *args, **data):
         cmd = (self.ca_shell_path / template).read_text()
         cmd = cmd % data
-        ssh_cmd = self.hdm_ssh + [cmd]
+        cmd = cmd
+        ssh_cmd = self.hdm_ssh + [cmd] + list(args)
         return self.hdm_command(ssh_cmd)
     
     def hlrs_command(self, commands:list):

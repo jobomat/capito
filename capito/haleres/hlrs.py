@@ -63,8 +63,8 @@ class HLRSWorkspace:
 
 
 class HLRS:
-    def __init__(self, settings:Settings): #login_server:str="hawk.hww.hlrs.de", username:str="zmcjbomm", workspace_name:str=None):
-        self.settings = settings
+    def __init__(self, settings_file:str): #login_server:str="hawk.hww.hlrs.de", username:str="zmcjbomm", workspace_name:str=None):
+        self.settings = Settings(settings_file)
 
         if not vpn_running():
             vpn_start()

@@ -1,1 +1,1 @@
-ls %(folder)s
+ls $1

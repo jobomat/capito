@@ -3,7 +3,7 @@ import argparse
 import hlrs
 
 
-HLRS = hlrs.HLRS()
+HLRS = hlrs.HLRS("/mnt/cg/pipeline/hlrs/settings.json")
 
 def main():
     parser = argparse.ArgumentParser()
