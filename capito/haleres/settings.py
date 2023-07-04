@@ -31,7 +31,7 @@ class Settings:
 
     def save(self):
         with open(self.settings_file, "w") as f:
-            json.dump(self.settings_dict, f)
+            json.dump(self.settings_dict, f, indent=4)
 
     @property
     def shares(self):

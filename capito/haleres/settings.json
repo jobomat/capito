@@ -17,5 +17,5 @@
         "cg2": "M:",
         "cg3": "N:"
     },
-    "share_regex": "/mnt/cg[123]/hlrs/*"
+    "hlrs_folders_regex": "/mnt/cg[123]/hlrs/*"
 }
