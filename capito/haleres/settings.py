@@ -1,10 +1,12 @@
 import os
 import json
 from pathlib import Path
+from typing import Any
 
 
 class Settings:
     def __init__(self, settings_file:str):
+        self.settings_file = settings_file
         self.settings_dict = json.loads(Path(settings_file).read_text())
         self.settings_dict["letter_map"] = {
             letter: share
@@ -23,6 +25,13 @@ class Settings:
     
     def letter_to_share(self, letter:str):
         return self.settings_dict["letter_map"].get(letter)
+    
+    def set_value(self, key:str, value:Any):
+        self.settings_dict[key] = value
+
+    def save(self):
+        with open(self.settings_file, "w") as f:
+            json.dump(self.settings_dict, f)
 
     @property
     def shares(self):

@@ -36,14 +36,16 @@ class CABridge:
             f"{self.settings.bridge_user}@{self.settings.bridge_server}"
         ]
         self.hlrs_ssh = self.hdm_ssh + [self.settings.bridge_interpreter, self.settings.bridge_hlrs_caller]
-        self._workspace_path = None
 
     @property
     def workspace_path(self):
-        if self._workspace_path is not None:
-            return self._workspace_path
-        self._workspace_path = self.hlrs_command(["workspace.path"])[0]
-        return self._workspace_path
+        if self.settings.workspace_path is None:
+            workspace_path = self.hlrs_command(["workspace.path"])[0]
+            workspace_name = self.hlrs_command(["workspace.name"])[0]
+            self.settings.set_value("workspace_path", workspace_path)
+            self.settings.set_value("workspace_name", workspace_name)
+            self.settings.save()
+        return self.settings.workspace_path
     
     @property
     def ca_shell_path(self) -> Path:
@@ -63,7 +65,6 @@ class CABridge:
             f"{self.settings.bridge_user}@{self.settings.bridge_server}",
             self.settings.bridge_interpreter, command, *args
         ]
-
         process = ssh.popen(parameters)
         try:
             process.communicate(timeout=1)
