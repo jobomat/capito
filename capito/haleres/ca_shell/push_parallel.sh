@@ -1,10 +1,8 @@
 #!/bin/bash
-MOUNT_POINT=$1
-HLRS_REMOTE_PATH=$2
 SCRIPT_PATH=$(dirname $(realpath -s $0))
-HLRS_FOLDERS=/mnt/cg[123]/hlrs/*
+source $SCRIPT_PATH/settings.sh
 
-for JOBFOLDER in $HLRS_FOLDERS; do
+for JOBFOLDER in $HLRS_FOLDERS_REGEX; do
     IPC_DIR=$JOBFOLDER/ipc
     STATUS=$IPC_DIR/status
     if [ ! -e $STATUS/ALL_FILES_PUSHED ] && [ ! -e $STATUS/PUSHING ] && [ -e $STATUS/READY_TO_PUSH ]; then

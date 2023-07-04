@@ -8,7 +8,7 @@
     "bridge_server": "141.62.110.225",
     "bridge_user": "root",
     "bridge_key": "",
-    "bridge_interpreter": "/root/hlrs/bin/python",
+    "bridge_interpreter": "/root/hlrs_venv/bin/python",
     "bridge_hlrs_caller": "",
     "mount_point": "/mnt",
     "share_map": {
