@@ -4,11 +4,8 @@ JOBNAME=$2
 ADDITIONAL_PATTERN=$3
 
 # get all rsync pids with $ADDITIONAL_PATTERN, $SHARE and $JOBNAME in the command-listing
-# $ADDITIONAL_PATTERN could be e.g. "files_to_push" to kill only push actions...
-ALL_RSYNC_PIDS=$(pidof rsync)
-if [ -z "$ALL_RSYNC_PIDS" ]; then
-    exit 1
-fi
+# $ADDITIONAL_PATTERN could be e.g. "files_to_push" to kill only push actions.
+# exclude the listed grep command itself (as it will contain all search-terms)
 
 RSYNC_PIDS=$(ps -eF --no-headers |
     grep "rsync.*$ADDITIONAL_PATTERN.*$SHARE.*$JOBNAME" |
