@@ -10,8 +10,9 @@ if [ -z "$ALL_RSYNC_PIDS" ]; then
     exit 1
 fi
 
-RSYNC_PIDS=$(ps -eF --no-headers -p $ALL_RSYNC_PIDS |
+RSYNC_PIDS=$(ps -eF --no-headers |
     grep "rsync.*$ADDITIONAL_PATTERN.*$SHARE.*$JOBNAME" |
+    grep -v grep |
     awk '{ print $2 }')
     
 # kill all the found rsyncs for this job:
