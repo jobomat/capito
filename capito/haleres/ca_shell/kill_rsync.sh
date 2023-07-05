@@ -12,7 +12,7 @@ fi
 
 RSYNC_PIDS=$(ps -eF --no-headers -p $ALL_RSYNC_PIDS |
     grep "rsync.*$ADDITIONAL_PATTERN.*$SHARE.*$JOBNAME" |
-    awk '{ print $1 }')
+    awk '{ print $2 }')
     
 # kill all the found rsyncs for this job:
 for PID in $RSYNC_PIDS; do
