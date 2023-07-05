@@ -17,5 +17,5 @@ RSYNC_PIDS=$(ps -eF --no-headers -p $ALL_RSYNC_PIDS |
 # kill all the found rsyncs for this job:
 for PID in $RSYNC_PIDS; do
     echo "Killing rsync with pid ${PID} ($SHARE, $JOBNAME, $ADDITIONAL_PATTERN)"
-    kill -9 $PID;
+    kill -9 $PID || continue
 done
