@@ -39,6 +39,7 @@ from PySide2.QtWidgets import (
     QLayout,
     QLineEdit,
     QListWidgetItem,
+    QListWidget,
     QProgressBar,
     QProxyStyle,
     QPushButton,
@@ -58,6 +59,21 @@ class HeadlineFont(QFont):
         super().__init__(*args, **kwargs)
         self.setBold(True)
         self.setPointSize(size)
+
+
+class IterableListWidget(QListWidget):
+    def iterAllItems(self) -> QListWidgetItem:  # pylint: disable=invalid-name
+        """Iterate over all items in list."""
+        for i in range(self.count()):
+            yield self.item(i)
+
+    def getIndex(  # pylint: disable=invalid-name
+        self, wanted_item: QListWidgetItem
+    ) -> int:
+        """Helper method to get the index of a specific item."""
+        for i, item in enumerate(self.iterAllItems()):
+            if wanted_item == item:
+                return i
 
 
 class MultipleLineDialog(QInputDialog):

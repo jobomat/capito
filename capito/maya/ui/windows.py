@@ -1,6 +1,6 @@
 from collections import defaultdict
 
-from PySide2 import QtWidgets
+from PySide2 import QtCore, QtWidgets, QtGui
 from shiboken2 import wrapInstance
 import maya.OpenMayaUI as omui
 
@@ -76,6 +76,15 @@ def maya_main_window():
     return wrapInstance(int(main_window_ptr), QtWidgets.QWidget)
 
 
+def get_mouse_position():
+    cursor_pos = QtGui.QCursor.pos()
+    return cursor_pos.x(), cursor_pos.y() 
+    # Convert the mouse position to screen coordinates
+    # screen_pos = maya_main_window().mapFromGlobal(cursor_pos)
+    # Retrieve the pixel coordinates
+    # return screen_pos.x(), screen_pos.y()
+
+
 def reposition(win_id, position=[0, 0]):
     global window_map
     try:
@@ -141,6 +150,8 @@ class WindowManager:
             self.build_win_list()
 
         win.setWidth(350)
+        x, y = get_mouse_position()
+        win.setTopLeftCorner((y, x))
 
     def build_win_list(self, *args):
         for child in self.win_list.getChildren():

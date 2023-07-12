@@ -83,10 +83,12 @@ class CABridge:
         return self.hdm_command(ssh_cmd)
     
     def hlrs_command(self, commands:list):
-        ssh_cmd = self.hlrs_ssh + [shlex.quote(cmd) for cmd in commands]
-        
+        ssh_cmd = self.hlrs_ssh + [shlex.quote(cmd) for cmd in commands]      
         answer = check_output(ssh_cmd, universal_newlines=True, shell=True)   
         return eval(answer)
+    
+    def abort_push(self, share:str, jobname:str):
+        self.hdm_execute_shell_script("kill_push.sh", share, jobname)
     
     def rsync(self, filelist:list, direction:str="pull"):
         share = filelist[1].split("/")

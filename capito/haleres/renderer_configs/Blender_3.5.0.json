@@ -1,0 +1,26 @@
+{
+    "executable": "blender-3.5.0-linux-x64.sh/blender",
+    "header_template": "#!/bin/bash\n#PBS -N %(jobfile_name)s\n#PBS -l select=1:node_type=rome,walltime=0:%(walltime_minutes)s:00",
+    "per_job_template": "%(header)s\n\n%(env_vars)s\n\n%(render_command)s\n\n%(per_frame)s",
+    "per_frame_template": "touch $JOB_PATH/ipc/images_rendered/%(job_name)s.%(padded_frame_number)s.%(extension)s",
+    "one_scene_per_frame": false,
+    "env_vars": [
+        {"name": "WS_BASE_PATH", "value": "$(ws_find %(workspace_name)s)"},
+        {"name": "JOB_PATH", "value": "$WS_BASE_PATH/%(share_name)s/hlrs/%(job_name)s"},
+        {"name": "OCIO", "value": "$WS_BASE_PATH/Blender-ACES-Config/config.ocio"}
+    ],
+    "flags": [
+        {"name": "Input filename", "flag": "-b", "type": "str", "protected": true, "value": "$JOB_PATH/input/scenes/%(scenefile_name)s"},
+        {"name": "Verbosity level", "flag": "--log-level", "type": "choice", "choices": [0,1,2,3,4,5,6], "value": 5},
+        {"name": "Log filename", "flag": "--log-file", "type": "str", "protected": true, "value": "$JOB_PATH/output/logs/%(scenefile_name)s.log"},
+        {"name": "Output filename", "flag": "-o", "type": "str", "protected": true, "value": "$JOB_PATH/output/images/%(job_name)s.%(frame_padding_hashes)s.%(extension)s"},
+        {"name": "Renderer", "flag": "-E", "type": "str", "value": "CYCLES", "protected": true},
+        {"name": "Start frame", "flag": "-s", "type": "int", "protected": true, "value": "%(start_frame)s"},
+        {"name": "End frame", "flag": "-e", "type": "int", "protected": true, "value": "%(end_frame)s"},
+        {"name": "Output format", "flag": "-F", "type": "choice", "choices": ["OPEN_EXR_MULTILAYER"], "value": "OPEN_EXR_MULTILAYER"},
+        {"name": "Render start to end", "flag": "-a", "type": "bool", "value": true, "protected": true}
+    ],
+    "flag_lookups":[
+        {"key": "extension", "from_flag": "-F", "lookup": {"OPEN_EXR_MULTILAYER": "exr"}}
+    ]
+}

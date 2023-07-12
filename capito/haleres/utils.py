@@ -1,4 +1,6 @@
+import copy
 from pathlib import Path
+import re
 from typing import List, Tuple, Dict
 
 
@@ -23,13 +25,29 @@ def get_job_ids(status_text:str) -> Dict[str,str]:
     }
 
 
-def create_frame_list(frame_text: str, job_size: int) -> List[Tuple[int,int]]:
+def _count_generator(reader):
+    """Helper function for count_lines"""
+    b = reader(1024 * 1024)
+    while b:
+        yield b
+        b = reader(1024 * 1024)
+
+
+def count_lines(file:Path):
+    """Fast line counting for a given file."""
+    with file.open('rb') as fp:
+        c_generator = _count_generator(fp.raw.read)
+        count = sum(buffer.count(b'\n') for buffer in c_generator)
+        return count + 1
+
+
+def create_frame_tuple_list(frame_text: str, job_size: int) -> List[Tuple[int,int]]:
     """Takes a text which shows a list of frames
     and returns a list of start-end tuples according to job_size.
-    frame_text is a string where frames
-    are presented solo
-    or as frame ranges (marked by hyphens or colons)
-    and are separated either by comma, semicolon or newlines
+    frame_text is a string where frames:
+      - are presented solo
+      - or as frame ranges (marked by hyphens or colons)
+      - and are separated either by comma, semicolon or newlines
     """
     if job_size <= 0:
         return []
@@ -94,3 +112,45 @@ def get_job_limit_map(free_nodes: int, pending_job_map: Dict[str, int]) -> Dict[
             pending_jobs -= chunk
 
     return limit_map
+
+
+def extract_variables_from_template(template:str) -> list:
+    """Extracts python placeholder like variables from template.
+    Example:
+        "I am %(name)s. I'm %(age)s years old."
+        returns: ['name', 'age']
+    """
+    pattern = r"%\((\w+)\)s"
+    matches = re.findall(pattern, template)
+    return matches
+
+
+def check_template_with_data(template:str, data:dict):
+    """Get information about keys in a template."""
+    for var in extract_variables_from_template(template):
+        if var not in data.keys():
+            print(f"Key '{var}' missing in data.")
+
+
+def create_missing_keys(template:str, data:dict):
+    """For a given template and data-dict
+    returns a new data dict with all keys of the original data-dict
+    plus keys for each additionally found variable in template
+    containing the key as python variable notation itself.
+    Example:
+        template = "I am %(name)s. I'm %(age)s years old.",
+        data = {"name": "Max"}
+        returns: {"name": "Max", "age": "%(age)"}  
+    """
+    data_copy = copy.deepcopy(data)
+    for var in extract_variables_from_template(template):
+        if var not in data.keys():
+            data_copy[var] = f"%({var})s"
+    return data_copy
+
+
+def replace(template, data):
+    """Replace all python placeholder strings found in data.keys
+    but preserve not found placeholders as they were."""
+    data = create_missing_keys(template, data)
+    return template % data

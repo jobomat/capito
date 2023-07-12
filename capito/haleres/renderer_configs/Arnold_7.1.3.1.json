@@ -1,0 +1,36 @@
+{
+    "executable": "arnold_7.1.3.1/bin/kick",
+    "header_template": "#!/bin/bash\n#PBS -N %(jobfile_name)s\n#PBS -l select=1:node_type=rome,walltime=0:%(walltime_minutes)s:00",
+    "per_job_template": "%(header)s\n\n%(env_vars)s\n\n%(per_frame)s",
+    "per_frame_template": "%(render_command)s\n\ntouch $JOB_PATH/ipc/images_rendered/%(jobfile_name)s.%(extension)s\n",
+    "one_scene_per_frame": true,
+    "env_vars": [
+        {"name": "WS_BASE_PATH", "value": "$(ws_find %(workspace_name)s)"},
+        {"name": "JOB_PATH", "value": "$WS_BASE_PATH/%(share_name)s/hlrs/%(job_name)s"},
+        {"name": "OCIO", "value": "$WS_BASE_PATH/OCIO/aces_1.2/config.ocio"},
+        {"name": "ADSKFLEX_LICENSE_FILE", "value": "@ca-lic.hdm-stuttgart.de"},
+        {"name": "ARNOLD_PATHMAP", "value": "$JOB_PATH/input/pathmap.json"}
+    ],
+    "flags": [
+        {"name": "Ignore input from stdin", "flag": "-nstdin", "type": "bool", "value": true, "protected": true},
+        {"name": "Disable progressive rendering", "flag": "-dp", "type": "bool", "value": true, "protected": true},
+        {"name": "Disable render window", "flag": "-dw", "type": "bool", "value": true, "protected": true},
+        {"name": "Set arnold config", "flag": "-set", "type": "str", "protected": true, "value": "color_manager_ocio.config $OCIO"},
+        {"name": "Log filename", "flag": "-logfile", "type": "str", "protected": true, "value": "$JOB_PATH/output/logs/%(jobfile_name)s.log"},
+        {"name": "Input filename", "flag": "-i", "type": "str", "protected": true, "value": "$JOB_PATH/input/scenes/%(scenefile_name)s"},
+        {"name": "Output filename", "flag": "-o", "type": "str", "protected": true, "value": "$JOB_PATH/output/images/%(jobfile_name)s.%(extension)s"},
+        {"name": "Output format", "flag": "-of", "type": "choice", "choices": ["exr"], "value": "exr"},
+        {"name": "Verbosity Level", "flag": "-v", "type": "choice", "choices": [0,1,2,3,4,5,6], "value": 5},
+        {"name": "Camera samples", "flag": "-as", "type": "int"},
+        {"name": "Diffuse samples", "flag": "-ds", "type": "int"},
+        {"name": "Specular samples", "flag": "-ss", "type": "int"},
+        {"name": "Transmission samples", "flag": "-ts", "type": "int"},
+        {"name": "Total ray depth", "flag": "-td", "type": "int"},
+        {"name": "Diffuse depth", "flag": "-dif", "type": "int"},
+        {"name": "Specular depth", "flag": "-spc", "type": "int"},
+        {"name": "Transmission depth", "flag": "-trm", "type": "int"}
+    ],
+    "flag_lookups":[
+        {"key": "extension", "from_flag": "-of", "lookup": {"exr": "exr"}}
+    ]
+}

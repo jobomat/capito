@@ -1,18 +1,24 @@
 import contextlib
 from enum import Enum
+import json
 from pathlib import Path
 import platform
+from typing import List
 
 from capito.haleres.settings import Settings
+from capito.haleres.utils import count_lines, create_frame_tuple_list, replace
+from capito.haleres.renderer import Renderer
 
 
 class JobStatus(Enum):
     ready_to_push = "READY_TO_PUSH"
     pushing = "PUSHING"
+    push_aborted = "PUSH_ABORTED"
     all_files_pushed = "ALL_FILES_PUSHED"
     ready_to_render = "READY_TO_RENDER"
     all_jobs_submitted = "ALL_JOBS_SUBMITTED"
     paused = "PAUSED"
+    finished = "FINISHED"
 
 
 class Job:
@@ -20,66 +26,204 @@ class Job:
     Job packets are a collection of files and information
     not to confuse with the job files that will be submitted at HLRS.
     These job files are just one little part of job packets."""
-    def __init__(self, share:str, name:str, settings:Settings):
+    job_folders = {
+        "scenes": "input/scenes",
+        "jobs": "input/jobs",
+        "images": "output/images",
+        "logs": "output/logs",
+        "ipc": "ipc",
+        "status": "ipc/status",
+        "rsync": "ipc/rsync",
+        "submitted": "ipc/submitted",
+        "images_expected": "ipc/images_expected",
+        "images_rendering": "ipc/images_rendering",
+        "images_rendered": "ipc/images_rendered",
+        "logs_expected": "ipc/logs_expected"
+    }
+    # Altering job_folders dict may break backwards compatibility!
+    
+    def __init__(self, share:str, name:str, haleres_settings:Settings):
+        if platform.system() == "Windows":
+            self.base_path = Path(haleres_settings.share_to_letter(share)) / "hlrs"
+        else:
+            self.base_path = Path(haleres_settings.mount_point) / share / "hlrs"
         self.share = share
         self.name = name
-        self.settings = settings
+        self.haleres_settings = haleres_settings
 
-        # Altering job_folders dict may break backwards compatibility!
-        self.job_folders = {
-            "scenes": "input/scenes",
-            "jobs": "input/jobs",
-            "images": "output/images",
-            "logs": "output/logs",
-            "ipc": "ipc",
-            "status": "ipc/status",
-            "rsync": "ipc/rsync",
-            "submitted": "ipc/submitted",
-            "images_expected": "ipc/images_expected",
-            "images_rendering": "ipc/images_rendering",
-            "images_rendered": "ipc/images_rendered",
-            "logs_expected": "ipc/logs_expected"
-        }
+        self._renderer_file = self.jobfolder / "renderer.json"
+        self._renderer:Renderer = None
         
-        if platform.system() == "Windows":
-            self.base_path = Path(settings.share_to_letter(share)) / "hlrs"
+        self._linked_files = []
+        self._scene_files = []
+
+        self._job_settings_file:Path = self.jobfolder / "job_settings.json"
+        self.init_job_settings()
+
+        self._num_jobs = None
+        self._num_expected_renders = None
+    
+    def init_job_settings(self):
+        if self._job_settings_file.exists():
+            self.job_settings = json.loads(self._job_settings_file.read_text())
         else:
-            self.base_path = Path(settings.mount_point) / share / "hlrs"
+            self.job_settings = {"framelist": "", "jobsize": 1, "frame_padding": 4, "walltime_minutes": 20}
+            self._job_settings_file.parent.mkdir(exist_ok=True)
+            self.save_job_settings()
+    
+    def save_job_settings(self):
+        self._job_settings_file.write_text(json.dumps(self.job_settings, indent=4))
+
+    @property
+    def renderer(self):
+        if not self._renderer:
+            if self._renderer_file.exists():
+                self._renderer = Renderer().from_json(str(self._renderer_file))
+        return self._renderer
+    
+    @renderer.setter
+    def renderer(self, renderer:Renderer):
+        self._renderer = renderer
+        self.save_renderer_config()
+
+    @property
+    def framelist(self):
+        return self.job_settings["framelist"]
+    
+    @framelist.setter
+    def framelist(self, framelist:str):
+        self.job_settings["framelist"] = framelist
+        self.save_job_settings()
+    
+    @property
+    def jobsize(self):
+        return self.job_settings["jobsize"]
+    
+    @jobsize.setter
+    def jobsize(self, jobsize:str):
+        self.job_settings["jobsize"] = jobsize
+        self.save_job_settings()
+    
+    @property
+    def frame_padding(self):
+        return self.job_settings["frame_padding"]
+    
+    @frame_padding.setter
+    def frame_padding(self, frame_padding:int):
+        self.job_settings["frame_padding"] = frame_padding
+        self.save_job_settings()
+    
+    @property
+    def walltime_minutes(self):
+        return self.job_settings["walltime_minutes"]
+    
+    @walltime_minutes.setter
+    def walltime_minutes(self, walltime_minutes:int):
+        self.job_settings["walltime_minutes"] = walltime_minutes
+        self.save_job_settings()
     
     @property
     def jobfolder(self) -> Path:
         return self.base_path / self.name
     
     @property
-    def linked_files(self) -> Path:
-        return self.get_folder("rsync") / "linked_files.txt"
+    def linked_files(self) -> List[str]:
+        if self._linked_files:
+            return self._linked_files
+        linked_files_file = self.get_folder("rsync") / "linked_files.txt"
+        if not linked_files_file.exists():
+            linked_files_file.touch()
+            return []
+        return linked_files_file.read_text().strip().split("\n")
+    
+    @linked_files.setter
+    def linked_files(self, file_list:List[str]):
+        self._linked_files = file_list
+        linked_files_file = self.get_folder("rsync") / "linked_files.txt"
+        linked_files_file.write_text("\n".join(self._linked_files))
+
+    @property
+    def scene_files(self):
+        return list((self.jobfolder / self.job_folders["scenes"]).glob("*"))
+
+    def save_renderer_config(self):
+        if not self._renderer:
+            print("Can't save renderer config as not renderer was specified.")
+            return
+        self._renderer.save_json(str(self._renderer_file))
     
     def exists(self):
         """Returns True if the jobfolder exists."""
         return self.jobfolder.exists()
-
-    def get_linked_files_content(self):
-        """If linked_files.txt exists, returns its content. Else empty string."""
-        if not self.linked_files.exists():
-            return ""
-        return self.linked_files.read_text()
-    
-    def create_rsync_push_file(self):
-        """Write a linux & rsync compatible file for rsync --files_from flag."""
-        conformed_jobfolder = str(self.jobfolder).replace(':', ':\\')
-        content = "\n".join([self.get_linked_files_content(), conformed_jobfolder])
-        linux_conformed_content = content.replace(
-            self.settings.share_map[self.share], self.share
-        ).replace("\\", "/").strip()
-        rsync_push_file = self.get_folder("rsync") / "files_to_push.txt"
-        with open(str(rsync_push_file), mode="w", encoding="UTF-8", newline="\n") as f:
-            f.write(linux_conformed_content)   
     
     def create_job_folders(self):
         """Create all job packet folders."""
         self.jobfolder.mkdir(parents=True, exist_ok=True)
         for folder in self.job_folders.values():
             (self.jobfolder / folder).mkdir(parents=True, exist_ok=True)
+
+    def write_job_files(self):
+        """
+        write the jobfiles.sh for PBS Rendering at HLRS
+        """
+        per_job_string = ""
+        replacement_dict = self.get_replacement_dict()
+        scene_files = self.scene_files
+        framelist = f"1-{len(scene_files)}" if self.renderer.one_scene_per_frame else self.framelist
+        tuple_list = create_frame_tuple_list(framelist, self.jobsize)
+
+        for start, end in tuple_list:
+            per_frame_list = []
+            i = 0
+            for frame in range(start, end + 1):
+                per_frame_rpd = {
+                    **replacement_dict,
+                    **self.renderer.get_flag_lookup_dict(),
+                    "padded_frame_number": str(frame).zfill(self.frame_padding)
+                }
+                if self.renderer.one_scene_per_frame:
+                    per_frame_rpd["scenefile_name"] = scene_files[i].name
+                    per_frame_rpd["jobfile_name"] = scene_files[i].stem
+                i += 1    
+                per_frame_string = self.renderer.get_per_frame_string()
+                per_frame_list.append(replace(per_frame_string, per_frame_rpd))
+        
+            per_job_rpd = {
+                **replacement_dict,
+                **self.renderer.get_flag_lookup_dict(),
+                "start_frame": start,
+                "end_frame": end,
+                "jobfile_name": self.get_jobfile_name(start, end),
+                "scenefile_name": scene_files[0].name,
+                "per_frame": "\n".join(per_frame_list),
+            }
+            per_job_string = self.renderer.get_per_job_string()
+            per_job_string = replace(per_job_string, per_job_rpd)
+            
+            print(per_job_string)
+
+    def get_replacement_dict(self) -> dict:
+        return {
+            "job_name": self.name,
+            "share_name": self.share,
+            "frame_padding_hashes": "#" * self.frame_padding,
+            "walltime_minutes": self.walltime_minutes,
+            "workspace_name": self.haleres_settings.workspace_name
+        }
+
+    def get_jobfile_name(self, start, end):
+        return f"{self.name}_{start}" if start == end else f"{self.name}_{str(start).zfill(4)}_{str(end).zfill(4)}"
+    
+    def create_rsync_push_file(self):
+        """Write a linux & rsync compatible file for rsync --files_from flag."""
+        conformed_jobfolder = str(self.jobfolder).replace(':', ':\\')
+        content = "\n".join(self.linked_files + [conformed_jobfolder])
+        linux_conformed_content = content.replace(
+            self.haleres_settings.share_map[self.share], self.share
+        ).replace("\\", "/").strip()
+        rsync_push_file = self.get_folder("rsync") / "files_to_push.txt"
+        with open(str(rsync_push_file), mode="w", encoding="UTF-8", newline="\n") as f:
+            f.write(linux_conformed_content)   
 
     def status_file(self, status:JobStatus) -> Path:
         """Returns the hypothetic path to a certain status file."""
@@ -99,9 +243,63 @@ class Job:
             with contextlib.suppress(FileNotFoundError):
                 self.status_file(status).unlink()
 
+    def is_finshed(self):
+        return self.get_status(JobStatus.finished)
+
     def get_folder(self, folder:str="") -> Path:
         """Get the full path to the requested folder."""
         return self.jobfolder / self.job_folders.get(folder, "")
+    
+    def get_push_max(self):
+        """Percentage... see get_push_progress() down below."""
+        return 100
+        
+    def get_push_progress(self):
+        """rsync push progress is hard to estimate.
+        So we fall back to % of lines in a log file vs a dryrun logfile."""
+        if self.get_status(JobStatus.all_files_pushed):
+            return 100
+        if self.get_status(JobStatus.pushing):
+            ipc_dir = Path(f"{self.base_path}/{self.name}/{self.job_folders['rsync']}")
+            dry_log = ipc_dir / "pushlog_dryrun.log"
+            real_log = ipc_dir / "pushlog.log"
+            if dry_log.exists() and real_log.exists():
+                return count_lines(real_log) / (count_lines(dry_log) + 3) * 100
+        return 0
+    
+    def num_jobs(self):
+        """Total number of generated jobfiles."""
+        if not self._num_jobs:
+            self._num_jobs = sum(1 for _ in (self.base_path / self.job_folders['jobs']).glob("*.sh"))
+        return self._num_jobs
+        
+    def num_submitted_jobs(self):
+        """Jobfiles that already are submitted."""
+        if self.get_status(JobStatus.all_jobs_submitted):
+            return self.num_jobs()
+        return sum(1 for _ in (self.base_path / self.job_folders['submitted']).glob("*.sh"))
+
+    def num_expected_renders(self):
+        """Number of expected rendered images."""
+        if not self._num_expected_renders:
+            self._num_expected_renders = sum(1 for _ in (self.base_path / self.job_folders['images_expected']).glob("*"))
+        return self._num_expected_renders
+    
+    def num_rendered(self):
+        """Number of already rendered images."""
+        if self.get_status(JobStatus.all_images_rendered):
+            return self._num_expected_renders()
+        return sum(1 for _ in (self.base_path / self.job_folders['images_rendered']).glob("*"))
+
+    def num_expected_pulls(self):
+        """As the images will be the bulk of data to pull we resort to number of images here."""
+        return self.num_expected_renders()
+
+    def num_pulled(self):
+        """Number of already pulled images."""
+        if self.get_status(JobStatus.finished):
+            return self.num_expected_pulls()
+        return sum(1 for _ in (self.base_path / self.job_folders['images']).glob("*"))
 
     def __eq__(self, other: "Job") -> bool:
         return self.jobfolder == other.jobfolder
