@@ -18,6 +18,7 @@ class JobStatus(Enum):
     ready_to_render = "READY_TO_RENDER"
     all_jobs_submitted = "ALL_JOBS_SUBMITTED"
     paused = "PAUSED"
+    all_images_rendered = "ALL_IMAGES_RENDERED"
     finished = "FINISHED"
 
 
@@ -25,7 +26,8 @@ class Job:
     """Represents a complete job packet for rendering at HLRS.
     Job packets are a collection of files and information
     not to confuse with the job files that will be submitted at HLRS.
-    These job files are just one little part of job packets."""
+    These job files are just one little part of job packets.
+    With this class one can create and monitor HLRS Renderjobs."""
     job_folders = {
         "scenes": "input/scenes",
         "jobs": "input/jobs",
@@ -58,21 +60,13 @@ class Job:
         self._scene_files = []
 
         self._job_settings_file:Path = self.jobfolder / "job_settings.json"
-        self.init_job_settings()
+        self._init_job_settings()
 
         self._num_jobs = None
         self._num_expected_renders = None
     
-    def init_job_settings(self):
-        if self._job_settings_file.exists():
-            self.job_settings = json.loads(self._job_settings_file.read_text())
-        else:
-            self.job_settings = {"framelist": "", "jobsize": 1, "frame_padding": 4, "walltime_minutes": 20}
-            self._job_settings_file.parent.mkdir(exist_ok=True)
-            self.save_job_settings()
-    
-    def save_job_settings(self):
-        self._job_settings_file.write_text(json.dumps(self.job_settings, indent=4))
+    def __eq__(self, other: "Job") -> bool:
+        return self.jobfolder == other.jobfolder
 
     @property
     def renderer(self):
@@ -152,24 +146,31 @@ class Job:
             return
         self._renderer.save_json(str(self._renderer_file))
     
-    def exists(self):
-        """Returns True if the jobfolder exists."""
+    def save_job_settings(self):
+        self._job_settings_file.write_text(json.dumps(self.job_settings, indent=4))
+    
+    def exists(self) -> bool:
+        """Returns True if the jobfolder exists.
+
+        Returns:
+            bool: True if jobfolder exists else False
+        """
         return self.jobfolder.exists()
     
-    def create_job_folders(self):
+    def create_job_folders(self) -> None:
         """Create all job packet folders."""
         self.jobfolder.mkdir(parents=True, exist_ok=True)
         for folder in self.job_folders.values():
             (self.jobfolder / folder).mkdir(parents=True, exist_ok=True)
 
-    def write_job_files(self):
+    def write_job_files(self) -> None:
+        """write the jobfiles.sh for PBS Rendering at HLRS
         """
-        write the jobfiles.sh for PBS Rendering at HLRS
-        """
+        self._purge_folder("jobs")
         per_job_string = ""
-        replacement_dict = self.get_replacement_dict()
+        replacement_dict = self._get_replacement_dict()
         scene_files = self.scene_files
-        framelist = f"1-{len(scene_files)}" if self.renderer.one_scene_per_frame else self.framelist
+        framelist = f"1-{len(scene_files)}" if self.renderer.single_frame_renderer else self.framelist
         tuple_list = create_frame_tuple_list(framelist, self.jobsize)
 
         for start, end in tuple_list:
@@ -181,7 +182,8 @@ class Job:
                     **self.renderer.get_flag_lookup_dict(),
                     "padded_frame_number": str(frame).zfill(self.frame_padding)
                 }
-                if self.renderer.one_scene_per_frame:
+                if self.renderer.single_frame_renderer:
+                    # Hacky. Maybe better overall design could fix this
                     per_frame_rpd["scenefile_name"] = scene_files[i].name
                     per_frame_rpd["jobfile_name"] = scene_files[i].stem
                 i += 1    
@@ -193,28 +195,18 @@ class Job:
                 **self.renderer.get_flag_lookup_dict(),
                 "start_frame": start,
                 "end_frame": end,
-                "jobfile_name": self.get_jobfile_name(start, end),
+                "jobfile_name": self._get_jobfile_name(start, end),
                 "scenefile_name": scene_files[0].name,
                 "per_frame": "\n".join(per_frame_list),
             }
             per_job_string = self.renderer.get_per_job_string()
             per_job_string = replace(per_job_string, per_job_rpd)
             
-            print(per_job_string)
+            job_file = self.get_folder("jobs") / f"{per_job_rpd['jobfile_name']}.sh"
+            with open(str(job_file), mode="w", encoding="UTF-8", newline="\n") as jf:
+                jf.write(per_job_string)
 
-    def get_replacement_dict(self) -> dict:
-        return {
-            "job_name": self.name,
-            "share_name": self.share,
-            "frame_padding_hashes": "#" * self.frame_padding,
-            "walltime_minutes": self.walltime_minutes,
-            "workspace_name": self.haleres_settings.workspace_name
-        }
-
-    def get_jobfile_name(self, start, end):
-        return f"{self.name}_{start}" if start == end else f"{self.name}_{str(start).zfill(4)}_{str(end).zfill(4)}"
-    
-    def create_rsync_push_file(self):
+    def create_rsync_push_file(self) -> None:
         """Write a linux & rsync compatible file for rsync --files_from flag."""
         conformed_jobfolder = str(self.jobfolder).replace(':', ':\\')
         content = "\n".join(self.linked_files + [conformed_jobfolder])
@@ -225,26 +217,35 @@ class Job:
         with open(str(rsync_push_file), mode="w", encoding="UTF-8", newline="\n") as f:
             f.write(linux_conformed_content)   
 
-    def status_file(self, status:JobStatus) -> Path:
-        """Returns the hypothetic path to a certain status file."""
-        return self.jobfolder / self.job_folders["status"] / status.value
-    
     def get_status(self, status:JobStatus) -> bool:
         """Returns True or False for the requestet JobStatus.
         This is determined by the existens of the status file in ipc/status folder."""
-        return self.status_file(status).exists()
+        return self._status_file(status).exists()
     
     def set_status(self, status:JobStatus, value):
         """Sets the given status according to the given value.
         This is done by creating or deleting the corresponding file in ipc/status."""
         if value:
-            self.status_file(status).touch()
+            self._status_file(status).touch()
         else:
             with contextlib.suppress(FileNotFoundError):
-                self.status_file(status).unlink()
+                self._status_file(status).unlink()
 
-    def is_finshed(self):
+    def is_active(self):
+        inactive_states = (
+            self.get_status(JobStatus.finished),
+            self.get_status(JobStatus.paused),
+            not self.get_status(JobStatus.ready_to_push)
+        )
+        if not any(inactive_states):
+            return True
+        return False
+
+    def is_finished(self):
         return self.get_status(JobStatus.finished)
+    
+    def all_files_pushed(self):
+        return self.get_status(JobStatus.all_files_pushed)
 
     def get_folder(self, folder:str="") -> Path:
         """Get the full path to the requested folder."""
@@ -301,5 +302,37 @@ class Job:
             return self.num_expected_pulls()
         return sum(1 for _ in (self.base_path / self.job_folders['images']).glob("*"))
 
-    def __eq__(self, other: "Job") -> bool:
-        return self.jobfolder == other.jobfolder
+    def _purge_folder(self, folder:str):
+        if self.job_folders.get(folder, False):
+            for file in self.get_folder(folder).glob("*"):
+                file.unlink()
+    
+    def _init_job_settings(self):
+        if self._job_settings_file.exists():
+            self.job_settings = json.loads(self._job_settings_file.read_text())
+        else:
+            self.job_settings = {"framelist": "", "jobsize": 1, "frame_padding": 4, "walltime_minutes": 20}
+            self._job_settings_file.parent.mkdir(exist_ok=True)
+            self.save_job_settings()
+
+    def _get_replacement_dict(self) -> dict:
+        """Get the key value pairs, that are needed 
+        for per job and per frame replacements when creating jobfiles."""
+        return {
+            "job_name": self.name,
+            "share_name": self.share,
+            "frame_padding_hashes": "#" * self.frame_padding,
+            "walltime_minutes": self.walltime_minutes,
+            "workspace_name": self.haleres_settings.workspace_name
+        }
+
+    def _get_jobfile_name(self, start, end):
+        """Create a jobfilename depending on jobsize:
+        If only one frame is rendered only one number will be added.
+        Otherwise start and end frame will be added."""
+        return f"{self.name}_{start}" if start == end else f"{self.name}_{str(start).zfill(4)}_{str(end).zfill(4)}"
+    
+    def _status_file(self, status:JobStatus) -> Path:
+        """Returns the hypothetic path to a certain status file."""
+        return self.jobfolder / self.job_folders["status"] / status.value
+    

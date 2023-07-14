@@ -7,6 +7,19 @@ from capito.haleres.utils import replace
 
 
 class RendererFlag:
+    """Class representing a renderer flag. 
+
+    Attributes (in braces shows if attribute is needed in json renderer file and it's behaviour):
+        name (mandatory): The nice name of the flag for gui representation.
+        flag (mandatory): The flag including the hypen(s) (-f or --log-file).
+        type (mandatory): The flag"int", "str", "bool" or "choice"
+        choices (mandatory if type is choice): Contains the choices.
+        protected (optional defaults to False): If True, the flag can be excluded from guis.
+        mandatory (optional): Can be used to force actions on validating the settings.
+        value (optional): The value of the flag.
+                          If value is "None" it will not appear in json and flag will not be rendered.
+                          Flags of type "bool" only will appear if value is set to "True".
+    """
     def __init__(self):
         self.name: str = None
         self.flag: str = None
@@ -17,14 +30,35 @@ class RendererFlag:
         self.value: Any = None
     
     def as_dict(self) -> dict:
+        """Returns the flag serialized as a dictionary.
+
+        Returns:
+            dict: Serialized values for all flag attributes.
+        """
         return {k: v for k, v in self.__dict__.items() if v is not None}
 
-    def from_dict(self, dictionary:dict):
+    def from_dict(self, dictionary:dict) -> "RendererFlag":
+        """Fills all attributes according to the given flag dict.
+
+        Args:
+            dictionary (dict): A flag-dictionary as represented in a renderer config file.
+
+        Returns:
+            RendererFlag: The current RendererFlag instance (self).
+        """
         for k, v in dictionary.items():
             setattr(self, k, v)
         return self
     
-    def set_value(self, value):
+    def set_value(self, value:Any):
+        """Sets the value attribute. Performs checks and conversions according to flag-type.
+
+        Args:
+            value (Any): The value to set.
+
+        Raises:
+            ValueError if flag type is "int" but value is not.
+        """
         if self.type == "int":
             self.value = None if not value else int(value)
         elif self.type == "choice":
@@ -34,6 +68,8 @@ class RendererFlag:
                 self.value = value
         elif self.type == "bool":
             self.value = True if value else False
+        else:
+            self.value = value
 
     def __str__(self):
         if not self.value:
@@ -47,6 +83,10 @@ class RendererFlag:
 
 
 class RendererEnvVar:
+    """Minimal Class for Renderer env vars. Providing:
+        - structured access
+        - easy output 
+    """
     def __init__(self, name, value):
         self.name = name
         self.value = value
@@ -62,38 +102,58 @@ class RendererEnvVar:
 
 
 class Renderer:
+    """Class representing a renderer for rendering at HLRS.
+    
+    It's parts get configured via json file.
+    It's current state also can be serialized to a json file.
+
+    It consists of these main components:
+        - templates for (render) job file creation
+            - header_template
+            - per_job_template
+            - per_frame_template
+        - environment variables for these jobs
+            self.env_vars is a list of RendererEnvVar instances (see above).
+        - flags for the renderer
+            self.flags is a list of RendererFlag instances (see above)
+    
+    One hack atm is the parameter "single_frame_renderer" which indicates a
+    special case of haleres renderjobs (e.g. Arnold kick jobs). Here the jobs 
+    won't get created on basis of the provided framelist but on bases of 
+    all the files in the "input/scenes" subfolder of a haleres jobfolder. 
+    """
     def __init__(self):
         self.name = "Not set"
         self.executable:str = None
         self.header_template: str = None
         self.per_job_template:str = None
         self.per_frame_template:str = None
-        self.one_scene_per_frame:bool = False
+        self.single_frame_renderer:bool = False
         self.env_vars: List[RendererEnvVar]
         self.flags: List[RendererFlag]
         self.flag_lookups: List[dict]
-        self.exclude_from_serialization = [
+        self._exclude_from_serialization = [
             "flags", "env_vars", "exclude_from_serialization"
         ]
     
     def from_json(self, json_file:str):
-        self.load_json(json_file)
+        self._load_json(json_file)
         return self
 
-    def load_json(self, json_file:str):
+    def _load_json(self, json_file:str):
         filepath = Path(json_file)
         renderer_config = json.loads(filepath.read_text())
         self.flags = [RendererFlag().from_dict(flag) for flag in renderer_config["flags"]]
         self.env_vars = [RendererEnvVar(**dv) for dv in renderer_config["env_vars"]]
         for key, val in renderer_config.items():
-            if key not in self.exclude_from_serialization:
+            if key not in self._exclude_from_serialization:
                 setattr(self, key, val)
         self.name = filepath.stem
 
     def save_json(self, json_file:str):
         renderer_config = {
             key: val for key, val in self.__dict__.items()
-            if key not in self.exclude_from_serialization
+            if key not in self._exclude_from_serialization
         }
         renderer_config["env_vars"] = [ev.as_dict() for ev in self.env_vars]
         renderer_config["flags"] = [flag.as_dict() for flag in self.flags]
@@ -143,6 +203,12 @@ class Renderer:
 
 
 class RendererProvider:
+    """Provides all the renderers defined via json-files
+    found in a subfolder called "renderer_configs"
+    either in the haleres module itself (default renderers)
+    or located next to the haleres settings file (user renderers).
+    User defined renderers will overwrite default renderers with the same name. 
+    """
     def __init__(self, settings: Settings):
         self.settings = settings
         settings_dir = Path(settings.settings_file).parent
