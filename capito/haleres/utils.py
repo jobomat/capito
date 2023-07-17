@@ -41,6 +41,29 @@ def count_lines(file:Path):
         return count + 1
 
 
+def is_valid_frame_list(frame_text: str) -> bool:
+    # Define the regex pattern to match frame lists
+    pattern = r'^\d+(-\d+)?(?:[,;\n]\s*\d+(-\d+)?)*$'
+    
+    # Check if the frame_text matches the pattern
+    return bool(re.match(pattern, frame_text))
+
+
+def create_flat_frame_list(frame_text:str):
+    frame_text = frame_text.replace("\n", ",").replace(";", ",").replace(":", "-")
+    frame_list = [f.strip() for f in frame_text.split(",") if f.strip()]
+
+    frame_range = []
+    for frame in frame_list:
+        if '-' in frame:
+            start, end = map(int, frame.split('-'))
+            frame_range.extend(range(start, end + 1))
+        else:
+            frame_range.append(int(frame))
+    
+    return sorted(list(set(frame_range)))
+
+
 def create_frame_tuple_list(frame_text: str, job_size: int) -> List[Tuple[int,int]]:
     """Takes a text which shows a list of frames
     and returns a list of start-end tuples according to job_size.
@@ -52,18 +75,7 @@ def create_frame_tuple_list(frame_text: str, job_size: int) -> List[Tuple[int,in
     if job_size <= 0:
         return []
 
-    frame_text = frame_text.replace("\n", ",").replace(";", ",").replace(":", "-")
-    frame_list = [f.strip() for f in frame_text.split(",") if f.strip()]
-
-    frame_range = []
-    for frame in frame_list:
-        if '-' in frame:
-            start, end = map(int, frame.split('-'))
-            frame_range.extend(range(start, end + 1))
-        else:
-            frame_range.append(int(frame))
-
-    frame_range = sorted(list(set(frame_range)))
+    frame_range = create_flat_frame_list(frame_text)
 
     if not frame_range:
         return []

@@ -29,6 +29,8 @@ class Job:
     These job files are just one little part of job packets.
     With this class one can create and monitor HLRS Renderjobs."""
     job_folders = {
+        "input": "input",
+        "output": "output",
         "scenes": "input/scenes",
         "jobs": "input/jobs",
         "images": "output/images",
@@ -210,12 +212,20 @@ class Job:
         """Write a linux & rsync compatible file for rsync --files_from flag."""
         conformed_jobfolder = str(self.jobfolder).replace(':', ':\\')
         content = "\n".join(self.linked_files + [conformed_jobfolder])
+        print(content)
         linux_conformed_content = content.replace(
             self.haleres_settings.share_map[self.share], self.share
         ).replace("\\", "/").strip()
         rsync_push_file = self.get_folder("rsync") / "files_to_push.txt"
         with open(str(rsync_push_file), mode="w", encoding="UTF-8", newline="\n") as f:
-            f.write(linux_conformed_content)   
+            f.write(linux_conformed_content)
+
+    def write_pathmap_json(self):
+        """Writing a generic pathpam for the defined shares."""
+        pm = {f"{l}/": f"{self.haleres_settings.workspace_path}/{s}/" for s, l in self.haleres_settings.share_map.items()}
+        pathmap = {"linux": pm}
+        with (self.get_folder("input") / "pathmap.json").open("w") as pmf:
+            json.dump(pathmap, pmf)
 
     def get_status(self, status:JobStatus) -> bool:
         """Returns True or False for the requestet JobStatus.
@@ -233,16 +243,25 @@ class Job:
 
     def is_active(self):
         inactive_states = (
-            self.get_status(JobStatus.finished),
-            self.get_status(JobStatus.paused),
+            self.is_finished(),
+            self.is_paused(),
             not self.get_status(JobStatus.ready_to_push)
         )
         if not any(inactive_states):
             return True
         return False
 
+    def is_paused(self):
+        return self.get_status(JobStatus.paused)
+
+    def set_paused(self, paused:bool):
+        self.set_status(JobStatus.paused, paused)
+
     def is_finished(self):
         return self.get_status(JobStatus.finished)
+    
+    def set_ready_to_push(self, ready:bool):
+        self.set_status(JobStatus.ready_to_push, ready)
     
     def all_files_pushed(self):
         return self.get_status(JobStatus.all_files_pushed)
@@ -336,3 +355,17 @@ class Job:
         """Returns the hypothetic path to a certain status file."""
         return self.jobfolder / self.job_folders["status"] / status.value
     
+
+class JobProvider:
+    def __init__(self, settings:Settings):
+        self.settings = settings
+        self.jobs = []
+        self.reload_all_jobs()
+
+    def reload_all_jobs(self):
+        self.jobs = []
+        for letter, share in self.settings.letter_map.items():
+            hlrs_folder = list(Path(letter).glob("hlrs"))
+            if hlrs_folder:
+                j = [Job(share, name.name, self.settings) for name in hlrs_folder[0].glob("*")]
+                self.jobs.extend(j)

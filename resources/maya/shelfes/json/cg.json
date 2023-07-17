@@ -129,7 +129,7 @@
             "sourceType": "python",
             "image": "hlrs_export.png",
             "label": "Export Scene for HLRS",
-            "command": "#from capito.maya.render.hlrs.ui import HlrsExporter\nHlrsExporter()",
+            "command": "from capito.haleres.settings import Settings\nfrom capito.maya.render.ass.ui import AssExporter\nAssExporter(Settings('K:/pipeline/hlrs/settings.json'))",
             "image1": "hlrs_export.png",
             "annotation": "Export Scene for Rendering at HLRS."
         }

@@ -1,4 +1,5 @@
 from functools import partial
+from pathlib import Path
 from typing import Callable
 
 from PySide2.QtCore import *
@@ -6,7 +7,8 @@ from PySide2.QtGui import *
 from PySide2.QtWidgets import *
 
 from capito.core.ui.widgets import IterableListWidget, RichListItem
-from capito.haleres.job import Job
+from capito.haleres.job import Job, JobProvider
+from capito.haleres.settings import Settings
 from capito.core.ui.decorators import bind_to_host
 
 
@@ -36,8 +38,7 @@ JOBLIST_STYLESHEET = '''
 
 @bind_to_host
 class CreateJobWin(QMainWindow):
-    def __init__(self, add_job_callback:Callable, settings, shares=["cg1", "cg2", "cg3"],
-                 preselected_share="cg1", parent=None, host=None):
+    def __init__(self, add_job_callback:Callable, settings, preselected_share="cg1", parent=None, host=None):
         super().__init__(parent)
         self.add_job_callback = add_job_callback
         self.share = preselected_share
@@ -47,6 +48,8 @@ class CreateJobWin(QMainWindow):
         vbox = QVBoxLayout()
         hbox = QHBoxLayout()
         hbox.addWidget(QLabel("Share: "))
+
+        shares = shares = [share for share, letter in settings.share_map.items() if (Path(letter)/"hlrs").exists()]
         for share in shares:
             btn = QRadioButton(share)
             btn.setChecked(share==self.share)
@@ -129,16 +132,16 @@ class JobListRowWidget(QWidget):
 
     def update_progressbars(self, update:bool):
         if update:
-            print(f"Starting timer for {self.job.name}")
+            #print(f"Starting timer for {self.job.name}")
             self.update_timer.start(self.refresh_interval)
         else:
-            print(f"Stopping timer for {self.job.name}")
+            #print(f"Stopping timer for {self.job.name}")
             self.update_timer.stop()
     
     def update(self):
         self.force_update()
-        print(f"Executing update for {self.job.name}")
-        if self.job.is_active():
+        #print(f"Executing update for {self.job.name}, is_active: {self.job.is_active()}")
+        if not self.job.is_active():
             self.update_progressbars(False)
         
     def force_update(self):
@@ -186,16 +189,21 @@ class JobList(IterableListWidget):
         abort_push_action = QAction("Abort Push")
         abort_push_action.triggered.connect(partial(self._abort_push))
         menu.addAction(abort_push_action)
-        pause_action = QAction("Pause")
-        pause_action.triggered.connect(partial(self._pause))
+        pause_action = QAction("Pause/Unpause")
+        pause_action.triggered.connect(partial(self._toggle_pause))
         menu.addAction(pause_action)
         menu.exec_(QCursor.pos())
     
     def _abort_push(self):
-        self.parent().abort_push_triggered.emit(self.selectedItems()[0].widget.job)
+        widget = self.selectedItems()[0].widget
+        self.parent().abort_push_triggered.emit(widget.job)
 
-    def _pause(self):
-        self.parent().pause_triggered.emit(self.selectedItems()[0].widget.job)
+    def _toggle_pause(self):
+        widget = self.selectedItems()[0].widget
+        current_state = not widget.job.is_paused()
+        widget.job.set_paused(current_state)
+        widget.update_progressbars(not current_state)
+        self.parent().pause_triggered.emit(widget.job)
 
     def filter(self, share:str, hide_finished:bool):
         for row in self.iterAllItems():
@@ -210,26 +218,28 @@ class JobList(IterableListWidget):
 class JobFilterWidget(QWidget):
     filter_changed = Signal(str, bool)
 
-    def __init__(self):
+    def __init__(self, settings:Settings, preselected_share:str="All", show_hide_finished:bool=True):
         super().__init__()
         hbox = QHBoxLayout()
         hbox.setContentsMargins(5,1,0,1)
         hbox.setSpacing(1)
         hbox.addWidget(QLabel("Show: "))
 
-        self.share = "All"
-        for share in ["All", "cg1", "cg2", "cg3"]:
+        self.share = preselected_share
+        shares = [share for share, letter in settings.share_map.items() if (Path(letter)/"hlrs").exists()]
+        shares.append(preselected_share)
+        for share in shares:
             btn = QRadioButton(share)
-            btn.setChecked(share=="All")
+            btn.setChecked(share==preselected_share)
             btn.toggled.connect(partial(self.set_share, btn))
             hbox.addWidget(btn)
         
-        hbox.addWidget(QLabel("  "))
+        hbox.addStretch()
         self.show_finished_checkbox = QCheckBox("Hide Finished Jobs")
         self.show_finished_checkbox.stateChanged.connect(self.emit_filter_changed)
+        self.show_finished_checkbox.setVisible(show_hide_finished)
         hbox.addWidget(self.show_finished_checkbox)
 
-        hbox.addStretch()
         self.setLayout(hbox)
 
     def set_share(self, share_btn, value):
@@ -248,7 +258,7 @@ class JobListWidget(QWidget):
     def __init__(self, settings):
         super().__init__()
 
-        self.filters = JobFilterWidget()
+        self.filters = JobFilterWidget(settings)
         self.job_list = JobList()
         add_btn = QPushButton("Create Job")
 
@@ -268,18 +278,107 @@ class JobListWidget(QWidget):
         self.filters.emit_filter_changed()
 
 
-from pathlib import Path
-from typing import List
+class SimpleJobListWidget(QWidget):
+    def __init__(self, settings:Settings, preselected_share="All", show_hide_finished=False):
+        super().__init__()
+
+        self.filter_widget = JobFilterWidget(settings, preselected_share, show_hide_finished)
+        self.joblist_widget = IterableListWidget()
+
+        self.filter_widget.filter_changed.connect(self._filter)
+
+        vbox = QVBoxLayout()
+        vbox.addWidget(self.filter_widget)
+        vbox.addWidget(self.joblist_widget)
+        self.setLayout(vbox)
+
+    def add_job(self, job:Job):
+        item = QListWidgetItem()
+        item.setText(f"{job.share} | {job.name}")
+        item.setData(Qt.UserRole, job)
+        self.joblist_widget.addItem(item)
+
+    def get_selected_jobs(self):
+        return [item.data(Qt.UserRole) for item in self.joblist_widget.selectedItems()]
+    
+    def select_job(self, job:Job):
+        for item in self.joblist_widget.iterAllItems():
+            if item.data(Qt.UserRole) == job:
+                self.joblist_widget.setCurrentItem(item)
+                break
+
+    def _filter(self, share:str, hide_finished:bool):
+        for item in self.joblist_widget.iterAllItems():
+            item.setHidden(False)
+            job = item.data(Qt.UserRole)
+            if share != "All" and job.share != share:
+                item.setHidden(True)
+                continue
+            if hide_finished and job.is_finished():
+                item.setHidden(True)
+
+
+
+@bind_to_host
+class ChooseJobWin(QMainWindow):
+    def __init__(self, settings:Settings, on_select_clicked:Callable,
+                 enable_job_creation:bool=True, preselected_share="All",
+                 parent=None, host=None):
+        super().__init__(parent)
+        self.share = preselected_share
+        self.settings = settings
+        self.callback = on_select_clicked
+
+        self.job_provider = JobProvider(settings)
+        self.setWindowTitle("Choose Job")
+
+        self.job_list_widget = SimpleJobListWidget(settings, preselected_share)
+        create_job_btn = QPushButton("Create Job")
+        select_job_btn = QPushButton("Select Job")
+
+        hbox = QHBoxLayout()
+        if enable_job_creation:
+            hbox.addWidget(create_job_btn)
+        hbox.addWidget(select_job_btn)
+
+        create_job_btn.clicked.connect(self._create_job_clicked)
+        select_job_btn.clicked.connect(self._selected_clicked)
+        
+        vbox = QVBoxLayout()
+        vbox.addWidget(self.job_list_widget)
+        vbox.addLayout(hbox)
+
+        central_widget = QWidget()
+        central_widget.setLayout(vbox)
+        self.setCentralWidget(central_widget)
+
+        for job in self.job_provider.jobs:
+            self.job_list_widget.add_job(job)
+
+    def _selected_clicked(self):
+        jobs = self.job_list_widget.get_selected_jobs()
+        if not jobs:
+            return
+        self.callback(jobs[0])
+        self.close()
+
+    def _create_job_clicked(self):
+        CreateJobWin(self._add_job, self.settings)
+
+    def _add_job(self, job):
+        self.job_list_widget.add_job(job)
+        self.job_list_widget.select_job(job)
+
 
 from capito.haleres.renderer import Renderer, RendererProvider
-from capito.haleres.settings import Settings
-from capito.haleres.job import Job, JobStatus
+
 
 @bind_to_host
 class TestWindow(QMainWindow):
-    def __init__(self,  host: str=None, parent=None):
+    def __init__(self, settings:Settings, host: str=None, parent=None):
         super().__init__(parent)
-        self.settings = Settings("K:/pipeline/hlrs/settings.json")
+        self.settings = settings
+        self.job_provider = JobProvider(settings)
         self.setAttribute(Qt.WA_DeleteOnClose)
         
         self.setWindowTitle("TEST")
@@ -293,11 +392,5 @@ class TestWindow(QMainWindow):
         self.load_all_jobs()
 
     def load_all_jobs(self):
-        jobs = []
-        for letter, share in self.settings.letter_map.items():
-            hlrs_folder = list(Path(letter).glob("hlrs"))
-            if hlrs_folder:
-                j = [Job(share, name.name, self.settings) for name in hlrs_folder[0].glob("*")]
-                jobs.extend(j)
-        for job in jobs:
+        for job in self.job_provider.jobs:
             self.joblist_widget.add_job(job)
