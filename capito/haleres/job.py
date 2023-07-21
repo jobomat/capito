@@ -392,6 +392,7 @@ class JobProvider:
         for job in jobs_with_pending_jobs:
             print(f"{job.name=}")
             job.remaining_jobs = job.num_unsubmitted_jobs()
+            job.limit = 0
             print(f"{job.remaining_jobs=}")
         num_pending_jobs = sum([job.remaining_jobs for job in jobs_with_pending_jobs])
         print(f"{num_pending_jobs=}")
