@@ -390,19 +390,28 @@ class JobProvider:
             if not job.is_finished() and job.is_ready_to_render() and not job.is_paused()
         ]
         for job in jobs_with_pending_jobs:
+            print(f"{job.name=}")
             job.remaining_jobs = job.num_unsubmitted_jobs()
+            print(f"{job.remaining_jobs=}")
         num_pending_jobs = sum([job.remaining_jobs for job in jobs_with_pending_jobs])
+        print(f"{num_pending_jobs=}")
 
         while free_nodes > 0 and num_pending_jobs > 0:
             num_jobs = sum(job.remaining_jobs != 0 for job in jobs_with_pending_jobs)
+            print("Im while:"
+            print("num_jobs =", num_jobs)
             even_share = int(free_nodes / num_jobs)
-
+            print(f"{even_share}")
             for job in jobs_with_pending_jobs:
+                print("im for loop")
                 chunk = min(job.remaining_jobs, even_share, free_nodes)
+                print(f"{chunk=}")
                 job.limit += chunk
                 job.remaining_jobs -= chunk
                 free_nodes -= chunk
                 num_pending_jobs -= chunk
+                print(f"{job.limit=}")
+                print(f"{job.remaining_jobs=}")
 
         return [job for job in jobs_with_pending_jobs if job.limit > 0]
 
