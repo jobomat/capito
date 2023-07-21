@@ -289,7 +289,7 @@ class Job:
         if self.get_status(JobStatus.all_files_pushed):
             return 100
         if self.get_status(JobStatus.pushing):
-            ipc_dir = Path(f"{self.base_path}/{self.name}/{self.job_folders['rsync']}")
+            ipc_dir = self.get_folder('rsync')
             dry_log = ipc_dir / "pushlog_dryrun.log"
             real_log = ipc_dir / "pushlog.log"
             if dry_log.exists() and real_log.exists():
@@ -304,26 +304,26 @@ class Job:
     def num_jobs(self):
         """Total number of generated jobfiles."""
         if not self._num_jobs:
-            self._num_jobs = sum(1 for _ in (self.base_path / self.job_folders['jobs']).glob("*.sh"))
+            self._num_jobs = sum(1 for _ in self.get_folder('jobs').glob("*.sh"))
         return self._num_jobs
         
     def num_submitted_jobs(self):
         """Jobfiles that already are submitted."""
         if self.get_status(JobStatus.all_jobs_submitted):
             return self.num_jobs()
-        return sum(1 for _ in (self.base_path / self.job_folders['submitted']).glob("*.sh"))
+        return sum(1 for _ in self.get_folder('submitted').glob("*.sh"))
 
     def num_expected_renders(self):
         """Number of expected rendered images."""
         if not self._num_expected_renders:
-            self._num_expected_renders = sum(1 for _ in (self.base_path / self.job_folders['images_expected']).glob("*"))
+            self._num_expected_renders = sum(1 for _ in self.get_folder('images_expected').glob("*"))
         return self._num_expected_renders
     
     def num_rendered(self):
         """Number of already rendered images."""
         if self.get_status(JobStatus.all_images_rendered):
             return self._num_expected_renders()
-        return sum(1 for _ in (self.base_path / self.job_folders['images_rendered']).glob("*"))
+        return sum(1 for _ in self.get_folder('images_rendered').glob("*"))
 
     def num_expected_pulls(self):
         """As the images will be the bulk of data to pull we resort to number of images here."""
@@ -333,7 +333,7 @@ class Job:
         """Number of already pulled images."""
         if self.get_status(JobStatus.finished):
             return self.num_expected_pulls()
-        return sum(1 for _ in (self.base_path / self.job_folders['images']).glob("*"))
+        return sum(1 for _ in self.get_folder('images').glob("*"))
 
     def _purge_folder(self, folder:str):
         if self.job_folders.get(folder, False):
