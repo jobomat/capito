@@ -378,4 +378,4 @@ class JobProvider:
         if platform.system() == "Windows":
             return letter
         else:
-            return share
+            return f"{self.settings.mount_point}/{share}"
