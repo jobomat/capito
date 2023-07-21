@@ -66,6 +66,9 @@ class Job:
 
         self._num_jobs = None
         self._num_expected_renders = None
+
+        self.remaining_jobs = 0
+        self.limit = 0
     
     def __eq__(self, other: "Job") -> bool:
         return self.jobfolder == other.jobfolder
@@ -253,6 +256,9 @@ class Job:
 
     def is_ready_to_push(self):
         return self.get_status(JobStatus.ready_to_push)
+    
+    def is_ready_to_render(self):
+        return self.get_status(JobStatus.ready_to_render)
 
     def is_paused(self):
         return self.get_status(JobStatus.paused)
@@ -289,6 +295,11 @@ class Job:
             if dry_log.exists() and real_log.exists():
                 return count_lines(real_log) / (count_lines(dry_log) + 3) * 100
         return 0
+    
+    def num_unsubmitted_jobs(self):
+        if self.is_finished():
+            return 0
+        return self.num_jobs() - self.num_submitted_jobs()
     
     def num_jobs(self):
         """Total number of generated jobfiles."""
@@ -362,7 +373,7 @@ class Job:
 class JobProvider:
     def __init__(self, settings:Settings):
         self.settings = settings
-        self.jobs = []
+        self.jobs:List = [Job]
         self.reload_all_jobs()
 
     def reload_all_jobs(self):
@@ -372,6 +383,28 @@ class JobProvider:
             if hlrs_folder:
                 j = [Job(share, name.name, self.settings) for name in hlrs_folder[0].glob("*")]
                 self.jobs.extend(j)
+
+    def calculate_submit_limits(self, free_nodes: int) -> List[Job]:
+        jobs_with_pending_jobs = [
+            job for job in self.jobs
+            if not job.is_finished() and job.is_ready_to_render() and not job.is_paused()
+        ]
+        for job in jobs_with_pending_jobs:
+            job.remaining_jobs = job.num_unsubmitted_jobs()
+        num_pending_jobs = sum([job.remaining_jobs for job in jobs_with_pending_jobs])
+
+        while free_nodes > 0 and num_pending_jobs > 0:
+            num_jobs = sum(job.remaining_jobs != 0 for job in jobs_with_pending_jobs)
+            even_share = int(free_nodes / num_jobs)
+
+            for job in jobs_with_pending_jobs:
+                chunk = min(job.remaining_jobs, even_share, free_nodes)
+                job.limit += chunk
+                job.remaining_jobs -= chunk
+                free_nodes -= chunk
+                num_pending_jobs -= chunk
+
+        return [job for job in jobs_with_pending_jobs if job.limit > 0]
 
     def _base(self, letter, share):
         """Get platformspecific variant of base path (letter or share name)"""
