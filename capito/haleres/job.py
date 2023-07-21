@@ -368,7 +368,14 @@ class JobProvider:
     def reload_all_jobs(self):
         self.jobs = []
         for letter, share in self.settings.letter_map.items():
-            hlrs_folder = list(Path(letter).glob("hlrs"))
+            hlrs_folder = list(Path(self._base(letter, share)).glob("hlrs"))
             if hlrs_folder:
                 j = [Job(share, name.name, self.settings) for name in hlrs_folder[0].glob("*")]
                 self.jobs.extend(j)
+
+    def _base(self, letter, share):
+        """Get platformspecific variant of base path (letter or share name)"""
+        if platform.system() == "Windows":
+            return letter
+        else:
+            return share
