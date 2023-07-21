@@ -398,7 +398,7 @@ class JobProvider:
 
         while free_nodes > 0 and num_pending_jobs > 0:
             num_jobs = sum(job.remaining_jobs != 0 for job in jobs_with_pending_jobs)
-            print("Im while:"
+            print("Im while:")
             print("num_jobs =", num_jobs)
             even_share = int(free_nodes / num_jobs)
             print(f"{even_share}")
