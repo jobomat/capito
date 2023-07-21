@@ -13,7 +13,7 @@ from capito.core.ui.widgets import QHLine
 from capito.haleres.settings import Settings
 from capito.haleres.job import Job
 from capito.haleres.utils import is_valid_frame_list, create_frame_tuple_list
-from capito.haleres.ui.joblist_widgets import ChooseJobWin
+from capito.haleres.ui.job_list_widgets import ChooseJobWin
 from capito.haleres.renderer import RendererProvider
 from capito.maya.render.ass.tools import write_syncfile, parallel_ass_export
 
@@ -123,12 +123,12 @@ class AssExporter(QMainWindow):
 
         self.renderer_provider = RendererProvider(settings)
 
-        self.setWindowTitle(f"ASS Exporter")
+        self.setWindowTitle(f"HLRS ASS Exporter")
         self._create_widgets()
         self._connect_widgets()
         self._create_layout()
         self.statusBar().setStyleSheet("border-top: 1px solid grey")
-        self.statusBar().showMessage("ASS Exporter GUI...")
+        self.statusBar().showMessage("HLRS Job Exporter GUI...")
         self.setMinimumWidth(350)
         self.show()
         self.script_jobs = [
@@ -143,14 +143,13 @@ class AssExporter(QMainWindow):
         checks_ok = self._perform_sanity_checks()
         if not only_one_cam:
             self.statusBar().showMessage("Please mark only one camera as renderable.")
-        self.export_button.setEnabled(only_one_cam and checks_ok)
-        
+        self.export_button.setEnabled(only_one_cam and checks_ok)    
 
     def _create_widgets(self):
         self.job_lineedit = QLineEdit()
         self.job_lineedit.setReadOnly(True)
         self.choose_job_button = QPushButton("")
-        icon = self.style().standardIcon(QStyle.SP_DirIcon)
+        icon = self.style().standardIcon(QStyle.SP_FileDialogListView)
         self.choose_job_button.setIcon(icon)
 
         self.framelist_textedit = QLineEdit()
@@ -262,6 +261,8 @@ class AssExporter(QMainWindow):
         vbox.addLayout(hbox)
  
         vbox.addStretch()
+        vbox.addWidget(QHLine())
+        vbox.addWidget(QLabel("Before clicking export, make sure to check your render settings\n(Samples etc.) and save the scene!"))
         vbox.addWidget(self.export_button)
         #vbox.addWidget(QHLine())
 

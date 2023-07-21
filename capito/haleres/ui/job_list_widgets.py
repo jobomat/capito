@@ -167,12 +167,16 @@ class JobListRowWidget(QWidget):
 
 
 class JobList(IterableListWidget):
+    job_selected = Signal(Job)
+
     def __init__(self):
         super().__init__()
         self.setStyleSheet(JOBLIST_STYLESHEET)
 
         self.setContextMenuPolicy(Qt.CustomContextMenu)
         self.customContextMenuRequested.connect(partial(self._context_menu))
+        
+        self.itemSelectionChanged.connect(self._job_selected)
 
     def add_job(self, job):
         job_widget = JobListRowWidget(job)
@@ -183,6 +187,10 @@ class JobList(IterableListWidget):
     def update_progress(self):
         for item in self.iterAllItems():
             item.widget.update()
+
+    def _job_selected(self):
+        job = self.selectedItems()[0].widget.job
+        self.job_selected.emit(job)
         
     def _context_menu(self, qpoint):
         menu = QMenu(self)
@@ -254,6 +262,7 @@ class JobFilterWidget(QWidget):
 class JobListWidget(QWidget):
     abort_push_triggered = Signal(Job)
     pause_triggered = Signal(Job)
+    job_selected = Signal(Job)
 
     def __init__(self, settings):
         super().__init__()
@@ -262,6 +271,7 @@ class JobListWidget(QWidget):
         self.job_list = JobList()
         add_btn = QPushButton("Create Job")
 
+        self.job_list.job_selected.connect(self._job_selected)
         add_btn.clicked.connect(partial(CreateJobWin, self.add_job, settings))
         self.filters.filter_changed.connect(self.job_list.filter)
 
@@ -276,6 +286,9 @@ class JobListWidget(QWidget):
     def add_job(self, job):
         self.job_list.add_job(job)
         self.filters.emit_filter_changed()
+    
+    def _job_selected(self, job):
+        self.job_selected.emit(job)
 
 
 class SimpleJobListWidget(QWidget):
@@ -368,29 +381,3 @@ class ChooseJobWin(QMainWindow):
     def _add_job(self, job):
         self.job_list_widget.add_job(job)
         self.job_list_widget.select_job(job)
-
-
-from capito.haleres.renderer import Renderer, RendererProvider
-
-
-@bind_to_host
-class TestWindow(QMainWindow):
-    def __init__(self, settings:Settings, host: str=None, parent=None):
-        super().__init__(parent)
-        self.settings = settings
-        self.job_provider = JobProvider(settings)
-        self.setAttribute(Qt.WA_DeleteOnClose)
-        
-        self.setWindowTitle("TEST")
-        vbox = QVBoxLayout()
-        self.joblist_widget = JobListWidget(self.settings)
-        vbox.addWidget(self.joblist_widget)
-        central_widget = QWidget()
-        central_widget.setLayout(vbox)
-        self.setCentralWidget(central_widget)
-
-        self.load_all_jobs()
-
-    def load_all_jobs(self):
-        for job in self.job_provider.jobs:
-            self.joblist_widget.add_job(job)

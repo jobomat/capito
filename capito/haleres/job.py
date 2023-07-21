@@ -96,8 +96,8 @@ class Job:
         return self.job_settings["jobsize"]
     
     @jobsize.setter
-    def jobsize(self, jobsize:str):
-        self.job_settings["jobsize"] = jobsize
+    def jobsize(self, jobsize:int):
+        self.job_settings["jobsize"] = int(jobsize)
         self.save_job_settings()
     
     @property
@@ -115,7 +115,7 @@ class Job:
     
     @walltime_minutes.setter
     def walltime_minutes(self, walltime_minutes:int):
-        self.job_settings["walltime_minutes"] = walltime_minutes
+        self.job_settings["walltime_minutes"] = int(walltime_minutes)
         self.save_job_settings()
     
     @property
@@ -144,7 +144,7 @@ class Job:
 
     def save_renderer_config(self):
         if not self._renderer:
-            print("Can't save renderer config as not renderer was specified.")
+            print("Can't save renderer config as no renderer was specified.")
             return
         self._renderer.save_json(str(self._renderer_file))
     
@@ -251,14 +251,17 @@ class Job:
             return True
         return False
 
+    def is_ready_to_push(self):
+        return self.get_status(JobStatus.ready_to_push)
+
     def is_paused(self):
         return self.get_status(JobStatus.paused)
 
-    def set_paused(self, paused:bool):
-        self.set_status(JobStatus.paused, paused)
-
     def is_finished(self):
         return self.get_status(JobStatus.finished)
+    
+    def set_paused(self, paused:bool):
+        self.set_status(JobStatus.paused, paused)
     
     def set_ready_to_push(self, ready:bool):
         self.set_status(JobStatus.ready_to_push, ready)

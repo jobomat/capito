@@ -123,7 +123,7 @@ class Renderer:
     all the files in the "input/scenes" subfolder of a haleres jobfolder. 
     """
     def __init__(self):
-        self.name = "Not set"
+        self.name = ""
         self.executable:str = None
         self.header_template: str = None
         self.per_job_template:str = None
@@ -148,7 +148,7 @@ class Renderer:
         for key, val in renderer_config.items():
             if key not in self._exclude_from_serialization:
                 setattr(self, key, val)
-        self.name = filepath.stem
+        self.name = self.name or filepath.stem
 
     def save_json(self, json_file:str):
         renderer_config = {

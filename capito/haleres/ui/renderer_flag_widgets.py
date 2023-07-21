@@ -5,8 +5,10 @@ from PySide2.QtCore import *
 from PySide2.QtGui import *
 from PySide2.QtWidgets import *
 
-from capito.haleres.renderer import RendererFlag
 from capito.core.ui.decorators import bind_to_host
+from capito.haleres.renderer import RendererFlag
+from capito.haleres.renderer import Renderer
+from capito.haleres.ui.utils import clear_layout, SIGNALS
 
 
 INT_OR_EMPTY_REGEXP = QRegExp('(^[0-9]+$|^$)')
@@ -27,7 +29,7 @@ class RendererFlagEditWidget(QWidget):
             lineedit = QLineEdit()
             lineedit.setValidator(INT_OR_EMPTY_VALIDATOR)
             if self.flag.value:
-                lineedit.setText(self.flag.value)
+                lineedit.setText(str(self.flag.value))
             lineedit.textChanged.connect(flag.set_value)
             self.widget = lineedit
         elif self.flag.type == "bool":
@@ -64,15 +66,31 @@ class RendererFlagEditWidget(QWidget):
 
 
 class RendererFlagDisplayList(QWidget):
-    def __init__(self, flags: List[RendererFlag]):
+    """Widget listing all flags of a renderer"""
+    def __init__(self):
         super().__init__()
-        grid = QGridLayout()
+        SIGNALS.renderer_selected.connect(self._renderer_changed)
+        self.grid_layout = QGridLayout()
+        self.setLayout(self.grid_layout)
         
+    def load_flags(self, flags: List[RendererFlag]):
+        self.clear_layout()
+        num_lines = 0
         for line, flag in enumerate(flags, start=1):
-            grid.addWidget(QLabel(flag.name), line, 1)
-            grid.addWidget(RendererFlagEditWidget(flag), line, 2)
-
-        self.setLayout(grid)
+            self.grid_layout.addWidget(QLabel(flag.name), line, 1)
+            self.grid_layout.addWidget(RendererFlagEditWidget(flag), line, 2)
+            self.grid_layout.setRowStretch(line, 0)
+            num_lines = line + 1
+        #self.grid_layout.addWidget(QWidget(), num_lines, 1)
+        self.grid_layout.setRowStretch(num_lines, 1)
+        
+    def clear_layout(self):
+        clear_layout(self.grid_layout)
+    
+    def _renderer_changed(self, renderer:Renderer):
+        self.clear_layout()
+        if renderer is not None:
+            self.load_flags(renderer.get_editable_flags())
 
 
 @bind_to_host

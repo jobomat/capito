@@ -63,18 +63,18 @@ def parallel_ass_export(file_to_open: Path, job: Job,
 
     job_id = f"{job.name}_{str(uuid.uuid4())[:8]}"
     temp_status_dir = Path(temp_dir) / job_id / "status"
+    print("Creating temp dirs for status/export:")
     temp_export_dir = Path(temp_dir) / job_id / "export"
     temp_status_dir.mkdir(parents=True)
+    print(f"Status: {temp_status_dir}")
     temp_export_dir.mkdir(parents=True)
+    print(f"Export: {temp_export_dir}")
 
     mayapy = local[str(Path(sys.executable).parent / "mayapy.exe")]
     processes = []
     python_script = str(Path(__file__).parent / 'parallelExporter.py')
 
     capito_base = str(Path(__file__).parent.parent.parent.parent.parent)
-    print(file_to_open)
-    print(capito_base)
-    print(job.haleres_settings.settings_file)
     
     for start, end in frame_tuples:
         params = [
@@ -95,10 +95,10 @@ def parallel_ass_export(file_to_open: Path, job: Job,
         processes.append(p)
         
         try:
-            p.communicate(timeout=1)
+            p.communicate(timeout=0)
         except TimeoutExpired:
             pass
-        print(f"Spawning mayapy instance for frames {start} to {end}.")
+        print(f"Spawning background Maya instance for frames {start} to {end}.")
 
 
 def get_links_in_ass(ass_file: str) -> List[str]:
