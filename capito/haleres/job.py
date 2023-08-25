@@ -256,6 +256,9 @@ class Job:
 
     def is_ready_to_push(self):
         return self.get_status(JobStatus.ready_to_push)
+
+    def is_pushing(self):
+        return self.get_status(JobStatus.pushing)
     
     def is_ready_to_render(self):
         return self.get_status(JobStatus.ready_to_render)
@@ -373,7 +376,7 @@ class Job:
 class JobProvider:
     def __init__(self, settings:Settings):
         self.settings = settings
-        self.jobs:List = [Job]
+        self.jobs:List[Job] = []
         self.job_map = {}
         self.reload_all_jobs()
 
