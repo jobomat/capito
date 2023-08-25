@@ -2,7 +2,17 @@ import os
 from pathlib import Path
 import sys
 import importlib
-import pymel.core as pc
+
+stop = False
+try:
+    import pymel.core as pc
+except ImportError:
+    from subprocess import check_call
+    mayapy = Path(sys.executable).parent / "mayapy.exe"
+    result = check_call([mayapy, "-m", "pip", "install", "pymel"])
+    print(result)
+    import pymel.core as pc
+    
 
 
 MAYA_APP_DIR = os.environ["MAYA_APP_DIR"]

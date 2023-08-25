@@ -22,7 +22,7 @@ def bind_to_host(ui_class):
             ui = M()
             ui.show() #dockable=True)
 
-        if host == "nuke":
+        elif host == "nuke":
             from PySide2 import QtWidgets
             nuke_win = QtWidgets.QApplication.instance().activeWindow()
             class N(ui_class):
@@ -32,7 +32,7 @@ def bind_to_host(ui_class):
             ui = N()
             ui.show()
 
-        if host == "substance_painter":
+        elif host == "substance_painter":
             import substance_painter
             substance_win = substance_painter.ui.get_main_window()
             class S(ui_class):
@@ -42,7 +42,7 @@ def bind_to_host(ui_class):
             ui = S()
             ui.show()
         
-        if host == "substance_designer":
+        elif host == "substance_designer":
             import sd
             app = sd.getContext().getSDApplication()
             ui_mngr = app.getQtForPythonUIMgr()
@@ -62,7 +62,7 @@ def bind_to_host(ui_class):
                 app = QtWidgets.QApplication([])
                 app.setStyle("Fusion")
                 app.setPalette(get_dark_palette())
-                ui = ui_class(host=host)
+                ui = ui_class(*args, **kwargs, host=host)
                 ui.show()
                 app.exec_()
             else:

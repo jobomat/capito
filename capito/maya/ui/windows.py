@@ -139,7 +139,7 @@ class WindowManager:
         self.gui()
     
     def gui(self):
-        if pc.window(self.window_name, exists=True):
+        if pc.window(self.window_name, q=True, exists=True):
             pc.deleteUI(self.window_name)
 
         with pc.window(self.window_name, title="Maya Window Manager") as win:
@@ -224,7 +224,7 @@ class WinWrapper:
         self.build()
 
     def build(self):
-        if pc.window(self.window_name, exists=True):
+        if pc.window(self.window_name, q=True, exists=True):
             pc.deleteUI(self.window_name)
 
         with pc.window(self.window_name, title=self.window_title) as self.win:

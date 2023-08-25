@@ -128,7 +128,7 @@ class RigIcons:
             self.icons = this.icons
 
     def gui(self):
-        if pc.window(self.window_name, exists=True):
+        if pc.window(self.window_name, query=True, exists=True):
             pc.deleteUI(self.window_name)
 
         with pc.window(

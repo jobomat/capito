@@ -109,7 +109,7 @@ class SplitSelected:
     def __init__(self):
         self.win = "splitSelectedJoint_win"
 
-        if pc.window(self.win, exists=True):
+        if pc.window(self.win, q=True, exists=True):
             pc.deleteUI(self.win)
 
         self.ui()

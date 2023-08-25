@@ -374,45 +374,49 @@ class JobProvider:
     def __init__(self, settings:Settings):
         self.settings = settings
         self.jobs:List = [Job]
+        self.job_map = {}
         self.reload_all_jobs()
 
     def reload_all_jobs(self):
         self.jobs = []
+        counter = 0
         for letter, share in self.settings.letter_map.items():
             hlrs_folder = list(Path(self._base(letter, share)).glob("hlrs"))
             if hlrs_folder:
-                j = [Job(share, name.name, self.settings) for name in hlrs_folder[0].glob("*")]
-                self.jobs.extend(j)
+                for job_folder in hlrs_folder[0].glob("*"):
+                    j = Job(share, job_folder.name, self.settings)
+                    self.jobs.append(j)
+                    self.job_map[f"{share}/{job_folder.name}"] = counter
+                    counter += 1
+
+    def get_job(self, share, name):
+        key = f"{share}/{name}"
+        index = self.job_map.get(key, None)
+        if index is None:
+            return None
+        return self.jobs[index]
 
     def calculate_submit_limits(self, free_nodes: int) -> List[Job]:
+        """get a list of jobs with currently appropriate submit limits."""
         jobs_with_pending_jobs = [
             job for job in self.jobs
             if not job.is_finished() and job.is_ready_to_render() and not job.is_paused()
         ]
         for job in jobs_with_pending_jobs:
-            print(f"{job.name=}")
             job.remaining_jobs = job.num_unsubmitted_jobs()
             job.limit = 0
-            print(f"{job.remaining_jobs=}")
         num_pending_jobs = sum([job.remaining_jobs for job in jobs_with_pending_jobs])
         print(f"{num_pending_jobs=}")
 
         while free_nodes > 0 and num_pending_jobs > 0:
             num_jobs = sum(job.remaining_jobs != 0 for job in jobs_with_pending_jobs)
-            print("Im while:")
-            print("num_jobs =", num_jobs)
             even_share = int(free_nodes / num_jobs)
-            print(f"{even_share}")
             for job in jobs_with_pending_jobs:
-                print("im for loop")
                 chunk = min(job.remaining_jobs, even_share, free_nodes)
-                print(f"{chunk=}")
                 job.limit += chunk
                 job.remaining_jobs -= chunk
                 free_nodes -= chunk
                 num_pending_jobs -= chunk
-                print(f"{job.limit=}")
-                print(f"{job.remaining_jobs=}")
 
         return [job for job in jobs_with_pending_jobs if job.limit > 0]
 
