@@ -1,15 +1,18 @@
-import inspect
 from pathlib import Path
 import sys
 
 
-capito_path = Path(inspect.getfile(lambda: None)).parent.parent.parent
-sys.path.append(str(capito_path))
+capito_path = sys.argv[1]
+haleres_settings_file = sys.argv[2]
 
-from capito.haleres.settings import Settings
-from capito.haleres.job import JobProvider
+print(capito_path, haleres_settings_file)
 
-s = Settings("/mnt/cg/pipeline/hlrs/settings.json")
-jp = JobProvider(s)
+# sys.path.append(str(capito_path))
 
-print(jp.jobs)
+# from capito.haleres.settings import Settings
+# from capito.haleres.job import JobProvider
+
+# haleres_settings = Settings(haleres_settings_file)
+# jp = JobProvider(haleres_settings)
+
+# print(jp.jobs)
