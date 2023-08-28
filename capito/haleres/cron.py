@@ -49,7 +49,7 @@ for folder in ipc_folder_list:
     print(f"    {folder}")
 
 # Submit-limits
-print(hlrs.qstat)
+print(hlrs.qstat())
 # submit_list = jp.calculate_submit_limits()
 # print(f"Submitting renders for {len(submit_list)} jobs.")
 # for job in submit_list:
