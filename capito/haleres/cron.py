@@ -17,25 +17,28 @@ aswell as all error-output that occures while executing this python file.
 from pathlib import Path
 import sys
 
-
+# First get the parameters:
 capito_path = sys.argv[1]
 haleres_settings_file = sys.argv[2]
 
+# Make capito availible for import:
 sys.path.append(capito_path)
 from capito.haleres.settings import Settings
 from capito.haleres.job import JobProvider
 
-
+# Load settings and the job provider
 haleres_settings = Settings(haleres_settings_file)
 jp = JobProvider(haleres_settings)
 
+# Get all relevant data
 jobs_to_push = jp.get_jobs_to_push()
 unfinished_jobs = jp.get_unfinished_jobs()
 
-# collect ipc-folders of unfinished jobs and write pull-file
+# Collect ipc-folders of unfinished jobs and write pull-file (--files-from)
 ipc_folder_list = [
     job.get_folder("ipc") for job in unfinished_jobs if job not in jobs_to_push
 ]
 
 print(f"There are {len(jobs_to_push)} jobs to push.")
+print(f"There are {len(unfinished_jobs)} unfinished jobs.")
 print(f"There are {len(ipc_folder_list)} ipc-folders to pull.")
