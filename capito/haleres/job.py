@@ -433,7 +433,7 @@ class JobProvider:
         ]
     
     def get_unfinished_jobs(self):
-        return [job for job in self.jobs if not job.is_finished]
+        return [job for job in self.jobs if not job.is_finished()]
 
     def _base(self, letter, share):
         """Get platformspecific variant of base path (letter or share name)"""
