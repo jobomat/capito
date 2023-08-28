@@ -16,6 +16,8 @@ aswell as all error-output that occures while executing this python file.
 """
 from pathlib import Path
 import sys
+import subprocess
+from datetime import datetime
 
 # First get the parameters:
 capito_path = sys.argv[1]
@@ -44,3 +46,7 @@ print(f"There are {len(unfinished_jobs)} unfinished jobs.")
 print(f"There are {len(ipc_folder_list)} ipc-folders to pull.")
 for folder in ipc_folder_list:
     print(f"    {folder}")
+
+print(datetime.now().strftime("%d.%m.%Y - %H:%M:%S"))
+subprocess.run([f"{capito_path}/capito/haleres/ca_shell/push_parallel.sh"])
+print(datetime.now().strftime("%d.%m.%Y - %H:%M:%S"))
