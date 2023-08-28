@@ -428,6 +428,7 @@ class JobProvider:
             job for job in self.jobs
             if job.is_ready_to_push()
             and not job.is_pushing()
+            and not job.all_files_pushed()
             and not job.is_paused()
         ]
     

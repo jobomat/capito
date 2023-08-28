@@ -1,3 +1,19 @@
+"""
+This file contains all the actions to perform by 
+eg a cronjob on the hlrs bridge computer.
+A cronjob scheduled every minute could be created
+by calling crontab -e an inserting the following line:
+
+*/1 * * * * /root/hlrs_venv/bin/python /mnt/cg/pipeline/capito/capito/haleres/cron.py "/mnt/cg/pipeline/capito" "/mnt/cg/pipeline/hlrs/settings.json" >> ~/cron.log 2>&1
+
+It's important to provide the two arguments:
+1. The capito path (Path to capito base directory)
+2. The path to the haleres settings json.
+
+In the example above the results are logged to a file "cron.log".
+The cron.log file will contain every print-output of this python file
+aswell as all error-output that occures while executing this python file.
+"""
 from pathlib import Path
 import sys
 
