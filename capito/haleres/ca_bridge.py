@@ -138,7 +138,7 @@ class CABridge:
 
     def get_current_running_jobs(self):
         current_running_jobs = 0
-        qstat = self.hlrs_command(self.settings.qstat)
+        qstat = self.hlrs_command([self.settings.qstat])
         if qstat:
             current_running_jobs = len(qstat) - 2
         return current_running_jobs
