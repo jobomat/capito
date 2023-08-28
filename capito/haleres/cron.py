@@ -37,16 +37,23 @@ jobs_to_push = jp.get_jobs_to_push()
 unfinished_jobs = jp.get_unfinished_jobs()
 
 # Collect ipc-folders of unfinished jobs and write pull-file (--files-from)
+print(datetime.now().strftime("%d.%m.%Y - %H:%M:%S"))
 ipc_folder_list = [
     job.get_folder("ipc") for job in unfinished_jobs if job not in jobs_to_push
 ]
-
-print(f"There are {len(jobs_to_push)} jobs to push.")
-print(f"There are {len(unfinished_jobs)} unfinished jobs.")
-print(f"There are {len(ipc_folder_list)} ipc-folders to pull.")
+# TODO: pull-file schreiben und rsync rufen.
+print(f"Pulling {len(ipc_folder_list)} ipc-folders.")
 for folder in ipc_folder_list:
     print(f"    {folder}")
 
-print(datetime.now().strftime("%d.%m.%Y - %H:%M:%S"))
+# Submit-limits
+submit_list = jp.calculate_submit_limits()
+print(f"Submitting renders for {len(submit_list)} jobs.")
+for job in submit_list:
+    print(f"    {job.name}: {job.remaining_jobs} remaining jobs, submitting: {job.limit}")
+
+# Call push script
+print(f"Pushing {len(jobs_to_push)} jobs.")
 subprocess.run([f"{capito_path}/capito/haleres/ca_shell/push_parallel.sh"])
-print(datetime.now().strftime("%d.%m.%Y - %H:%M:%S"))
+
+print("------------------------------------------------------------------")
