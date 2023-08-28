@@ -27,10 +27,12 @@ haleres_settings_file = sys.argv[2]
 sys.path.append(capito_path)
 from capito.haleres.settings import Settings
 from capito.haleres.job import JobProvider
+from capito.haleres.ca_bridge import CABridge
 
 # Load settings and the job provider
 haleres_settings = Settings(haleres_settings_file)
 jp = JobProvider(haleres_settings)
+bridge = CABridge(haleres_settings)
 
 # Get all relevant data
 jobs_to_push = jp.get_jobs_to_push()
@@ -47,7 +49,7 @@ for folder in ipc_folder_list:
     print(f"    {folder}")
 
 # Submit-limits
-submit_list = jp.calculate_submit_limits()
+submit_list = jp.calculate_submit_limits(bridge.get_free_nodes())
 print(f"Submitting renders for {len(submit_list)} jobs.")
 for job in submit_list:
     print(f"    {job.name}: {job.remaining_jobs} remaining jobs, submitting: {job.limit}")
