@@ -107,6 +107,9 @@ class HLRS:
     def qstat(self) -> list:
         return self.run(self.settings.qstat)
     
+    def get_current_running_jobs(self) -> list:
+        qstat = [job for job in self.qstat() if job]
+    
     def folder_listing(self, directory: str):
         d = f"{self.workspace.path}/{directory}"
         files = f'find {d} -maxdepth 1 -type f -printf "%f*%s\\n" | sort'

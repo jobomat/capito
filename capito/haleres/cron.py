@@ -39,7 +39,9 @@ jobs_to_push = jp.get_jobs_to_push()
 unfinished_jobs = jp.get_unfinished_jobs()
 
 # Collect ipc-folders of unfinished jobs and write pull-file (--files-from)
+print("------------------------------------------------------------------")
 print(datetime.now().strftime("%d.%m.%Y - %H:%M:%S"))
+print("------------------------------------------------------------------")
 ipc_folder_list = [
     job.get_folder("ipc") for job in unfinished_jobs if job not in jobs_to_push
 ]
@@ -59,4 +61,4 @@ print(hlrs.qstat())
 print(f"Pushing {len(jobs_to_push)} jobs.")
 subprocess.run([f"{capito_path}/capito/haleres/ca_shell/push_parallel.sh"])
 
-print("------------------------------------------------------------------")
+print("")
