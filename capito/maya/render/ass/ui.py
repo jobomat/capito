@@ -190,9 +190,9 @@ class AssExporter(QMainWindow):
         self.choose_folder_button.clicked.connect(self._set_cache_folder)
         self.export_button.clicked.connect(self._export)
         self.hlrs_walltime_lineedit.textChanged.connect(self._validate_walltime)
-        self.hlrs_walltime_lineedit.editingFinished.connect(partial(self._validate_walltime, self.current_walltime))
+        self.hlrs_walltime_lineedit.editingFinished.connect(self._approve_walltime)
         self.hlrs_jobsize_lineedit.textChanged.connect(self._validate_jobsize)
-        self.hlrs_jobsize_lineedit.editingFinished.connect(partial(self._validate_jobsize, self.current_jobsize))
+        self.hlrs_jobsize_lineedit.editingFinished.connect(self._approve_jobsize)
 
     def _create_layout(self):
         vbox = QVBoxLayout()
@@ -282,10 +282,14 @@ class AssExporter(QMainWindow):
         self.hlrs_walltime_lineedit.setText(
             str(min(maxi, max(int(self.current_walltime), mini)))
         )
+
+    def _approve_walltime(self):
+        self.hlrs_walltime_lineedit.setText(str(self.current_walltime))
     
     def _validate_jobsize(self, value):
         mini = 1
         maxi = 25
+    
         if not value:
             return
         try:
@@ -295,6 +299,9 @@ class AssExporter(QMainWindow):
         self.hlrs_jobsize_lineedit.setText(
             str(min(maxi, max(int(self.current_jobsize), mini)))
         )
+    
+    def _approve_jobsize(self):
+        self.hlrs_jobsize_lineedit.setText(str(self.current_jobsize))
 
     def _choose_job(self):
         share = "cg1"
