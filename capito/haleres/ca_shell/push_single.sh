@@ -30,6 +30,7 @@ rsync -ar --ignore-missing-args \
 
 if [ $? -eq 0 ]; then
     touch $STATUS/ALL_FILES_PUSHED
+    touch $STATUS/READY_TO_RENDER
 fi
 
 rm $STATUS/PUSHING

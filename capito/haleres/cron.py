@@ -57,7 +57,7 @@ submit_list = jp.calculate_submit_limits(
 )
 print(f"Submitting renders for {len(submit_list)} jobs.")
 for job in submit_list:
-    print(f"    {job.name}: {job.remaining_jobs} remaining jobs, submitting: {job.limit}")
+    print(f"    {job.name}: submitting: {job.limit}, remaining: {job.remaining_jobs}")
 
 # Call push script
 print(f"Pushing {len(jobs_to_push)} jobs.")

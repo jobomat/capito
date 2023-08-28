@@ -409,7 +409,7 @@ class JobProvider:
             job.remaining_jobs = job.num_unsubmitted_jobs()
             job.limit = 0
         num_pending_jobs = sum([job.remaining_jobs for job in jobs_with_pending_jobs])
-        print(f"{num_pending_jobs=}")
+        # print(f"{num_pending_jobs=}")
 
         while free_nodes > 0 and num_pending_jobs > 0:
             num_jobs = sum(job.remaining_jobs != 0 for job in jobs_with_pending_jobs)
