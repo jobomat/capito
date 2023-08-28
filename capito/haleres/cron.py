@@ -42,3 +42,5 @@ ipc_folder_list = [
 print(f"There are {len(jobs_to_push)} jobs to push.")
 print(f"There are {len(unfinished_jobs)} unfinished jobs.")
 print(f"There are {len(ipc_folder_list)} ipc-folders to pull.")
+for folder in ipc_folder_list:
+    print(f"    {folder}")
