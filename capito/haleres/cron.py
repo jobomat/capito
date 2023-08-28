@@ -13,5 +13,5 @@ from capito.haleres.job import JobProvider
 haleres_settings = Settings(haleres_settings_file)
 jp = JobProvider(haleres_settings)
 
-for job in jp.jobs:
-    print(f"{job.name}: Should be pushed: {job.is_ready_to_push() and not job.is_pushing()}")
+jobs_to_push = jp.get_jobs_to_push()
+print(f"There are {len(jobs_to_push)} jobs to push.")

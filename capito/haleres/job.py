@@ -422,6 +422,14 @@ class JobProvider:
                 num_pending_jobs -= chunk
 
         return [job for job in jobs_with_pending_jobs if job.limit > 0]
+    
+    def get_jobs_to_push(self):
+        return [
+            job for job in self.jobs
+            if job.is_ready_to_push()
+            and not job.is_pushing()
+            and not job.is_paused()
+        ]
 
     def _base(self, letter, share):
         """Get platformspecific variant of base path (letter or share name)"""
