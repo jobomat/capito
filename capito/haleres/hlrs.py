@@ -108,7 +108,7 @@ class HLRS:
         return self.run(self.settings.qstat)
     
     def get_current_running_jobs(self) -> list:
-        qstat = [job for job in self.qstat() if job]
+        return [job for job in self.qstat() if job]
     
     def folder_listing(self, directory: str):
         d = f"{self.workspace.path}/{directory}"
