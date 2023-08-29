@@ -55,7 +55,9 @@ if ipc_folder_list:
     print(f"Pulling {len(ipc_folder_list)} ipc-folder(s).")
     hlrs_server = f"{haleres_settings.hlrs_user}@{haleres_settings.hlrs_server}"
     for remote, local in ipc_folder_list:
-        print(f"    rsync -ar {hlrs_server}:{remote}/ {local}")
+        subprocess.check_output([
+            "rsync", "-ar", f"{hlrs_server}:{remote}/", local
+        ])
 
 
 # SUBMIT
