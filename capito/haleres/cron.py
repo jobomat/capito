@@ -46,18 +46,40 @@ print("------------------------------------------------------------------")
 
 # PULL IPC
 # Collect ipc-folders of unfinished jobs and write pull-file (--files-from)
+# ipc_folder_list = [
+#     (job.get_hlrs_folder("ipc"), job.get_folder("ipc"))
+#     for job in unfinished_jobs if job not in jobs_to_push
+# ]
+# if ipc_folder_list:
+#     # Call rsync with Pullfile
+#     print(f"Pulling {len(ipc_folder_list)} ipc-folder(s).")
+#     hlrs_server = f"{haleres_settings.hlrs_user}@{haleres_settings.hlrs_server}"
+#     for remote, local in ipc_folder_list:
+#         subprocess.check_output([
+#             "rsync", "-ar", f"{hlrs_server}:{remote}/", local
+#         ])
 ipc_folder_list = [
-    (job.get_hlrs_folder("ipc"), job.get_folder("ipc"))
+    f"{job.share}/hlrs/{job.name}/ipc"
     for job in unfinished_jobs if job not in jobs_to_push
 ]
 if ipc_folder_list:
-    # Call rsync with Pullfile
+    # Write pullfile
+    pullfile_name = datetime.now().strftime("pull_%Y%m%d_%H%M%S.temp")
+    pullfile = Path(pullfile_name).touch()
+    pullfile.write_text("\n".join(ipc_folder_list))
+    # Call rsync with pullfile
     print(f"Pulling {len(ipc_folder_list)} ipc-folder(s).")
     hlrs_server = f"{haleres_settings.hlrs_user}@{haleres_settings.hlrs_server}"
-    for remote, local in ipc_folder_list:
-        subprocess.check_output([
-            "rsync", "-ar", f"{hlrs_server}:{remote}/", local
-        ])
+    
+    #subprocess.check_output(
+    print([
+        "rsync", 
+        "-ar",
+        f"--files-from={str(pullfile)}",
+        f"{hlrs_server}:{haleres_settings.workspace_path}/",
+        f"{haleres_settings.mount_point}"
+    ])
+    # pullfile.unlink()
 
 
 # SUBMIT
