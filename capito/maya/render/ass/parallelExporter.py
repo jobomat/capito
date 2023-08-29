@@ -43,11 +43,15 @@ if num_exports_total == len(list(temp_status_dir.glob("*"))):
 
     for file in Path(temp_export_dir).glob("*"):
         shutil.move(str(file), str(job.get_folder("scenes") / file.name))
-    for file in temp_status_dir.glob("*"):
-        file.unlink()
-    temp_status_dir.rmdir()
-    Path(temp_export_dir).rmdir()
-    temp_status_dir.parent.rmdir()
-
+    
     job.write_job_files()
     job.set_ready_to_push(True)
+    
+    try:
+        for file in temp_status_dir.glob("*"):
+            file.unlink()
+        temp_status_dir.rmdir()
+        Path(temp_export_dir).rmdir()
+        temp_status_dir.parent.rmdir()
+    except:
+        pass
