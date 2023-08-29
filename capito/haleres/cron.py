@@ -71,15 +71,14 @@ if ipc_folder_list:
     print(f"Pulling {len(ipc_folder_list)} ipc-folder(s).")
     hlrs_server = f"{haleres_settings.hlrs_user}@{haleres_settings.hlrs_server}"
     
-    #subprocess.check_output(
-    print([
+    subprocess.check_output([
         "rsync", 
         "-ar",
         f"--files-from={str(pullfile)}",
         f"{hlrs_server}:{haleres_settings.workspace_path}/",
         f"{haleres_settings.mount_point}"
     ])
-    # pullfile.unlink()
+    pullfile.unlink()
 
 
 # SUBMIT
