@@ -64,8 +64,8 @@ ipc_folder_list = [
 ]
 if ipc_folder_list:
     # Write pullfile
-    pullfile_name = datetime.now().strftime("pull_%Y%m%d_%H%M%S.temp")
-    pullfile = Path(pullfile_name).touch()
+    pullfile_name = str(datetime.now().strftime("pull_%Y%m%d_%H%M%S.temp"))
+    pullfile = Path(pullfile_name)
     pullfile.write_text("\n".join(ipc_folder_list))
     # Call rsync with pullfile
     print(f"Pulling {len(ipc_folder_list)} ipc-folder(s).")
