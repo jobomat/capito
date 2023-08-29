@@ -119,7 +119,7 @@ class HLRS:
     
     def submit_jobs(self, jobs:List[Job]):
         commands = [
-            f"{self.workspace.path}/{job.share}/{job.name}/submit.sh {job.limit}"
+            f"{self.workspace.path}/{job.share}/hlrs/{job.name}/submit.sh {job.limit}"
             for job in jobs
         ]
         cmd = " && ".join(commands)
