@@ -173,6 +173,7 @@ class Job:
 
         submitter_source = Path(__file__).parent / "hlrs_shell" / "submit.sh"
         submitter_dest = self.jobfolder / "submit.sh"
+        print(submitter_source, submitter_dest)
         shutil.copy(submitter_source, submitter_dest)
 
     def write_job_files(self) -> None:

@@ -55,9 +55,7 @@ current_running_jobs = hlrs.get_current_running_jobs()
 submit_list = jp.calculate_submit_limits(
     haleres_settings.hlrs_node_limit - len(current_running_jobs)
 )
-print(f"Submitting renders for {len(submit_list)} jobs.")
-for job in submit_list:
-    print(f"    {job.share}.{job.name} - submitting: {job.limit}, remaining: {job.remaining_jobs}")
+hlrs.submit_jobs(submit_list)
 
 # Call push script
 print(f"Pushing {len(jobs_to_push)} jobs.")

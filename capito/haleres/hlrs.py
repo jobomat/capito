@@ -11,6 +11,7 @@ from typing import List
 import fabric
 
 from capito.haleres.settings import Settings
+from capito.haleres.job import Job
 
 
 def vpn_running() -> bool:
@@ -115,3 +116,12 @@ class HLRS:
         files = f'find {d} -maxdepth 1 -type f -printf "%f*%s\\n" | sort'
         folders = f'find {d} -maxdepth 1 -type d -not -path "./" -printf "%f\\n" | sort'
         return self.run(f'{folders} && {files}')
+    
+    def submit_jobs(self, jobs:List[Job]):
+        commands = [
+            f"{self.workspace.path}/{job.share}/{job.name}/submit.sh {job.limit}"
+            for job in jobs
+        ]
+        cmd = " && ".join(commands)
+        print(cmd)
+        return self.run(cmd)
