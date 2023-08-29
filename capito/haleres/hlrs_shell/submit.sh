@@ -1,7 +1,7 @@
 #!/bin/bash
 SL=$1
 SCRIPT_PATH=$(dirname $(realpath -s $0))
-JOBS_DIR="${SCRIPT_PATH}/jobs"
+JOBS_DIR="${SCRIPT_PATH}/input/jobs"
 IPC_DIR="${SCRIPT_PATH}/ipc"
 STATUS_DIR="${IPC_DIR}/status"
 SUBMITTED_DIR="${IPC_DIR}/submitted"
@@ -11,7 +11,7 @@ SUBMIT_LOG_FILE="${IPC_DIR}/submit.log"
 ALL_JOBS_SUBMITTED="${STATUS_DIR}/ALL_JOBS_SUBMITTED"
 READY_TO_RENDER="${STATUS_DIR}/READY_TO_RENDER"
 
-STREAMS="${SCRIPT_PATH}/streams"
+STREAMS="${IPC_DIR}/streams"
 OUT_STREAM="${STREAMS}/out"
 ERR_STREAM="${STREAMS}/err"
 

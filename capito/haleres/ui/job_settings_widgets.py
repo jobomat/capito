@@ -188,5 +188,7 @@ class SettingsWidget(QWidget):
         self.setLayout(vbox)
 
     def _save_clicked(self):
+        self.job.write_job_files()
         self.job.create_rsync_push_file()
-        print("TODO: Check job settings, render config, scenes and linked files, set ready_to_push")
+        self.job.set_ready_to_push(True)
+        print("TODO: Check job settings, render config, scenes and linked files")

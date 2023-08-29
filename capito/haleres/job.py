@@ -3,6 +3,7 @@ from enum import Enum
 import json
 from pathlib import Path
 import platform
+import shutil
 from typing import List
 
 from capito.haleres.settings import Settings
@@ -42,7 +43,9 @@ class Job:
         "images_expected": "ipc/images_expected",
         "images_rendering": "ipc/images_rendering",
         "images_rendered": "ipc/images_rendered",
-        "logs_expected": "ipc/logs_expected"
+        "logs_expected": "ipc/logs_expected",
+        "stream_out": "ipc/streams/out",
+        "stream_err": "ipc/streams/err"
     }
     # Altering job_folders dict may break backwards compatibility!
     
@@ -163,10 +166,14 @@ class Job:
         return self.jobfolder.exists()
     
     def create_job_folders(self) -> None:
-        """Create all job packet folders."""
+        """Create all job packet folders plus sumbit script."""
         self.jobfolder.mkdir(parents=True, exist_ok=True)
         for folder in self.job_folders.values():
             (self.jobfolder / folder).mkdir(parents=True, exist_ok=True)
+
+        submitter_source = Path(__file__).parent / "hlrs_shell" / "submit.sh"
+        submitter_dest = self.jobfolder / "submit.sh"
+        shutil.copy(submitter_source, submitter_dest)
 
     def write_job_files(self) -> None:
         """write the jobfiles.sh for PBS Rendering at HLRS
@@ -224,7 +231,7 @@ class Job:
             f.write(linux_conformed_content)
 
     def write_pathmap_json(self):
-        """Writing a generic pathpam for the defined shares."""
+        """Writing a generic pathmap for the defined shares."""
         pm = {f"{l}/": f"{self.haleres_settings.workspace_path}/{s}/" for s, l in self.haleres_settings.share_map.items()}
         pathmap = {"linux": pm}
         with (self.get_folder("input") / "pathmap.json").open("w") as pmf:
