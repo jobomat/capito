@@ -55,7 +55,8 @@ current_running_jobs = hlrs.get_current_running_jobs()
 submit_list = jp.calculate_submit_limits(
     haleres_settings.hlrs_node_limit - len(current_running_jobs)
 )
-hlrs.submit_jobs(submit_list)
+if submit_list:
+    hlrs.submit_jobs(submit_list)
 
 # Call push script
 print(f"Pushing {len(jobs_to_push)} jobs.")
