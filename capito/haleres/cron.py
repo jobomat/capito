@@ -38,28 +38,44 @@ hlrs = HLRS(haleres_settings_file)
 jobs_to_push = jp.get_jobs_to_push()
 unfinished_jobs = jp.get_unfinished_jobs()
 
-# Collect ipc-folders of unfinished jobs and write pull-file (--files-from)
+# Write nice header... Nice!
 print("------------------------------------------------------------------")
 print(datetime.now().strftime("%d.%m.%Y - %H:%M:%S"))
 print("------------------------------------------------------------------")
-ipc_folder_list = [
-    job.get_folder("ipc") for job in unfinished_jobs if job not in jobs_to_push
-]
-# TODO: pull-file schreiben und rsync rufen.
-print(f"Pulling {len(ipc_folder_list)} ipc-folders.")
-for folder in ipc_folder_list:
-    print(f"    {folder}")
 
+
+# PULL IPC
+# Collect ipc-folders of unfinished jobs and write pull-file (--files-from)
+ipc_folder_list = [
+    (job.get_hlrs_folder("ipc"), job.get_folder("ipc"))
+    for job in unfinished_jobs if job not in jobs_to_push
+]
+if ipc_folder_list:
+    # Call rsync with Pullfile
+    print(f"Pulling {len(ipc_folder_list)} ipc-folder(s).")
+    hlrs_server = f"{haleres_settings.hlrs_user}@{haleres_settings.hlrs_server}"
+    for remote, local in ipc_folder_list:
+        print(f"    rsync -ar {hlrs_server}:{remote}/ {local}")
+
+
+# SUBMIT
 # Submit-limits
 current_running_jobs = hlrs.get_current_running_jobs()
 submit_list = jp.calculate_submit_limits(
     haleres_settings.hlrs_node_limit - len(current_running_jobs)
 )
 if submit_list:
+    print(f"Submitting jobs ({len(submit_list)})")
+    joblist = ",".join([f"{job.share}.{job.name}" for job in submit_list])
+    print(f"    {joblist}")
     hlrs.submit_jobs(submit_list)
 
-# Call push script
-print(f"Pushing {len(jobs_to_push)} jobs.")
-subprocess.run([f"{capito_path}/capito/haleres/ca_shell/push_parallel.sh"])
+
+# PUSH
+if jobs_to_push:
+    num_jobs = len(jobs_to_push)
+    print(f"Pushing {num_jobs} job{'s' if num_jobs == 1 else ''}.")
+    subprocess.run([f"{capito_path}/capito/haleres/ca_shell/push_parallel.sh"])
+
 
 print("")

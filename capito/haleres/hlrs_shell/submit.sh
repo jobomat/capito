@@ -46,14 +46,14 @@ fi
 LOOP_COUNTER=0
 # try to submit all jobfiles
 for JOB_FILE in $JOBS_DIR/*.sh; do
+    PURE_JOB_FILE_NAME="$(basename $JOB_FILE)"
     # Break if submit limit (script parameter) is reached. (eg. submit.sh 5)
     if [ $LOOP_COUNTER -ge $SUBMIT_LIMIT ]; then
         break
     fi
     # if job file name is NOT detected in submit dir -> not yet submitted
-    if [ ! -e $SUBMITTED_DIR/$JOB_FILE ]; then
+    if [ ! -e $SUBMITTED_DIR/$PURE_JOB_FILE_NAME ]; then
         /usr/bin/dos2unix $JOB_FILE
-        PURE_JOB_FILE_NAME="$(basename $JOB_FILE)"
         PBS_ID=$(/opt/pbs/bin/qsub -o $OUT_STREAM/$PURE_JOB_FILE_NAME -e $ERR_STREAM/$PURE_JOB_FILE_NAME $JOB_FILE)
         PBS_ID=$(echo $PBS_ID | awk -F "." '{print $1}')
         if [ $? -eq 0 ]; then

@@ -45,7 +45,8 @@ class Job:
         "images_rendered": "ipc/images_rendered",
         "logs_expected": "ipc/logs_expected",
         "stream_out": "ipc/streams/out",
-        "stream_err": "ipc/streams/err"
+        "stream_err": "ipc/streams/err",
+        "pbs_ids": "ipc/pbs_ids",
     }
     # Altering job_folders dict may break backwards compatibility!
     
@@ -186,9 +187,9 @@ class Job:
         framelist = f"1-{len(scene_files)}" if self.renderer.single_frame_renderer else self.framelist
         tuple_list = create_frame_tuple_list(framelist, self.jobsize)
 
+        i = 0
         for start, end in tuple_list:
             per_frame_list = []
-            i = 0
             for frame in range(start, end + 1):
                 per_frame_rpd = {
                     **replacement_dict,
@@ -289,6 +290,9 @@ class Job:
     def get_folder(self, folder:str="") -> Path:
         """Get the full path to the requested folder."""
         return self.jobfolder / self.job_folders.get(folder, "")
+    
+    def get_hlrs_folder(self, folder:str="") -> str:
+        return f"{self.haleres_settings.workspace_path}/{self.share}/hlrs/{self.name}/{self.job_folders.get(folder, '')}"
     
     def get_push_max(self):
         """Percentage... see get_push_progress() down below."""
