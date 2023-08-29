@@ -34,7 +34,7 @@ haleres_settings = Settings(haleres_settings_file)
 jp = JobProvider(haleres_settings)
 hlrs = HLRS(haleres_settings_file)
 
-# Get all relevant data
+# Get local data
 jobs_to_push = jp.get_jobs_to_push()
 unfinished_jobs = jp.get_unfinished_jobs()
 

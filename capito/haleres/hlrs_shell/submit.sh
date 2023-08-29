@@ -53,16 +53,17 @@ for JOB_FILE in $JOBS_DIR/*.sh; do
     # if job file name is NOT detected in submit dir -> not yet submitted
     if [ ! -e $SUBMITTED_DIR/$JOB_FILE ]; then
         /usr/bin/dos2unix $JOB_FILE
-        PBS_ID=$(/opt/pbs/bin/qsub -o $OUT_STREAM/$JOB_FILE -e $ERR_STREAM/$JOB_FILE $JOB_FILE)
+        PURE_JOB_FILE_NAME="$(basename $JOB_FILE)"
+        PBS_ID=$(/opt/pbs/bin/qsub -o $OUT_STREAM/$PURE_JOB_FILE_NAME -e $ERR_STREAM/$PURE_JOB_FILE_NAME $JOB_FILE)
         PBS_ID=$(echo $PBS_ID | awk -F "." '{print $1}')
         if [ $? -eq 0 ]; then
             # job submits without error:
             # write status and increment submit & loop counter:
-            touch $PBS_ID_DIR/$PBS_ID.$JOB_FILE
+            touch $PBS_ID_DIR/$PBS_ID.$PURE_JOB_FILE_NAME
             echo -n "    " >> $SUBMIT_LOG_FILE
             echo $PBS_ID >> $SUBMIT_LOG_FILE
             echo "    $JOB_FILE" >> $SUBMIT_LOG_FILE
-            touch $SUBMITTED_DIR/$JOB_FILE
+            touch $SUBMITTED_DIR/$PURE_JOB_FILE_NAME
             LOOP_COUNTER=$((LOOP_COUNTER+1))
         else
             # qsub reports error: maybe job limit reached 
