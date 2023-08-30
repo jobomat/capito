@@ -191,6 +191,7 @@ class Job:
         for start, end in tuple_list:
             per_frame_list = []
             for frame in range(start, end + 1):
+                image_name = f"{scene_files[0].name}.{str(frame).zfill(self.frame_padding)}"
                 per_frame_rpd = {
                     **replacement_dict,
                     **self.renderer.get_flag_lookup_dict(),
@@ -200,9 +201,11 @@ class Job:
                     # Hacky. Maybe better overall design could fix this
                     per_frame_rpd["scenefile_name"] = scene_files[i].name
                     per_frame_rpd["jobfile_name"] = scene_files[i].stem
-                i += 1    
+                    image_name = scene_files[i].stem
+                i += 1
                 per_frame_string = self.renderer.get_per_frame_string()
                 per_frame_list.append(replace(per_frame_string, per_frame_rpd))
+                (Path(self.get_folder("images_expected")) / image_name).touch()
         
             per_job_rpd = {
                 **replacement_dict,
@@ -291,9 +294,22 @@ class Job:
         """Get the full path to the requested folder."""
         return self.jobfolder / self.job_folders.get(folder, "")
     
-    def get_hlrs_folder(self, folder:str="") -> str:
-        return f"{self.haleres_settings.workspace_path}/{self.share}/hlrs/{self.name}/{self.job_folders.get(folder, '')}"
+    def get_relative_path(self, folder:str="") -> str:
+        return f"{self.share}/hlrs/{self.name}/{self.job_folders.get(folder, '')}"
     
+    def get_hlrs_folder(self, folder:str="") -> str:
+        return f"{self.haleres_settings.workspace_path}/{self.get_relative_path(folder)}"
+    
+    def get_files_to_pull(self):
+        local_images = [img.stem for img in list(self.get_folder("images").glob("*"))]
+        remote_images = [img for img in list(self.get_folder("images_rendered").glob("*"))]
+        return [img.name for img in remote_images if img.stem not in local_images]
+    
+    def are_files_to_pull(self):
+        num_local_images = len(list(self.get_folder("images").glob("*")))
+        num_remote_images = len(list(self.get_folder("images_rendered").glob("*")))
+        return num_local_images < num_remote_images
+
     def get_push_max(self):
         """Percentage... see get_push_progress() down below."""
         return 100

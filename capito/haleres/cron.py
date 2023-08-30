@@ -44,20 +44,7 @@ print(datetime.now().strftime("%d.%m.%Y - %H:%M:%S"))
 print("------------------------------------------------------------------")
 
 
-# PULL IPC
-# Collect ipc-folders of unfinished jobs and write pull-file (--files-from)
-# ipc_folder_list = [
-#     (job.get_hlrs_folder("ipc"), job.get_folder("ipc"))
-#     for job in unfinished_jobs if job not in jobs_to_push
-# ]
-# if ipc_folder_list:
-#     # Call rsync with Pullfile
-#     print(f"Pulling {len(ipc_folder_list)} ipc-folder(s).")
-#     hlrs_server = f"{haleres_settings.hlrs_user}@{haleres_settings.hlrs_server}"
-#     for remote, local in ipc_folder_list:
-#         subprocess.check_output([
-#             "rsync", "-ar", f"{hlrs_server}:{remote}/", local
-#         ])
+# PULL IPC FOLDERS
 ipc_folder_list = [
     f"{job.share}/hlrs/{job.name}/ipc"
     for job in unfinished_jobs if job not in jobs_to_push
@@ -70,7 +57,6 @@ if ipc_folder_list:
     # Call rsync with pullfile
     print(f"Pulling {len(ipc_folder_list)} ipc-folder(s).")
     hlrs_server = f"{haleres_settings.hlrs_user}@{haleres_settings.hlrs_server}"
-    
     subprocess.check_output([
         "rsync", 
         "-ar",
@@ -80,6 +66,15 @@ if ipc_folder_list:
     ])
     pullfile.unlink()
 
+# PULL IMAGES
+# Create pull list
+jobs_to_pull = [job for job in unfinished_jobs if job.are_files_to_pull()]
+pull_list = []
+print(f"Pulling images and logs for {len(jobs_to_pull)} jobs.")
+for job in jobs_to_pull:
+    pull_list.append(job.get_relative_path("images"))
+    pull_list.append(job.get_relative_path("logs"))
+print(pull_list)
 
 # SUBMIT
 # Submit-limits
