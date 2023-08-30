@@ -51,10 +51,10 @@ ipc_folder_list = [
 ]
 if ipc_folder_list:
     # Write pullfile
-    pullfile_name = str(datetime.now().strftime("pull_%Y%m%d_%H%M%S.temp"))
+    pullfile_name = str(datetime.now().strftime("pull_ipc_%Y%m%d_%H%M%S.temp"))
     pullfile = Path(pullfile_name)
     pullfile.write_text("\n".join(ipc_folder_list))
-    # Call rsync with pullfile
+    # Call rsync with pullfile - intentionally blocking!
     print(f"Pulling {len(ipc_folder_list)} ipc-folder(s).")
     hlrs_server = f"{haleres_settings.hlrs_user}@{haleres_settings.hlrs_server}"
     subprocess.check_output([
@@ -70,11 +70,25 @@ if ipc_folder_list:
 # Create pull list
 jobs_to_pull = [job for job in unfinished_jobs if job.are_files_to_pull()]
 pull_list = []
-print(f"Pulling images and logs for {len(jobs_to_pull)} jobs.")
-for job in jobs_to_pull:
-    pull_list.append(job.get_relative_path("images"))
-    pull_list.append(job.get_relative_path("logs"))
-print(pull_list)
+if jobs_to_pull:
+    print(f"Pulling images and logs for {len(jobs_to_pull)} jobs.")
+    for job in jobs_to_pull:
+        pull_list.append(job.get_relative_path("images"))
+        pull_list.append(job.get_relative_path("logs"))
+
+    pullfile_name = str(datetime.now().strftime("pull_data_%Y%m%d_%H%M%S.temp"))
+    pullfile = Path(pullfile_name)
+    pullfile.write_text("\n".join(pull_list))
+    # Call rsync with pullfile
+    hlrs_server = f"{haleres_settings.hlrs_user}@{haleres_settings.hlrs_server}"
+    subprocess.run([
+        "rsync", 
+        "-ar",
+        f"--files-from={str(pullfile)}",
+        f"{hlrs_server}:{haleres_settings.workspace_path}/",
+        f"{haleres_settings.mount_point}"
+    ])
+    pullfile.unlink()
 
 # SUBMIT
 # Submit-limits
