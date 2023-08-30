@@ -375,6 +375,12 @@ class Job:
         if self.get_status(JobStatus.all_images_rendered):
             return self._num_expected_renders()
         return sum(1 for _ in self.get_folder('images_rendered').glob("*"))
+    
+    def num_rendering(self):
+        """Number of already rendered images."""
+        if self.get_status(JobStatus.all_images_rendered):
+            return self._num_expected_renders()
+        return sum(1 for _ in self.get_folder('images_rendering').glob("*"))
 
     def num_expected_pulls(self):
         """As the images will be the bulk of data to pull we resort to number of images here."""

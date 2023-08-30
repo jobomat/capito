@@ -35,11 +35,11 @@ fi
 
 # check if statusfile already exists and act accordingly
 if [ ! -e $SUBMIT_LOG_FILE ]; then
-    echo "RESUBMITTED: $(date)" >> $SUBMIT_LOG_FILE
+    echo "INITIAL SUBMIT: $(date)" >> $SUBMIT_LOG_FILE
     echo "  LIMITING TO MAX $SUBMIT_LIMIT SUBMITS" >> $SUBMIT_LOG_FILE
 else
     touch $SUBMIT_LOG_FILE
-    echo "INITIAL SUBMIT: $(date)" >> $SUBMIT_LOG_FILE
+    echo "RESUBMITTED: $(date)" >> $SUBMIT_LOG_FILE
     echo "  LIMITING TO MAX $SUBMIT_LIMIT SUBMITS" >> $SUBMIT_LOG_FILE
 fi
 
