@@ -326,6 +326,11 @@ class Job:
         num_local_images = len(list(self.get_folder("images").glob("*")))
         num_remote_images = len(list(self.get_folder("images_rendered").glob("*")))
         return num_local_images < num_remote_images
+    
+    def update_status(self):
+        if self.num_expected_renders() == self.num_pulled():
+            self.set_status(JobStatus.all_files_pulled, True)
+            self.set_status(JobStatus.finished, True)
 
     def get_push_max(self):
         """Percentage... see get_push_progress() down below."""
@@ -478,6 +483,8 @@ class JobProvider:
         ]
     
     def get_unfinished_jobs(self):
+        for job in self.jobs:
+            job.update_status()
         return [job for job in self.jobs if not job.is_finished()]
 
     def _base(self, letter, share):
