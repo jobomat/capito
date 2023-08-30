@@ -326,7 +326,7 @@ class Job:
         return num_local_images < num_remote_images
     
     def update_status(self):
-        if self.num_expected_renders() == self.num_pulled():
+        if self.is_ready_to_render() and (self.num_expected_renders() == self.num_pulled()):
             self.set_status(JobStatus.all_files_pulled, True)
             self.set_status(JobStatus.finished, True)
 
