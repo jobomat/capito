@@ -99,19 +99,4 @@ if jobs_to_push:
     subprocess.run([f"{capito_path}/capito/haleres/ca_shell/push_parallel.sh"])
 
 
-# PULL IPC AGAIN
-if ipc_folder_list:
-    # Write pullfile
-    pullfile_name = str(datetime.now().strftime("pull_ipc_post_%Y%m%d_%H%M%S.temp"))
-    pullfile = Path(pullfile_name)
-    pullfile.write_text("\n".join(ipc_folder_list))
-    # Call rsync with pullfile - blocking!
-    subprocess.check_output([
-        "rsync", 
-        "-ar",
-        f"--files-from={str(pullfile)}",
-        f"{hlrs_server}:{haleres_settings.workspace_path}/",
-        f"{haleres_settings.mount_point}"
-    ])
-    pullfile.unlink()
 print("")
