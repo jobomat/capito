@@ -313,7 +313,7 @@ class Job:
             img for img in list(self.get_folder("images_rendered").glob("*"))
         ]
         files_to_pull = [
-            f"{str(self.get_folder('images') / img.name)}" for img in remote_images if img.stem not in local_images
+            f"{self.get_relative_path('images')}/{img.name}" for img in remote_images if img.stem not in local_images
         ]
         files_to_pull.append(self.get_relative_path("logs"))
         return files_to_pull
