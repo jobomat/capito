@@ -37,6 +37,7 @@ hlrs = HLRS(haleres_settings_file)
 # Get local data
 jobs_to_push = jp.get_jobs_to_push()
 unfinished_jobs = jp.get_unfinished_jobs()
+hlrs_server = f"{haleres_settings.hlrs_user}@{haleres_settings.hlrs_server}"
 
 # Write nice header... Nice!
 print("------------------------------------------------------------------")
@@ -56,7 +57,6 @@ if ipc_folder_list:
     pullfile.write_text("\n".join(ipc_folder_list))
     # Call rsync with pullfile - intentionally blocking!
     print(f"Pulling {len(ipc_folder_list)} ipc-folder(s).")
-    hlrs_server = f"{haleres_settings.hlrs_user}@{haleres_settings.hlrs_server}"
     subprocess.check_output([
         "rsync", 
         "-ar",
@@ -68,27 +68,16 @@ if ipc_folder_list:
 
 # PULL IMAGES
 # Create pull list
-jobs_to_pull = [job for job in unfinished_jobs if job.are_files_to_pull()]
-pull_list = []
-if jobs_to_pull:
-    print(f"Pulling images and logs for {len(jobs_to_pull)} jobs.")
-    for job in jobs_to_pull:
-        pull_list.append(job.get_relative_path("images"))
-        pull_list.append(job.get_relative_path("logs"))
-
-    pullfile_name = str(datetime.now().strftime("pull_data_%Y%m%d_%H%M%S.temp"))
-    pullfile = Path(pullfile_name)
-    pullfile.write_text("\n".join(pull_list))
-    # Call rsync with pullfile
-    hlrs_server = f"{haleres_settings.hlrs_user}@{haleres_settings.hlrs_server}"
-    subprocess.run([
-        "rsync", 
-        "-ar",
-        f"--files-from={str(pullfile)}",
-        f"{hlrs_server}:{haleres_settings.workspace_path}/",
-        f"{haleres_settings.mount_point}"
-    ])
-    pullfile.unlink()
+print("Pulling")
+for job in unfinished_jobs:
+    if not job.is_pulling():
+        job.write_pull_file()
+        # Call rsync for this job
+        print(f"    {job.share}.{job.name}")
+        subprocess.Popen([
+            f"{capito_path}/capito/haleres/ca_shell/pull.sh", 
+            job.jobfolder,
+        ])
 
 # SUBMIT
 # Submit-limits
