@@ -1,5 +1,6 @@
 #!/bin/bash
 JOB_PATH=$1
+SCRIPT_PATH=$(dirname $(realpath -s $0))
 source $SCRIPT_PATH/settings.sh
 
 STATUS_DIR=$JOB_PATH/ipc/status
