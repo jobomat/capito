@@ -23,10 +23,10 @@ JOBLIST_STYLESHEET = '''
         margin: 0 px;
     }
     #PushProgressBar::chunk {
-        background-color: rgb(255, 180, 0);
+        background-color: rgb(255, 152, 51);
     }
     #SubmitProgressBar::chunk {
-        background-color: rgb(255, 152, 51);
+        background-color: rgb(40, 170, 0);
     }
     #RenderProgressBar::chunk {
         background-color: rgb(0, 127, 255);

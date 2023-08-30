@@ -262,11 +262,9 @@ class Job:
         inactive_states = (
             self.is_finished(),
             self.is_paused(),
-            not self.get_status(JobStatus.ready_to_push)
+            not self.is_ready_to_push()
         )
-        if not any(inactive_states):
-            return True
-        return False
+        return not any(inactive_states)
 
     def is_ready_to_push(self):
         return self.get_status(JobStatus.ready_to_push)
