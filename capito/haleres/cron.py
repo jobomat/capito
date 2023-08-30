@@ -68,16 +68,17 @@ if ipc_folder_list:
 
 # PULL IMAGES
 # Create pull list
-print("Pulling images and logs.")
-for job in unfinished_jobs:
-    if not job.is_pulling():
-        job.write_pull_file()
-        # Call rsync for this job
-        print(f"    {job.share}.{job.name}")
-        subprocess.Popen([
-            f"{capito_path}/capito/haleres/ca_shell/pull.sh", 
-            job.jobfolder,
-        ])
+if unfinished_jobs:
+    print("Pulling images and logs.")
+    for job in unfinished_jobs:
+        if not job.is_pulling():
+            job.write_pull_file()
+            # Call rsync for this job
+            print(f"    {job.share}.{job.name}")
+            subprocess.Popen([
+                f"{capito_path}/capito/haleres/ca_shell/pull.sh", 
+                job.jobfolder,
+            ])
 
 # SUBMIT
 # Submit-limits
