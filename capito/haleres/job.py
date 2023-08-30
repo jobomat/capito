@@ -16,6 +16,8 @@ class JobStatus(Enum):
     pushing = "PUSHING"
     push_aborted = "PUSH_ABORTED"
     all_files_pushed = "ALL_FILES_PUSHED"
+    pulling = "PULLING"
+    all_files_pulled = "ALL_FILES_PULLED"
     ready_to_render = "READY_TO_RENDER"
     all_jobs_submitted = "ALL_JOBS_SUBMITTED"
     paused = "PAUSED"
@@ -272,6 +274,9 @@ class Job:
     def is_pushing(self):
         return self.get_status(JobStatus.pushing)
     
+    def is_pulling(self):
+        return self.get_status(JobStatus.pulling)
+    
     def is_ready_to_render(self):
         return self.get_status(JobStatus.ready_to_render)
 
@@ -303,8 +308,14 @@ class Job:
     def get_files_to_pull(self):
         local_images = [img.stem for img in list(self.get_folder("images").glob("*"))]
         remote_images = [img for img in list(self.get_folder("images_rendered").glob("*"))]
-        return [img.name for img in remote_images if img.stem not in local_images]
+        files_to_pull = [img.name for img in remote_images if img.stem not in local_images]
+        files_to_pull.append(self.get_relative_path("logs"))
+        return files_to_pull
     
+    def write_pull_file(self):
+        pullfile = self.get_folder("rsync") / "files_to_pull.txt"
+        pullfile.write_text("\n".join(self.get_files_to_pull()))
+
     def are_files_to_pull(self):
         num_local_images = len(list(self.get_folder("images").glob("*")))
         num_remote_images = len(list(self.get_folder("images_rendered").glob("*")))
