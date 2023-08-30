@@ -306,9 +306,15 @@ class Job:
         return f"{self.haleres_settings.workspace_path}/{self.get_relative_path(folder)}"
     
     def get_files_to_pull(self):
-        local_images = [img.stem for img in list(self.get_folder("images").glob("*"))]
-        remote_images = [img for img in list(self.get_folder("images_rendered").glob("*"))]
-        files_to_pull = [img.name for img in remote_images if img.stem not in local_images]
+        local_images = [
+            img.stem for img in list(self.get_folder("images").glob("*"))
+        ]
+        remote_images = [
+            img for img in list(self.get_folder("images_rendered").glob("*"))
+        ]
+        files_to_pull = [
+            f"{str(self.get_folder('images') / img.name)}" for img in remote_images if img.stem not in local_images
+        ]
         files_to_pull.append(self.get_relative_path("logs"))
         return files_to_pull
     
