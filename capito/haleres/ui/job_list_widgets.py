@@ -10,6 +10,7 @@ from capito.core.ui.widgets import IterableListWidget, RichListItem
 from capito.haleres.job import Job, JobProvider
 from capito.haleres.settings import Settings
 from capito.core.ui.decorators import bind_to_host
+from capito.haleres.ui.utils import SIGNALS
 
 
 JOBLIST_STYLESHEET = '''
@@ -167,8 +168,6 @@ class JobListRowWidget(QWidget):
 
 
 class JobList(IterableListWidget):
-    job_selected = Signal(Job)
-
     def __init__(self):
         super().__init__()
         self.setStyleSheet(JOBLIST_STYLESHEET)
@@ -189,8 +188,11 @@ class JobList(IterableListWidget):
             item.widget.update()
 
     def _job_selected(self):
-        job = self.selectedItems()[0].widget.job
-        self.job_selected.emit(job)
+        try:
+            job = self.selectedItems()[0].widget.job
+            SIGNALS.job_selected.emit(job)
+        except:
+            pass
         
     def _context_menu(self, qpoint):
         menu = QMenu(self)
@@ -262,16 +264,15 @@ class JobFilterWidget(QWidget):
 class JobListWidget(QWidget):
     abort_push_triggered = Signal(Job)
     pause_triggered = Signal(Job)
-    job_selected = Signal(Job)
 
-    def __init__(self, settings):
+    def __init__(self, settings:Settings, job_provider:JobProvider):
         super().__init__()
+        self.job_provider = job_provider
 
         self.filters = JobFilterWidget(settings)
         self.job_list = JobList()
         add_btn = QPushButton("Create Job")
 
-        self.job_list.job_selected.connect(self._job_selected)
         add_btn.clicked.connect(partial(CreateJobWin, self.add_job, settings))
         self.filters.filter_changed.connect(self.job_list.filter)
 
@@ -283,12 +284,25 @@ class JobListWidget(QWidget):
 
         self.setLayout(vbox)
 
+        self.rebuild_joblist()
+
+        self.refresh_interval = 5000
+        self.update_timer = QTimer(self)
+        self.update_timer.timeout.connect(self.update)
+        self.update_timer.start(self.refresh_interval)
+
+    def update(self):
+        if self.job_provider.joblist_changed():
+            self.rebuild_joblist()
+    
+    def rebuild_joblist(self):
+        self.job_list.clear()
+        for job in self.job_provider.jobs:
+            self.add_job(job)
+
     def add_job(self, job):
         self.job_list.add_job(job)
         self.filters.emit_filter_changed()
-    
-    def _job_selected(self, job):
-        self.job_selected.emit(job)
 
 
 class SimpleJobListWidget(QWidget):

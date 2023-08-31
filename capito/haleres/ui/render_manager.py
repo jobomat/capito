@@ -48,26 +48,17 @@ class RenderManager(QMainWindow):
         self._create_widgets()
         self._connect_widgets()
         self._create_layout()
-        
-        self.load_all_jobs()
     
     def _create_widgets(self):
         self.split_widget = QSplitter(Qt.Horizontal)
         self.split_widget.setStretchFactor(3, 10)
-        self.joblist_widget = JobListWidget(self.settings)
+        self.joblist_widget = JobListWidget(self.settings, self.job_provider)
         self.jobtabs_widget = JobTabsWidget(self.renderer_provider)
         
     def _connect_widgets(self):
-        self.joblist_widget.job_selected.connect(self._job_selected)
+        pass
 
     def _create_layout(self):
         self.split_widget.addWidget(self.joblist_widget)
         self.split_widget.addWidget(self.jobtabs_widget)
         self.setCentralWidget(self.split_widget)
-    
-    def _job_selected(self, job:Job):
-        SIGNALS.job_selected.emit(job)
-
-    def load_all_jobs(self):
-        for job in self.job_provider.jobs:
-            self.joblist_widget.add_job(job)

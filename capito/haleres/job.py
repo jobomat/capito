@@ -445,6 +445,20 @@ class JobProvider:
         if index is None:
             return None
         return self.jobs[index]
+    
+    def joblist_changed(self):
+        current_job_map = []
+        for letter, share in self.settings.letter_map.items():
+            hlrs_folder = list(Path(self._base(letter, share)).glob("hlrs"))
+            if hlrs_folder:
+                for job_folder in hlrs_folder[0].glob("*"):
+                    current_job_map.append(f"{share}/{job_folder.name}")
+        
+        diff = list(set(list(self.job_map.keys())).symmetric_difference(set(current_job_map)))
+        if diff:
+            self.reload_all_jobs()
+            return True
+        return False
 
     def calculate_submit_limits(self, free_nodes: int) -> List[Job]:
         """get a list of jobs with currently appropriate submit limits."""
