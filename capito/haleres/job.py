@@ -139,7 +139,7 @@ class Job:
     @linked_files.setter
     def linked_files(self, file_list:List[str]):
         linked_files_file = self.get_folder("rsync") / "linked_files.txt"
-        linked_files_file.write_text("\n".join(self._linked_files))
+        linked_files_file.write_text("\n".join(file_list))
 
     @property
     def scene_files(self):
