@@ -63,9 +63,6 @@ class Job:
 
         self._renderer_file = self.jobfolder / "renderer.json"
         self._renderer:Renderer = None
-        
-        self._linked_files = []
-        self._scene_files = []
 
         self._job_settings_file:Path = self.jobfolder / "job_settings.json"
         self._init_job_settings()
@@ -133,8 +130,6 @@ class Job:
     
     @property
     def linked_files(self) -> List[str]:
-        if self._linked_files:
-            return self._linked_files
         linked_files_file = self.get_folder("rsync") / "linked_files.txt"
         if not linked_files_file.exists():
             linked_files_file.touch()
@@ -143,7 +138,6 @@ class Job:
     
     @linked_files.setter
     def linked_files(self, file_list:List[str]):
-        self._linked_files = file_list
         linked_files_file = self.get_folder("rsync") / "linked_files.txt"
         linked_files_file.write_text("\n".join(self._linked_files))
 
@@ -261,8 +255,7 @@ class Job:
     def is_active(self):
         inactive_states = (
             self.is_finished(),
-            self.is_paused(),
-            not self.is_ready_to_push()
+            self.is_paused()
         )
         return not any(inactive_states)
 
