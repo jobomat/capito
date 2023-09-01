@@ -112,4 +112,4 @@ if something_happened:
     print("\n".join(log_list))
     print("")
 else:
-    print(print(datetime.now().strftime("%d.%m.%Y - %H:%M:%S - No Events")))
+    print(datetime.now().strftime("%d.%m.%Y - %H:%M:%S - No Events"))
