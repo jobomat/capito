@@ -39,10 +39,9 @@ jobs_to_push = jp.get_jobs_to_push()
 unfinished_jobs = jp.get_unfinished_jobs()
 hlrs_server = f"{haleres_settings.hlrs_user}@{haleres_settings.hlrs_server}"
 
-# Write nice header... Nice!
-print("------------------------------------------------------------------")
-print(datetime.now().strftime("%d.%m.%Y - %H:%M:%S"))
-print("------------------------------------------------------------------")
+log_list = []
+something_happened = False
+
 
 
 # PULL IPC FOLDERS
@@ -51,12 +50,13 @@ ipc_folder_list = [
     for job in unfinished_jobs if job not in jobs_to_push
 ]
 if ipc_folder_list:
+    something_happened = True
     # Write pullfile
     pullfile_name = str(datetime.now().strftime("pull_ipc_%Y%m%d_%H%M%S.temp"))
     pullfile = Path(pullfile_name)
     pullfile.write_text("\n".join(ipc_folder_list))
     # Call rsync with pullfile - intentionally blocking!
-    print(f"Pulling {len(ipc_folder_list)} ipc-folder(s). Pull-File: {str(pullfile)}")
+    log_list.append(f"Pulling {len(ipc_folder_list)} ipc-folder(s). Pull-File: {str(pullfile)}")
     subprocess.check_output([
         "rsync", 
         "-ar",
@@ -65,17 +65,18 @@ if ipc_folder_list:
         f"{hlrs_server}:{haleres_settings.workspace_path}/",
         f"{haleres_settings.mount_point}"
     ])
-    # pullfile.unlink()
+    pullfile.unlink()
 
 # PULL IMAGES
 # Create pull list
 if unfinished_jobs:
-    print("Pulling images and logs.")
+    something_happened = True
+    log_list.append("Pulling images and logs.")
     for job in unfinished_jobs:
         if not job.is_pulling():
             job.write_pull_file()
             # Call rsync for this job
-            print(f"    {job.share}.{job.name}")
+            log_list.append(f"    {job.share}.{job.name}")
             subprocess.Popen([
                 f"{capito_path}/capito/haleres/ca_shell/pull.sh", 
                 job.jobfolder,
@@ -88,17 +89,25 @@ submit_list = jp.calculate_submit_limits(
     haleres_settings.hlrs_node_limit - len(current_running_jobs)
 )
 if submit_list:
-    print(f"Submitting jobs ({len(submit_list)})")
+    something_happened = True
+    log_list.append(f"Submitting jobs ({len(submit_list)})")
     joblist = ",".join([f"{job.share}.{job.name}" for job in submit_list])
-    print(f"    {joblist}")
+    log_list.append(f"    {joblist}")
     hlrs.submit_jobs(submit_list)
 
 
 # PUSH
 if jobs_to_push:
+    something_happened = True
     num_jobs = len(jobs_to_push)
-    print(f"Pushing {num_jobs} job{'s' if num_jobs == 1 else ''}.")
+    log_list.append(f"Pushing {num_jobs} job{'s' if num_jobs == 1 else ''}.")
     subprocess.run([f"{capito_path}/capito/haleres/ca_shell/push_parallel.sh"])
 
 
-print("")
+if something_happened:
+    # Write nice header... Nice!
+    print("------------------------------------------------------------------")
+    print(datetime.now().strftime("%d.%m.%Y - %H:%M:%S"))
+    print("------------------------------------------------------------------")
+    print("\n".join(log_list))
+    print("")
