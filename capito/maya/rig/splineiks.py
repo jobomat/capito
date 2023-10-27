@@ -8,6 +8,18 @@ from capito.maya.rig.joints import create_joint_controls_along_curve, get_twist_
 from capito.maya.ui.maya_gui import get_selected_channelbox_attributes
 
 
+def get_joint_list(ik_handle: pc.nodetypes.IkHandle):
+    start_joint = ik_handle.getStartJoint()
+    current_joint = ik_handle.getEndEffector().getParent()
+    joint_list = []
+    while True:
+        joint_list.append(current_joint)
+        if current_joint == start_joint:
+            break
+        current_joint = current_joint.getParent()
+    return list(reversed(joint_list))
+
+
 def create_spline_ik(
     start_joint: pc.nodetypes.Joint,
     end_joint: pc.nodetypes.Joint,
@@ -69,7 +81,7 @@ def create_curve_based_scale_setup(
     Sets up the x-scaling of joints that are members of 'ik_handle'
     based on the ration of current curve length to original curve length.
     """
-    joints = ik_handle.getJointList()
+    joints = get_joint_list(ik_handle)
     if name is None:
         name = joints[0].name()
     ik_curve = pc.PyNode(ik_handle.getCurve())
@@ -99,8 +111,8 @@ def setup_advanced_twist_control(
     The up axis will be bound to the Y axis of start_up_obj and end_up_obj.
     """
     ik_handle.dWorldUpType.set(4)  # Type: Object rotation up (start/end)
-    start_joint = ik_handle.getJointList()[0]
-    end_joint = ik_handle.getJointList()[-1]
+    start_joint = ik_handle.getStartJoint()
+    end_joint = ik_handle.getEndEffector().getParent()
     twist_axis = get_twist_axis(start_joint)
     forward_axis_map = {
         (1, 0, 0): 0,
@@ -134,7 +146,7 @@ def setup_squash_stretch(
     Creates an expression and frameCache based setup for preserving the volume
     when a stretchy splineIK is squashed/stretched.
     """
-    joint_list = ik_handle.getJointList()
+    joint_list = get_joint_list(ik_handle)
     if not ik_handle.hasAttr("scale_power"):
         ik_handle.addAttr("scale_power", at="float")
     scale_power_attr = ik_handle.attr("scale_power")
@@ -388,7 +400,7 @@ class SplineIKRig:
 
     @property
     def joints(self):
-        return self.ik_handle.getJointList()
+        return get_joint_list(self.ik_handle)
 
     @property
     def curve(self):
