@@ -2,10 +2,10 @@ Capito stands for "Computer Animation Pipeline Tools". These are scripts related
 In the rooms 042 / 043 you have access to the latest version on drive K:\pipeline\capito (\\cg\pipeline\capito). Just use the drop-installer located there to set up capito for your HdM account (See 3.1 further down). 
 
 # 1 Requirements
-+ Maya 2022+ (capito uses the featureset of Python 3.7.7)
++ Maya 2022+ (capito uses the featureset of Python 3.7+)
 + PyMel
 
-If you did not install PyMel with Maya 2022+ please do the following:
+When using the Maya drop-installer (see 3.2) Capito will try to install PyMel if it is not already installed. If the automatic PyMel installation did not succed via the drop-installer please do the following:
 + Open a commandline with administrator/root privileges (*cmd* for Windows, *terminal* for Mac, *shell* for Linux)
 + Cd into the Maya install location. This is the directory where *mayapy* is located! (eg. ```cd "C:\Program Files\Autodesk\maya2022\bin"``` for Windows. You can locate this folder for other Operating Systems by typing ```import sys; print(sys.executable)``` into a Maya Python Script Editor window.)
 + Use pip with mayapy to install pymel: ```mayapy -m pip install pymel```
