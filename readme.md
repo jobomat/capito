@@ -1,5 +1,5 @@
 Capito stands for "Computer Animation Pipeline Tools". These are scripts related to HdM Übungen CG and Stupro CA.
-In the rooms 042 / 043 you have access to the latest version on drive K:\pipeline\capito (\\cg\pipeline\capito). Just use the drop-installer located there to set up capito for your HdM account (See 3.1 further down). 
+In the rooms 042 / 043 you have access to the latest version on drive K:\pipeline\capito (\\cg\pipeline\capito). Just use the drop-installer located there to set up capito for your HdM account (See 3.2 further down). 
 
 # 1 Requirements
 + Maya 2022+ (capito uses the featureset of Python 3.7+)
@@ -23,7 +23,7 @@ Click the green "Code" Button above and download the repo as zip file. Unpack to
 # 3 Setup
 
 ## 3.1 System Setup (Windows only)
-If you just want to use the Maya portion of capito (Rig-Tools etc. for Übungen CG) you can skip this and continue with 3.2. To setup the Captio pipelining tools on Windows right-click on install_windows.bat and choose "Run as Administrator". The installation process will take several minutes depending on your internet connection. The install script will create various Python virtiual envs, set some system environment variables. You will be asked, if you would like to download FFMPEG. If you don't already have FFMPEG installed or are not familiar with setting environment variables, I recommend to say yes. Otherwise you can create an environment variable called "FFMPEG" which points to the installed ffmpeg executable (fmpeg.exe on windows).
+If you only want to use the Maya portion of capito (Rig-Tools etc. for Übungen CG) you can skip this and continue with 3.2. To setup the Captio pipelining tools on Windows right-click on install_windows.bat and choose "Run as Administrator". The installation process will take several minutes depending on your internet connection. The install script will create various Python virtiual envs, set some system environment variables. You will be asked, if you would like to download FFMPEG. If you don't already have FFMPEG installed or are not familiar with setting environment variables, I recommend to say yes. Otherwise you can create an environment variable called "FFMPEG" which points to the installed ffmpeg executable (fmpeg.exe on windows).
 
 ## 3.2 Setup for Maya
 Just drop the file *maya_drop_installer.py* into the *viewport* of a running Maya instance (Outliner or other editors will not work!). You will be presented with a summary of the installation process. 
