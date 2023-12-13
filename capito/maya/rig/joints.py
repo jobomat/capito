@@ -21,6 +21,12 @@ def get_twist_axis(jnt):
     return axes[index]
 
 
+def guess_forward_axis(joint:pc.nodetypes.Joint) -> tuple[int, int, int]:
+    child = joint.getChildren(type="joint")[0]
+    trans = [abs(v) for v in child.translate.get()]
+    return tuple(1 if v == max(trans) else 0 for v in trans)
+
+
 def joint_chain_replicator(
     joint_chain: list, name: str, search: str, replicas=["_ik", "_fk"]
 ):

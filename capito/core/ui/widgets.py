@@ -1,57 +1,202 @@
 import re
 from ast import Call
+from functools import partial
 from itertools import zip_longest
 from pathlib import Path
 from typing import Callable, Tuple, Dict
 
-from capito.core.helpers import clamp, get_font_dict, get_font_file, hex_to_rgb_int
-from PySide2.QtCore import (
-    QAbstractAnimation,
-    QEasingCurve,
-    QObject,
-    QPoint,
-    QPropertyAnimation,
-    QSize,
-    Signal,
-)
-from PySide2.QtGui import (
-    QColor,
-    QFont,
-    QFontDatabase,
-    QFontInfo,
-    QFontMetrics,
-    QIcon,
-    QIntValidator,
-    Qt,
-    QTextCursor,
-    QTransform,
-)
-from PySide2.QtWidgets import (
-    QColorDialog,
-    QComboBox,
-    QDialog,
-    QFileDialog,
-    QFrame,
-    QGridLayout,
-    QHBoxLayout,
-    QInputDialog,
-    QLabel,
-    QLayout,
-    QLineEdit,
-    QListWidgetItem,
-    QListWidget,
-    QProgressBar,
-    QProxyStyle,
-    QPushButton,
-    QSlider,
-    QSpinBox,
-    QSplitter,
-    QStyle,
-    QTabBar,
-    QTextEdit,
-    QVBoxLayout,
-    QWidget,
-)
+from capito.core.helpers import clamp, get_font_dict, get_font_file, hex_to_rgb_int, hex_to_rgb_float
+from PySide2.QtCore import *
+from PySide2.QtGui import *
+from PySide2.QtWidgets import *
+
+
+class FlowLayout(QLayout):
+    def __init__(self, parent=None, margin=0, spacing=-1):
+        super().__init__(parent)
+        if parent is not None:
+            self.setContentsMargins(margin, margin, margin, margin)
+        self.setSpacing(spacing)
+        self.itemList = []
+
+    def __del__(self):
+        item = self.takeAt(0)
+        while item:
+            item = self.takeAt(0)
+
+    def addItem(self, item):
+        self.itemList.append(item)
+
+    def count(self):
+        return len(self.itemList)
+
+    def itemAt(self, index):
+        if index >= 0 and index < len(self.itemList):
+            return self.itemList[index]
+        return None
+
+    def takeAt(self, index):
+        if index >= 0 and index < len(self.itemList):
+            return self.itemList.pop(index)
+        return None
+
+    def expandingDirections(self):
+        return Qt.Orientations(Qt.Orientation(0))
+
+    def hasHeightForWidth(self):
+        return True
+
+    def heightForWidth(self, width):
+        height = self.doLayout(QRect(0, 0, width, 0), True)
+        return height
+
+    def setGeometry(self, rect):
+        super(FlowLayout, self).setGeometry(rect)
+        self.doLayout(rect, False)
+
+    def sizeHint(self):
+        return self.minimumSize()
+
+    def minimumSize(self):
+        size = QSize()
+
+        for item in self.itemList:
+            size = size.expandedTo(item.minimumSize())
+
+        margin, _, _, _ = self.getContentsMargins()
+
+        size += QSize(2 * margin, 2 * margin)
+        return size
+
+    def doLayout(self, rect, testOnly):
+        x = rect.x()
+        y = rect.y()
+        lineHeight = 0
+
+        for item in self.itemList:
+            wid = item.widget()
+            spaceX = self.spacing() # + wid.style().layoutSpacing(QSizePolicy.PushButton, QSizePolicy.PushButton, Qt.Horizontal)
+            spaceY = self.spacing() # + wid.style().layoutSpacing(QSizePolicy.PushButton, QSizePolicy.PushButton, Qt.Vertical)
+            nextX = x + item.sizeHint().width() + spaceX
+            if nextX - spaceX > rect.right() and lineHeight > 0:
+                x = rect.x()
+                y = y + lineHeight + spaceY
+                nextX = x + item.sizeHint().width() + spaceX
+                lineHeight = 0
+
+            if not testOnly:
+                item.setGeometry(QRect(QPoint(x, y), item.sizeHint()))
+
+            x = nextX
+            lineHeight = max(lineHeight, item.sizeHint().height())
+
+        return y + lineHeight - rect.y()
+    
+
+class ColorButton(QPushButton):
+    """A simple color swatch PushButton.
+    The color can be changed via right click menu.
+    The current color is stored in the attribute 'color'."""
+    def __init__(self, color:QColor, padding:int=0, menu_actions:dict=None):
+        super().__init__()
+        self.color = color
+        self.padding = padding
+        self.menu_actions = menu_actions or {}
+        self._set_stylesheet()
+        self.setContextMenuPolicy(Qt.CustomContextMenu)
+        self.customContextMenuRequested.connect(
+            partial(self._context_menu)
+        )
+
+    def _set_stylesheet(self):
+        self.setStyleSheet(f"QWidget {{margin: 0 {self.padding} {self.padding} 0; font-weight: bold; color: {self._contrast_color()}; background-color: {self.color.name()}}}")
+
+    def color_picker(self):
+        color = QColorDialog.getColor(initial=self.color)
+        if not color.isValid():
+            return
+        self.color = color
+        self._set_stylesheet()
+    
+    def _context_menu(self, qpoint):
+        menu = QMenu(self)
+        menu.setStyleSheet(f"QWidget {{background-color: #666666; color: #ffffff}}")
+
+        change_color_action = QAction("Change Color...")
+        change_color_action.triggered.connect(self.color_picker)
+        menu.addAction(change_color_action)
+
+        for text, func in self.menu_actions.items():
+            action = QAction(text)
+            action.triggered.connect(partial(func, self))
+            menu.addAction(action)
+
+        menu.exec_(QCursor.pos())
+
+    def _contrast_color(self):
+        col = "#ffffff"
+        rgb = self.color.getRgbF()
+        avg = sum(rgb) / 3
+        if avg > 0.4:
+            col = "#000000"
+        return col
+
+
+class ColorList(QWidget):
+    """A color swatch list in a flow layout.
+    The color list has to contain hex-colors (eg. #ffffff) as strings.
+    On click the callback_func will be called and given the clicked widget
+    and optional additional callback_kwargs.
+    The callback_func can get the color by accessing the color attribute of the given widget.
+    """
+    def __init__(self, colors: list[str | list | QColor], callback_func: callable, callback_kwargs: dict=None, padding=0, button_width:str=None):
+        super().__init__()
+        self.colors = self.init_colors(colors)
+        self.callback = callback_func
+        if callback_kwargs is None:
+            callback_kwargs = {}
+        self.callback_kwargs = callback_kwargs
+        self.padding = padding
+        self.button_width = button_width
+        self.color_buttons = []
+        self.marked_button = None
+        self._create_layout()
+
+    def init_colors(self, colors:list[str | list | QColor]):
+        qcolor_list = []
+        for color in colors:
+            if isinstance(color, str) and color.startswith("#"):
+                qcolor_list.append(QColor(color))
+            elif isinstance(color, list) and 3 <= len(color) <= 4:
+                c = QColor()
+                c.setRgbF(*color)
+                qcolor_list.append(c)
+            elif isinstance(color, QColor):
+                qcolor_list.append(color)
+            else:
+                raise ValueError("Parameter colorlist must contain str, list or QColor (#ffffff, [1,1,1], QColor()).")
+        return qcolor_list
+                
+    def _create_layout(self):
+        flow = FlowLayout()
+        for color in self.colors:
+            btn = ColorButton(color, padding=self.padding, menu_actions={"Set as Standard": self.mark_btn})
+            if self.button_width:
+                btn.setMinimumWidth(self.button_width)
+                btn.setMaximumWidth(self.button_width)
+            btn.clicked.connect(partial(self.callback, btn, **self.callback_kwargs))
+            flow.addWidget(btn)
+            self.color_buttons.append(btn)
+        self.setLayout(flow)
+
+    def get_colors(self):
+        return [btn.color for btn in self.color_buttons]
+    
+    def mark_btn(self, button):
+        for btn in self.color_buttons:
+            btn.setText("")
+        button.setText("✓")
+        self.marked_button = button
 
 
 class HeadlineFont(QFont):

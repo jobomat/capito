@@ -73,7 +73,7 @@ class HashRenamer():
 
     def ui(self):
         win_name = "hash_renamer_win"
-        if pc.window(win_name, exists=True):
+        if pc.window(win_name, q=True, exists=True):
             pc.deleteUI(win_name)
 
         with self.template:

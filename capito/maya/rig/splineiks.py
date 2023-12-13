@@ -4,7 +4,7 @@ import pymel.core as pc
 
 from capito.maya.geo.curves import get_curve_length
 from capito.maya.rig.utils import insert_normalized_scale_node
-from capito.maya.rig.joints import create_joint_controls_along_curve, get_twist_axis
+from capito.maya.rig.joints import create_joint_controls_along_curve, get_twist_axis, guess_forward_axis
 from capito.maya.ui.maya_gui import get_selected_channelbox_attributes
 
 
@@ -78,7 +78,7 @@ def create_curve_based_scale_setup(
     ik_handle: pc.nodetypes.IkHandle, name: str = None
 ) -> Tuple[pc.nodetypes.CurveInfo, pc.Attribute]:
     """
-    Sets up the x-scaling of joints that are members of 'ik_handle'
+    Sets up the forward-axis-scaling of joints that are members of 'ik_handle'
     based on the ration of current curve length to original curve length.
     """
     joints = get_joint_list(ik_handle)
@@ -93,8 +93,11 @@ def create_curve_based_scale_setup(
     crv_info.arcLength >> div_node.input1X
     div_node.setAttr("input2X", crv_info.getAttr("arcLength"))
 
+    axis_map = {
+        (1,0,0): "scaleX", (0,1,0): "scaleY", (0,0,1): "scaleZ" 
+    }
     for joint in joints:
-        div_node.outputX >> joint.scaleX
+        div_node.outputX >> joint.attr(axis_map[guess_forward_axis(joint)])
 
     return crv_info, div_node.attr("outputX")
 
@@ -159,17 +162,23 @@ def setup_squash_stretch(
         anim_curve_node, e=True, absolute=True, t=len(joint_list), inAngle=-50
     )
 
+    axes_map = {
+        (1,0,0): ["sx", "sy", "sz"],
+        (0,1,0): ["sy", "sx", "sz"],
+        (0,0,1): ["sz", "sy", "sz"]
+    }
     frame_caches = []
     expression = [f"$scale = {scale_factor_attr.name()};", f"$sqrt = 1 / sqrt($scale);"]
     for i, joint in enumerate(joint_list, 1):
         frame_cache = pc.createNode("frameCache", n=f"{name}_{joint.name()}_fcache")
         frame_cache.varyTime.set(i)
         scale_power_attr >> frame_cache.stream
+        forward_axis = guess_forward_axis(joint)
         expression.append(
-            f"{joint.name()}.sy = pow($sqrt, {frame_cache.name()}.varying);"
+            f"{joint.name()}.{axes_map[forward_axis][1]} = pow($sqrt, {frame_cache.name()}.varying);"
         )
         expression.append(
-            f"{joint.name()}.sz = pow($sqrt, {frame_cache.name()}.varying);"
+            f"{joint.name()}.{axes_map[forward_axis][2]} = pow($sqrt, {frame_cache.name()}.varying);"
         )
         frame_caches.append(frame_cache)
 
@@ -246,8 +255,9 @@ class SplineIKRig:
         stretch_div = self.stretch_div
         if stretch_div:
             pc.delete(stretch_div)
+            axis_map = {(1,0,0): "sx", (0,1,0): "sy", (0,0,1): "sz"}
             for jnt in self.joints:
-                jnt.sx.set(1)
+                jnt.attr(axis_map[guess_forward_axis(jnt)]).set(1)
 
     def add_controllers(self, number_of_controls: int):
         # create the joints and controls
@@ -332,9 +342,11 @@ class SplineIKRig:
         exp = self.expression
         if exp:
             pc.delete(exp)
+            axis_map = {(1,0,0): ("sy","sz"), (0,1,0): ("sx", "sz"), (0,0,1): ("sx", "sy")}
             for jnt in self.joints:
-                jnt.sy.set(1)
-                jnt.sz.set(1)
+                fw_axis = guess_forward_axis(jnt)
+                jnt.attr(axis_map[fw_axis][0]).set(1)
+                jnt.attr(axis_map[fw_axis][1]).set(1)
 
     def add_world_scale(self, attr):
         sel = pc.selected()
