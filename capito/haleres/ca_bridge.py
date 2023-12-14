@@ -137,7 +137,7 @@ class CABridge:
         return folders
 
     def get_current_running_jobs(self):
-        return self.hlrs_command(["get_current_running_jobs()"])[0]
+        return self.hlrs_command(["get_current_running_jobs()"])
 
     def get_free_nodes(self):
         return self.settings.hlrs_node_limit - len(self.get_current_running_jobs())
