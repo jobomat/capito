@@ -136,11 +136,12 @@ class CABridge:
             folders.extend(self.folder_listing(f"{share}/hlrs")["folders"])
         return folders
 
-    def get_current_running_jobs(self):
-        return self.hlrs_command(["get_current_running_jobs()"])
+    def get_current_running_jobs(self) -> list:
+        result = self.hlrs_command(["get_current_running_jobs()"])
+        return result[0]
 
-    def get_free_nodes(self):
-        return self.settings.hlrs_node_limit - len(self.get_current_running_jobs()[0])
+    def get_free_nodes(self) -> int:
+        return self.settings.hlrs_node_limit - len(self.get_current_running_jobs())
 
     def get_pending_jobs(self):
         list_jobs_file = Path(__file__).parent / "sh_list_pending_jobs.template"
