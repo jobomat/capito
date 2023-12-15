@@ -172,6 +172,7 @@ class HLRSBrowser(QMainWindow):
         self.share_buttons_widget.shareClicked.connect(self.on_share_clicked)
         self.location_widget.oneUpClicked.connect(self.on_one_up_clicked)
         self.action_buttons_widget.downloadClicked.connect(self.on_download_clicked)
+        self.action_buttons_widget.deleteClicked.connect(self.on_delete_clicked)
 
     def _create_layout(self):
         vbox = QVBoxLayout()
@@ -191,6 +192,9 @@ class HLRSBrowser(QMainWindow):
             self.current_folder = f"{self.current_folder}/{folder}"
         else:
             self.current_folder = "/".join(self.current_folder.split("/")[:-1])
+        self.list_current_folder()
+
+    def list_current_folder(self):
         self.status_bar.showMessage("Retrieving Folder List...")
         QApplication.processEvents()
         folder_content = self.ca_bridge.folder_listing(self.current_folder)
@@ -200,7 +204,6 @@ class HLRSBrowser(QMainWindow):
         for file in folder_content["files"]:
             self.list_widget.addFileItem(file[0], file[1])
         self.status_bar.showMessage(f'{len(folder_content["folders"])} Folders, {len(folder_content["files"])} Files')
-
         self.location_widget.current_folder_label.setText(self.current_folder)
 
     def on_folder_double_clicked(self, folder_name):
@@ -219,3 +222,14 @@ class HLRSBrowser(QMainWindow):
             print("Nothing selected.")
             return
         self.ca_bridge.rsync(to_download)
+    
+    def on_delete_clicked(self):
+        to_delete = self.list_widget.get_selected_items()
+        if not to_delete:
+            QMessageBox.question(self, 'Info', "Nothing Selected.", QMessageBox.Ok, QMessageBox.Ok)
+            return
+        reply = QMessageBox.question(self, 'Confirm', f"Do you really want to delete {len(to_delete)} files and folders on the remote system?", QMessageBox.Yes | QMessageBox.No, QMessageBox.Yes)
+        if reply != QMessageBox.Yes:
+            return      
+        self.ca_bridge.remove(self.current_folder, to_delete)
+        self.list_current_folder()
