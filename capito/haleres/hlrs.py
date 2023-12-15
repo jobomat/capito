@@ -119,7 +119,7 @@ class HLRS:
     
     def remove(self, path:str, *items:list[str], rf=True):
         full_paths = [f"{self.workspace.path}/{path}/{i}" for i in items]
-        return f"rm{' -rf ' if rf else ' '}{' '.join(full_paths)}"
+        return self.run(f"rm{' -rf ' if rf else ' '}{' '.join(full_paths)}")
     
     def submit_jobs(self, jobs:List[Job]):
         commands = [
