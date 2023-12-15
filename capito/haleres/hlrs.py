@@ -113,8 +113,8 @@ class HLRS:
     
     def folder_listing(self, directory: str):
         d = f"{self.workspace.path}/{directory}"
-        files = f'find {d} -maxdepth 1 -type f -printf "%f*%s\\n" | sort'
-        folders = f'find {d} -maxdepth 1 -type d -not -path "./" -printf "%f\\n" | sort'
+        files = f'find {d} -maxdepth 1 -mindepth 1 -type f -printf "%f*%s\\n" | sort'
+        folders = f'find {d} -maxdepth 1 -mindepth 1 -type d -not -path "./" -printf "%f\\n" | sort'
         return self.run(f'{folders} && {files}')
     
     def submit_jobs(self, jobs:List[Job]):

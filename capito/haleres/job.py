@@ -323,6 +323,14 @@ class Job:
             self.set_status(JobStatus.all_files_pulled, True)
             self.set_status(JobStatus.finished, True)
 
+    def list_missing_images(self):
+        expected_set = set([f.name for f in Path(self.get_folder("images_expected")).glob("*")])
+        rendered_set = set([f.stem for f in Path(self.get_folder("images")).glob("*.exr")])
+        return sorted(list(expected_set.symmetric_difference(rendered_set)))
+    
+    def list_missing_frames(self):
+        return [int(f.split(".")[-1]) for f in self.list_missing_images()]
+
     def get_push_max(self):
         """Percentage... see get_push_progress() down below."""
         return 100
