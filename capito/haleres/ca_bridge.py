@@ -129,6 +129,11 @@ class CABridge:
             else:
                 listing["folders"].append(item)
         return listing
+    
+    def remove(self, path:str, items:list[str], rf=True):
+        items = [f"'{i}'" for i in items]
+        cmd = f"remove('{path}', {','.join(items)}, rf={'True' if rf else 'False'})"
+        return self.hlrs_command([cmd])
 
     def list_job_folders(self):
         folders = []
