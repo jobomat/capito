@@ -117,6 +117,10 @@ class HLRS:
         folders = f'find {d} -maxdepth 1 -mindepth 1 -type d -not -path "./" -printf "%f\\n" | sort'
         return self.run(f'{folders} && {files}')
     
+    def remove(self, dir: str, items:list[str]):
+        full_path_items = [f"{dir}/{i}" for i in items]
+        return f"rm -rf {' '.join(full_path_items)}"
+    
     def submit_jobs(self, jobs:List[Job]):
         commands = [
             f"{self.workspace.path}/{job.share}/hlrs/{job.name}/submit.sh {job.limit}"
