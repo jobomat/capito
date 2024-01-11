@@ -187,5 +187,5 @@ def write_syncfile(job: Job):
             filelist.append(files[0])
         elif len(files) > 1:
             filelist.extend(files)
-    filelist = list(set([str(f) for f in filelist]))
+    filelist = list(set([str(f) for f in filelist if str(f) not in (".", "/")]))
     job.linked_files = filelist

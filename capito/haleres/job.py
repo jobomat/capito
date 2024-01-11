@@ -134,7 +134,7 @@ class Job:
         if not linked_files_file.exists():
             linked_files_file.touch()
             return []
-        return linked_files_file.read_text().strip().split("\n")
+        return [l for l in linked_files_file.read_text().strip().split("\n")]
     
     @linked_files.setter
     def linked_files(self, file_list:List[str]):
