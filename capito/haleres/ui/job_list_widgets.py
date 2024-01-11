@@ -50,7 +50,7 @@ class CreateJobWin(QMainWindow):
         hbox = QHBoxLayout()
         hbox.addWidget(QLabel("Share: "))
 
-        shares = shares = [share for share, letter in settings.share_map.items() if (Path(letter)/"hlrs").exists()]
+        shares = [share for share, letter in settings.share_map.items() if (Path(letter)/"hlrs").exists()]
         for share in shares:
             btn = QRadioButton(share)
             btn.setChecked(share==self.share)
