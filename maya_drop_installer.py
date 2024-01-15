@@ -9,7 +9,7 @@ try:
 except ImportError:
     from subprocess import check_call
     mayapy = Path(sys.executable).parent / "mayapy.exe"
-    result = check_call([mayapy, "-m", "pip", "install", "pymel"])
+    result = check_call([mayapy, "-m", "pip", "install", '"pymel==1.4"'])
     print(result)
     import pymel.core as pc
     
