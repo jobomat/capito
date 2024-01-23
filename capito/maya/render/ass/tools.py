@@ -140,9 +140,10 @@ def get_standin_links(standin) -> List[str]:
     StandIns containing ASS files  will be traversed recursively."""
     files = []
     file = standin.dso.get()
-    files.append(Path(file))
-    if file.endswith(".ass"):
-        files.extend(get_links_in_ass(file))
+    if file:
+        files.append(Path(file))
+        if file.endswith(".ass"):
+            files.extend(get_links_in_ass(file))
     return files
 
 
@@ -156,9 +157,10 @@ def create_link_map() -> dict:
     for abc in pc.ls(type="AlembicNode"):
         link_map[abc] = [Path(abc.abc_File.get())]
     for standin in  pc.ls(type="aiStandIn"):
-        link_map[standin] = get_standin_links(standin)
+        standin_links = get_standin_links(standin)
+        if standin_links:
+            link_map[standin] = standin_links
     return link_map
-
 
 
 def check_filelist(dir_map:dict) -> Tuple[List[str], List[str]]:
