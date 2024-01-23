@@ -12,7 +12,7 @@ from capito.core.ui.decorators import bind_to_host
 from capito.core.ui.widgets import QHLine
 from capito.haleres.settings import Settings
 from capito.haleres.job import Job
-from capito.haleres.utils import is_valid_frame_list, create_frame_tuple_list
+from capito.haleres.utils import is_valid_frame_list, create_frame_tuple_list, create_flat_frame_list
 from capito.haleres.ui.job_list_widgets import ChooseJobWin
 from capito.haleres.renderer import RendererProvider
 from capito.maya.render.ass.tools import write_syncfile, parallel_ass_export
@@ -117,6 +117,7 @@ class AssExporter(QMainWindow):
         super().__init__(parent)
         self.host = host
         self.settings = settings
+        self.update_status = True
         self.job:Job = None
         self.current_jobsize = 2
         self.current_walltime = 20
@@ -172,6 +173,8 @@ class AssExporter(QMainWindow):
         icon = self.style().standardIcon(QStyle.SP_DirIcon)
         self.choose_folder_button.setIcon(icon)
 
+        self.parallel_export_checkbox = QCheckBox()
+
         self.renderer_combo = QComboBox()
         for renderer in [r for r in self.renderer_provider.renderers if r.startswith("Arnold")]:
             self.renderer_combo.addItem(renderer)
@@ -213,6 +216,13 @@ class AssExporter(QMainWindow):
         cache_dir_hbox.addWidget(self.cache_dir_lineedit)
         cache_dir_hbox.addWidget(self.choose_folder_button)
         vbox.addLayout(cache_dir_hbox)
+        
+        parallel_export_hbox = QHBoxLayout()
+        parallel_export_label = QLabel("Parallel Export:")
+        parallel_export_label.setMinimumWidth(FIRST_COL_WIDTH)
+        parallel_export_hbox.addWidget(parallel_export_label)
+        parallel_export_hbox.addWidget(self.parallel_export_checkbox, stretch=1)
+        vbox.addLayout(parallel_export_hbox)
 
         vbox.addWidget(QHLine())
         
@@ -333,7 +343,8 @@ class AssExporter(QMainWindow):
         if not self.renderlayer_widget.get_selected_renderlayers():
             self.statusBar().showMessage("Please select at least one render layer.")
             return False
-        self.statusBar().showMessage("Ready for export!")
+        if self.update_status:
+            self.statusBar().showMessage("Ready for export!")
         return True
 
     def _export(self):
@@ -352,7 +363,29 @@ class AssExporter(QMainWindow):
         print("Saved renderer config file.")
         self.job.write_pathmap_json()
         print("Created pathmap.json.")
-        parallel_ass_export(pc.sceneName(), self.job, renderlayers, cache_dir)
+        if self.parallel_export_checkbox.isChecked():
+            self.statusBar().showMessage("Subprocess export... See Script Editor.")
+            parallel_ass_export(pc.sceneName(), self.job, renderlayers, cache_dir)
+            return
+        self._single_core_export(renderlayers, cache_dir)
+
+    def _single_core_export(self, renderlayers, cache_dir):
+        self.update_status = False
+        flat_frame_list = create_flat_frame_list(self.framelist_textedit.text())
+        num_layers = len(renderlayers)
+        for i, rl in enumerate(renderlayers, start=1):
+            rl.setCurrent()
+            self.statusBar().showMessage(f"Export Layer {i} of {num_layers} ({rl.name()})")
+            print(f"Export Layer {i} of {num_layers} ({rl.name()})")
+            print(f"Ass files will be written to: {self.job.get_folder('scenes')}")
+            pc.other.arnoldExportAss(
+                f=f"{self.job.get_folder('scenes')}/{self.job.name}_<RenderLayer>.ass",
+                startFrame=flat_frame_list[0], endFrame=flat_frame_list[-1],
+                preserveReferences=True
+            )
+        self.job.write_job_files()
+        self.job.set_ready_to_push(True)
+        self.statusBar().showMessage("Export completed!")
 
     def closeEvent(self, event):
         for job in self.script_jobs:

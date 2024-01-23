@@ -54,7 +54,7 @@ class Job:
     
     def __init__(self, share:str, name:str, haleres_settings:Settings):
         if platform.system() == "Windows":
-            self.base_path = Path(haleres_settings.share_to_letter(share)) / "hlrs"
+            self.base_path = Path(f"{haleres_settings.share_to_letter(share)}/") / "hlrs"
         else:
             self.base_path = Path(haleres_settings.mount_point) / share / "hlrs"
         self.share = share
