@@ -18,6 +18,7 @@ from pathlib import Path
 import sys
 import subprocess
 from datetime import datetime
+import time
 
 # First get the parameters:
 capito_path = sys.argv[1]
@@ -58,6 +59,7 @@ if ipc_folder_list:
     # Call rsync with pullfile - intentionally blocking!
     log_list.append(f"Pulling {len(ipc_folder_list)} ipc-folder(s). Pull-File: {str(pullfile)}")
     if pullfile.exists():
+        time.sleep(1)
         subprocess.check_output([
             "rsync", 
             "-ar",
