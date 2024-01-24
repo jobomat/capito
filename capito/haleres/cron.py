@@ -60,15 +60,18 @@ if ipc_folder_list:
     log_list.append(f"Pulling {len(ipc_folder_list)} ipc-folder(s). Pull-File: {str(pullfile)}")
     if pullfile.exists():
         time.sleep(1)
-        subprocess.check_output([
-            "rsync", 
-            "-ar",
-            "--ignore-missing-args",
-            f"--files-from={str(pullfile)}",
-            f"{hlrs_server}:{haleres_settings.workspace_path}/",
-            f"{haleres_settings.mount_point}"
-        ])
-        pullfile.unlink()
+        try:
+            subprocess.check_output([
+                "rsync", 
+                "-ar",
+                "--ignore-missing-args",
+                f"--files-from={str(pullfile)}",
+                f"{hlrs_server}:{haleres_settings.workspace_path}/",
+                f"{haleres_settings.mount_point}"
+            ])
+            pullfile.unlink()
+        except:
+            pass
 
 # PULL IMAGES
 # Create pull list
