@@ -76,7 +76,7 @@ if unfinished_jobs:
     something_happened = True
     log_list.append("Pulling images and logs.")
     for job in unfinished_jobs:
-        if not job.is_pulling():
+        if not job.is_pulling() and job.is_ready_to_render():
             job.write_pull_file()
             # Call rsync for this job
             log_list.append(f"    {job.share}.{job.name}")
