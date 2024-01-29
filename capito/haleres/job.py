@@ -484,6 +484,7 @@ class JobProvider:
             num_jobs = sum(job.remaining_jobs != 0 for job in jobs_with_pending_jobs)
             even_share = int(free_nodes / num_jobs)
             for job in jobs_with_pending_jobs:
+                print(job)
                 chunk = min(job.remaining_jobs, even_share, free_nodes)
                 job.limit += chunk
                 job.remaining_jobs -= chunk

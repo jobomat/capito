@@ -70,9 +70,10 @@ if ipc_folder_list:
                 f"{hlrs_server}:{haleres_settings.workspace_path}/",
                 f"{haleres_settings.mount_point}"
             ])
-            print("PULLING NACH check_output")
+            print(f"Pullfile: {str(pullfile)}")
+            time.sleep(1)
             pullfile.unlink()
-            print("PULLING NACH unlink")
+            print("File unlinked")
         except:
             pass
 
