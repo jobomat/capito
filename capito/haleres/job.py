@@ -486,16 +486,19 @@ class JobProvider:
         while free_nodes > 0 and num_pending_jobs > 0:
             num_jobs = sum(job.remaining_jobs != 0 for job in jobs_with_pending_jobs)
             even_share = int(free_nodes / num_jobs)
-            for job in jobs_with_pending_jobs:
-                chunk = min(job.remaining_jobs, even_share, free_nodes)
-                chunk = chunk if chunk != 0 else 1
-                job.limit += chunk
-                job.remaining_jobs -= chunk
-                free_nodes -= chunk
-                num_pending_jobs -= chunk
-
+            print(even_share)
+            
+            # for job in jobs_with_pending_jobs:
+            #     chunk = min(job.remaining_jobs, even_share, free_nodes)
+            #     chunk = chunk if chunk != 0 else 1
+            #     job.limit += chunk
+            #     job.remaining_jobs -= chunk
+            #     free_nodes -= chunk
+            #     num_pending_jobs -= chunk
+        return []
         return [job for job in jobs_with_pending_jobs if job.limit > 0]
-    
+
+
     def get_jobs_to_push(self):
         return [
             job for job in self.jobs
