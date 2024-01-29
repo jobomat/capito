@@ -61,6 +61,7 @@ if ipc_folder_list:
     if pullfile.exists():
         time.sleep(1)
         try:
+            print("PULLING with subprocess.check_output")
             subprocess.check_output([
                 "rsync", 
                 "-ar",
@@ -69,7 +70,9 @@ if ipc_folder_list:
                 f"{hlrs_server}:{haleres_settings.workspace_path}/",
                 f"{haleres_settings.mount_point}"
             ])
+            print("PULLING NACH check_output")
             pullfile.unlink()
+            print("PULLING NACH unlink")
         except:
             pass
 
@@ -96,7 +99,7 @@ submit_list = jp.calculate_submit_limits(
 )
 if submit_list:
     something_happened = True
-    log_list.append(f"Submitting jobs ({len(submit_list)})")
+    log_list.append(f"Submitting jobs ({len(submit_list)} in total)")
     joblist = ",".join([f"{job.share}.{job.name}" for job in submit_list])
     log_list.append(f"    {joblist}")
     hlrs.submit_jobs(submit_list)

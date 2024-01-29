@@ -13,7 +13,8 @@ RSYNC_PIDS=$(ps -eF --no-headers |
     awk '{ print $2 }')
     
 # kill all the found rsyncs for this job:
+# kill -9 $PID || continue -> forces immediate shutdown...
 for PID in $RSYNC_PIDS; do
     echo "Killing rsync with pid ${PID} ($SHARE, $JOBNAME, $ADDITIONAL_PATTERN)"
-    kill -9 $PID || continue
+    kill $PID || continue
 done
