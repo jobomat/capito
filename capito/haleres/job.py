@@ -476,15 +476,16 @@ class JobProvider:
         ]
         for job in jobs_with_pending_jobs:
             job.remaining_jobs = job.num_unsubmitted_jobs()
+            print(f"{job.name}: {job.remaining_jobs} remaining jobs.")
             job.limit = 0
         num_pending_jobs = sum([job.remaining_jobs for job in jobs_with_pending_jobs])
         # print(f"{num_pending_jobs=}")
-
+        print(f"jobs_with_pending_jobs: {[j.name for j in jobs_with_pending_jobs]}")
+        return []
         while free_nodes > 0 and num_pending_jobs > 0:
             num_jobs = sum(job.remaining_jobs != 0 for job in jobs_with_pending_jobs)
             even_share = int(free_nodes / num_jobs)
             for job in jobs_with_pending_jobs:
-                print(job)
                 chunk = min(job.remaining_jobs, even_share, free_nodes)
                 job.limit += chunk
                 job.remaining_jobs -= chunk
