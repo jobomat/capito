@@ -61,7 +61,7 @@ if ipc_folder_list:
     if pullfile.exists():
         time.sleep(1)
         try:
-            print("PULLING with subprocess.check_output")
+            print(f"Pulling IPC with Pullfile {str(pullfile)}")
             subprocess.check_output([
                 "rsync", 
                 "-ar",
@@ -70,10 +70,8 @@ if ipc_folder_list:
                 f"{hlrs_server}:{haleres_settings.workspace_path}/",
                 f"{haleres_settings.mount_point}"
             ])
-            print(f"Pullfile: {str(pullfile)}")
             time.sleep(1)
             pullfile.unlink()
-            print("File unlinked")
         except:
             pass
 
@@ -86,6 +84,7 @@ if unfinished_jobs:
         if not job.is_pulling() and job.is_ready_to_render():
             job.write_pull_file()
             # Call rsync for this job
+            print(f"Pulling images & logs for {job.share}.{job.name}.")
             log_list.append(f"    {job.share}.{job.name}")
             subprocess.Popen([
                 f"{capito_path}/capito/haleres/ca_shell/pull.sh", 
