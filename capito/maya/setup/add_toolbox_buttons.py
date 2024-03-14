@@ -36,10 +36,11 @@ def test_runner_factory():
 
 def toolbox_button_pressed():
     """Specify the left-click-action for the toolbox button."""
-    if CONFIG.alias.get("capito_project"):
-        AssetBrowser()
-        return
-    SetupUI()
+    print("Capito Pipeline inactive.")
+    # if CONFIG.alias.get("capito_project"):
+    #     AssetBrowser()
+    #     return
+    # SetupUI()
 
 
 # btn=maya_gui.add_toolbox_button(
