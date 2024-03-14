@@ -1,6 +1,25 @@
 from maya.api import OpenMaya as om
 from random import uniform
 import pymel.core as pc
+from collections import Counter
+
+
+def pole_counter(shape:pc.nodetypes.Mesh):
+    """Returns a Counter object listing how many verts with a certain number of
+    attached edges where found on the given shape. (eg: (3: 12, 4: 213, 5: 14, 6:2))"""
+    edge_count = []
+    for vert in shape.verts:
+        edge_count.append(vert.numConnectedEdges())
+    return Counter(edge_count)
+
+
+def ngon_counter(shape:pc.nodetypes.Mesh):
+    """Returns a Counter object listing how many fACES with a certain number of
+    vertices where found on the given shape. (eg: (3: 12, 4: 213, 5: 14, 6:2))"""
+    vert_count = []
+    for face in shape.faces:
+        vert_count.append(face.numVertices())
+    return Counter(vert_count)
 
 
 def get_unused_shapes(transform):

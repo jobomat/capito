@@ -6,7 +6,10 @@ from pathlib import Path
 from typing import Dict, List, Optional
 
 import capito.core.event as capito_event
-import pytz
+try:
+    import pytz
+except ImportError:
+    print("Python module pytz not installed. Assets may have wrong timezone associated.")
 from capito.conf.config import CONFIG
 from capito.core.helpers import time_from_ntp
 from capito.core.user.models import User
@@ -87,9 +90,13 @@ class Version:
 
     def get_date(self, pattern: str):
         """Human readable date with specifiable string pattern."""
-        return datetime.fromtimestamp(
-            self.timestamp, tz=pytz.timezone(CONFIG.TIMEZONE)
-        ).strftime(pattern)
+        try:
+            dt = datetime.fromtimestamp(
+                self.timestamp, tz=pytz.timezone(CONFIG.TIMEZONE)
+            ).strftime(pattern)
+        except NameError:
+            dt = datetime.fromtimestamp(self.timestamp).strftime(pattern)
+        return dt
 
     @property
     def absolute_path(self):
