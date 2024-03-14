@@ -1,8 +1,8 @@
 """Add a Maya toolbox button with right-click-menu."""
 import pymel.core as pc
 from capito.conf.config import CONFIG
-from capito.conf.setup import SetupUI
-from capito.core.asset.browser import AssetBrowser
+# from capito.conf.setup import SetupUI
+# from capito.core.asset.browser import AssetBrowser
 from capito.maya.ui import maya_gui
 
 
