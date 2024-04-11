@@ -4,6 +4,18 @@ import maya.OpenMaya as om
 import pymel.core as pc
 
 
+def get_joint_list(ik_handle: pc.nodetypes.IkHandle):
+    start_joint = ik_handle.getStartJoint()
+    current_joint = ik_handle.getEndEffector().getParent()
+    joint_list = []
+    while True:
+        joint_list.append(current_joint)
+        if current_joint == start_joint:
+            break
+        current_joint = current_joint.getParent()
+    return list(reversed(joint_list))
+
+
 def place_at_point(
     child: pc.nodetypes.Transform, parent: pc.nodetypes.Transform, orient: bool = False
 ) -> None:

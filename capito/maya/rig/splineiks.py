@@ -6,18 +6,7 @@ from capito.maya.geo.curves import get_curve_length
 from capito.maya.rig.utils import insert_normalized_scale_node
 from capito.maya.rig.joints import create_joint_controls_along_curve, get_twist_axis, guess_forward_axis
 from capito.maya.ui.maya_gui import get_selected_channelbox_attributes
-
-
-def get_joint_list(ik_handle: pc.nodetypes.IkHandle):
-    start_joint = ik_handle.getStartJoint()
-    current_joint = ik_handle.getEndEffector().getParent()
-    joint_list = []
-    while True:
-        joint_list.append(current_joint)
-        if current_joint == start_joint:
-            break
-        current_joint = current_joint.getParent()
-    return list(reversed(joint_list))
+from capito.maya.rig.utils import get_joint_list
 
 
 def create_spline_ik(

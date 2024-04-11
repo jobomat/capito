@@ -1,5 +1,5 @@
 {
-    "executable": "Arnold_7.2.3.3/bin/kick",
+    "executable": "Arnold_7.2.5.2/bin/kick",
     "header_template": "#!/bin/bash\n#PBS -N %(jobfile_name)s\n#PBS -l select=1:node_type=rome,walltime=0:%(walltime_minutes)s:00",
     "per_job_template": "%(header)s\n\n%(env_vars)s\n\n%(per_frame)s",
     "per_frame_template": "touch $JOB_PATH/ipc/images_rendering/%(jobfile_name)s.exr\n\n%(render_command)s\n\ntouch $JOB_PATH/ipc/images_rendered/%(jobfile_name)s.exr\n",

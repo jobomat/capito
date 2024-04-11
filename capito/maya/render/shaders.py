@@ -10,6 +10,18 @@ import pymel.core as pc
 from capito.maya.node.tags import get_tag_dict, get_tagged_dag_nodes
 
 
+def a_prototype_function_for_help_with_substance_workflows():
+    # for each selected maya set create a aiStdSurface and assign it to each object in the set.
+    maya_sets = pc.selected()
+
+    for maya_set in maya_sets:
+        shader = pc.shadingNode("aiStandardSurface", asShader=True, n=f"{maya_set.name().replace('_set', '_ai')}")
+        sg = pc.sets(renderable=True, noSurfaceShader=True, empty=True, name=f"{maya_set.name().replace('_set', '_SG')}")
+        shader.outColor >> sg.surfaceShader
+        pc.sets(sg, e=True, forceElement=pc.select(maya_set, r=True, add=True))
+
+
+
 def create_shading_manager_node(name: str, asset_tag: str = "") -> pc.nodetypes.Unknown:
     """Create a ShadingManagerNode (smn)"""
     smn = pc.createNode("unknown", n=f"{name}_smn")

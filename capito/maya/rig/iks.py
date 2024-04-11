@@ -9,6 +9,7 @@ from capito.maya.rig.utils import (
     locator_at_point,
     insert_normalized_scale_node,
 )
+from capito.maya.rig.utils import get_joint_list
 from capito.maya.rig.joints import single_joint_ctrl
 from capito.maya.util.hirarchies import add_group
 
@@ -57,7 +58,7 @@ def ik_stretch(
     )
     :raises: None
     """
-    joints = ik_handle.getJointList()
+    joints = get_joint_list(ik_handle)
     joints.append(joints[-1].getChildren(type="joint")[0])
 
     name = name or "{}_{}".format(joints[0].name(), joints[-1].name())
