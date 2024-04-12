@@ -181,7 +181,7 @@ class Job:
         per_job_string = ""
         replacement_dict = self._get_replacement_dict()
         scene_files = self.scene_files
-        framelist = f"1-{len(scene_files)}" if self.renderer.single_frame_renderer else self.framelist
+        framelist = self.framelist
         tuple_list = create_frame_tuple_list(framelist, self.jobsize)
 
         i = 0
@@ -319,6 +319,10 @@ class Job:
     def write_pull_file(self):
         pullfile = self.get_folder("rsync") / "files_to_pull.txt"
         pullfile.write_text("\n".join(self.get_files_to_pull()))
+
+    def resubmit_missing_frames(self):
+        self._purge_folder("jobs")
+
 
     def are_files_to_pull(self):
         num_local_images = len(list(self.get_folder("images").glob("*")))

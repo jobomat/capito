@@ -64,7 +64,7 @@ def create_flat_frame_list(frame_text:str):
     return sorted(list(set(frame_range)))
 
 
-def create_frame_tuple_list(frame_text: str, job_size: int) -> List[Tuple[int,int]]:
+def create_frame_tuple_list(frame_text: str, job_size: int, must_be_consecutive:bool=True) -> List[Tuple[int,int]]:
     """Takes a text which shows a list of frames
     and returns a list of start-end tuples according to job_size.
     frame_text is a string where frames:
@@ -85,7 +85,10 @@ def create_frame_tuple_list(frame_text: str, job_size: int) -> List[Tuple[int,in
     start = frame_range[0]
     last = start
     for f in frame_range:
-        if f > last + 1 or job_cycler >= job_size:
+        is_non_consecutive_frame = False
+        if must_be_consecutive:
+            is_non_consecutive_frame = f > last + 1
+        if  is_non_consecutive_frame or job_cycler >= job_size:
             result.append((start, last))
             start = f
             job_cycler = 0
