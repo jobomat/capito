@@ -23,6 +23,7 @@ class JobStatus(Enum):
     paused = "PAUSED"
     all_images_rendered = "ALL_IMAGES_RENDERED"
     finished = "FINISHED"
+    aborted = "ABORTED"
 
 
 class Job:
@@ -280,6 +281,12 @@ class Job:
     def set_paused(self, paused:bool):
         self.set_status(JobStatus.paused, paused)
     
+    def set_finished(self, finished:bool):
+        self.set_status(JobStatus.finished, finished)
+
+    def set_aborted(self, aborted:bool):
+        self.set_status(JobStatus.aborted, aborted)
+    
     def set_ready_to_push(self, ready:bool):
         self.set_status(JobStatus.ready_to_push, ready)
     
@@ -389,8 +396,6 @@ class Job:
 
     def num_pulled(self):
         """Number of already pulled images."""
-        if self.get_status(JobStatus.finished):
-            return self.num_expected_pulls()
         return sum(1 for _ in self.get_folder('images').glob("*"))
 
     def _purge_folder(self, folder:str):

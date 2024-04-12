@@ -202,6 +202,9 @@ class JobList(IterableListWidget):
         pause_action = QAction("Pause/Unpause")
         pause_action.triggered.connect(partial(self._toggle_pause))
         menu.addAction(pause_action)
+        abort_job = QAction("Abort Job")
+        abort_job.triggered.connect(partial(self._abort_job))
+        menu.addAction(abort_job)
         menu.exec_(QCursor.pos())
     
     def _abort_push(self):
@@ -214,6 +217,11 @@ class JobList(IterableListWidget):
         widget.job.set_paused(current_state)
         widget.update_progressbars(not current_state)
         self.parent().pause_triggered.emit(widget.job)
+
+    def _abort_job(self):
+        widget = self.selectedItems()[0].widget
+        widget.job.set_aborted(True)
+        widget.job.set_finished(True)
 
     def filter(self, share:str, hide_finished:bool):
         for row in self.iterAllItems():
