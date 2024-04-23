@@ -81,14 +81,22 @@ class LogDisplayWidget(QWidget):
         SIGNALS.log_file_selected.connect(self._load_text)
         
     def _create_widgets(self):
+        self.search_field = QLineEdit()
         self.text_field = QTextEdit()
     
     def _connect_widgets(self):
-        pass
+        self.search_field.textChanged.connect(self.do_find_highlight)
+
+    def test(self, pattern):
+        print(pattern)
 
     def _create_layout(self):
         vbox = QVBoxLayout()
-        vbox.addWidget(self.text_field)
+        hbox = QHBoxLayout()
+        hbox.addWidget(QLabel("Search: "))
+        hbox.addWidget(self.search_field)
+        vbox.addLayout(hbox)
+        vbox.addWidget(self.text_field, stretch=1)
         self.setLayout(vbox)
 
     def _load_text(self, file:Path):
@@ -98,6 +106,33 @@ class LogDisplayWidget(QWidget):
 
         self.text_field.setText(log_text)
 
+    def do_find_highlight(self, pattern):
+        cursor = self.text_field.textCursor()
+        cursor.select(QTextCursor.Document)
+        cursor.setCharFormat(QTextCharFormat())
+        cursor.clearSelection()
+
+        if len(pattern) < 2:
+            return
+        
+        # Setup the desired format for matches
+        format = QTextCharFormat()
+        format.setBackground(QBrush(QColor("red")))
+        
+        # Setup the regex engine
+        re = QRegularExpression(pattern)
+        i = re.globalMatch(self.text_field.toPlainText()) # QRegularExpressionMatchIterator
+
+        # iterate through all the matches and highlight
+        while i.hasNext():
+            match = i.next() #QRegularExpressionMatch
+
+            # Select the matched text and apply the desired format
+            cursor.setPosition(match.capturedStart(), QTextCursor.MoveAnchor)
+            cursor.setPosition(match.capturedEnd(), QTextCursor.KeepAnchor)
+            cursor.mergeCharFormat(format)
+
+        self.text_field.setTextCursor(cursor)
 
 
 class JobLogsWidget(QWidget):
