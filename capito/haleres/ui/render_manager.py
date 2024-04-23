@@ -39,7 +39,7 @@ class RenderManager(QMainWindow):
         super().__init__(parent)
         self.setAttribute(Qt.WA_DeleteOnClose)
         self.setWindowTitle("HLRS Render Manager")
-        self.setMinimumSize(1000, 600)
+        self.setMinimumSize(1100, 600)
         
         self.settings = settings
         self.job_provider = JobProvider(settings)

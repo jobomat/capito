@@ -24,18 +24,20 @@ JOBLIST_STYLESHEET = '''
         margin: 0 px;
     }
     #PushProgressBar::chunk {
-        background-color: rgb(255, 152, 51);
+        background-color: #194e85;
     }
     #SubmitProgressBar::chunk {
-        background-color: rgb(40, 170, 0);
+        background-color: #1f62a7;
     }
     #RenderProgressBar::chunk {
-        background-color: rgb(0, 127, 255);
+        background-color: #236fbd;
     }
     #PullProgressBar::chunk {
-        background-color: rgb(204, 0, 204);
+        background-color: #4686c7;
     }
 '''
+
+"""#ca7828; #4f8618; #236fbd; #971f97;"""
 
 @bind_to_host
 class CreateJobWin(QMainWindow):
@@ -90,6 +92,10 @@ class JobListHeaderWidget(QWidget):
         hbox.setSpacing(1)
         hbox.addWidget(QLabel("Job name"), stretch=1)
         hbox.addWidget(QLabel("Share  "))
+        status = QLabel("Status ")
+        status.setFixedWidth(70)
+        status.setAlignment(Qt.AlignCenter)
+        hbox.addWidget(status)
         for label in ["Push", "Submit", "Render", "Pull"]:
             label = QLabel(label)
             label.setFixedWidth(50)
@@ -117,8 +123,15 @@ class JobListRowWidget(QWidget):
         self.pull_progressbar.setFormat("...")
         self.pull_progressbar.setFixedWidth(50)
 
+        stat, col = job.get_status_string_and_color()
+        self.status = QLabel(stat)
+        self.status.setStyleSheet(f"QLabel {{ background-color : #{col}; }}")
+        self.status.setFixedWidth(70)
+        self.status.setAlignment(Qt.AlignCenter)
+
         hbox.addWidget(QLabel(f"{job.name}"), stretch=1)
         hbox.addWidget(QLabel(f"{job.share}  "))
+        hbox.addWidget(self.status)
         hbox.addWidget(self.push_progressbar)
         hbox.addWidget(self.submit_progressbar)
         hbox.addWidget(self.render_progressbar)
@@ -166,6 +179,10 @@ class JobListRowWidget(QWidget):
         self.render_progressbar.setValue(self.job.num_rendered())
         self.pull_progressbar.setValue(self.job.num_pulled())
 
+        stat, col = self.job.get_status_string_and_color()
+        self.status.setText(stat)
+        self.status.setStyleSheet(f"QLabel {{ background-color : #{col}; }}")
+
 
 class JobList(IterableListWidget):
     def __init__(self):
@@ -177,10 +194,11 @@ class JobList(IterableListWidget):
         
         self.itemSelectionChanged.connect(self._job_selected)
 
-    def add_job(self, job):
+    def add_job(self, job, selected:bool = False):
         job_widget = JobListRowWidget(job)
         job_widget.force_update()
         item = RichListItem(job_widget, self)
+        item.setSelected(selected)
         self.addItem(item)
 
     def update_progress(self):
@@ -192,7 +210,7 @@ class JobList(IterableListWidget):
             job = self.selectedItems()[0].widget.job
             SIGNALS.job_selected.emit(job)
         except:
-            pass
+            SIGNALS.job_selected.emit(None)
         
     def _context_menu(self, qpoint):
         menu = QMenu(self)
@@ -231,6 +249,11 @@ class JobList(IterableListWidget):
                 continue
             if hide_finished and row.widget.job.is_finished():
                 row.setHidden(True)
+
+    def mousePressEvent(self, event):
+        super().mousePressEvent(event)
+        if not self.indexAt(event.pos()).isValid():
+            self.clearSelection()
 
 
 class JobFilterWidget(QWidget):
@@ -304,12 +327,20 @@ class JobListWidget(QWidget):
             self.rebuild_joblist()
     
     def rebuild_joblist(self):
+        selected_job = None
+        selected_items = self.job_list.selectedItems()
+        if selected_items:
+            selected_job = selected_items[0].widget.job
         self.job_list.clear()
         for job in self.job_provider.jobs:
-            self.add_job(job)
+            selected = False
+            if selected_job is not None:
+                selected = job == selected_job
+            self.add_job(job, selected)
 
-    def add_job(self, job):
-        self.job_list.add_job(job)
+
+    def add_job(self, job, selected=False):
+        self.job_list.add_job(job, selected)
         self.filters.emit_filter_changed()
 
 

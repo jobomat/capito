@@ -45,6 +45,9 @@ class JobScenefilesWidget(QWidget):
 
     def load_job(self, job:Job):
         self.job = job
+        if self.job is None:
+            self.scenefile_list.clear()
+            return
         self._reload_list()
 
     def _reload_list(self):
@@ -112,6 +115,9 @@ class LinkedFilesWidget(QWidget):
 
     def load_job(self, job:Job):
         self.job = job
+        if self.job is None:
+            self.linkedfile_list.clear()
+            return
         self._reload_list()
 
     def _reload_list(self):

@@ -240,7 +240,7 @@ class Job:
             json.dump(pathmap, pmf)
 
     def get_status(self, status:JobStatus) -> bool:
-        """Returns True or False for the requestet JobStatus.
+        """Returns True or False for the requested JobStatus.
         This is determined by the existens of the status file in ipc/status folder."""
         return self._status_file(status).exists()
     
@@ -252,6 +252,23 @@ class Job:
         else:
             with contextlib.suppress(FileNotFoundError):
                 self._status_file(status).unlink()
+
+    def get_status_string_and_color(self):
+        status, color = "Unknown", "333333"
+        if self.get_status(JobStatus.ready_to_push):
+            status, color = "Pending", "224466"
+        if self.get_status(JobStatus.pushing):
+            status, color = "Pushing", "ca7828"
+        if self.get_status(JobStatus.ready_to_render):
+            status, color = "Running", "236fbd"
+        if self.get_status(JobStatus.paused):
+            status, color = "Paused", "664422"
+        if self.get_status(JobStatus.finished):
+            status, color = "Finished", "4f8618"
+        if self.get_status(JobStatus.aborted):
+            status, color = "Aborted", "861b18"
+        
+        return status, color
 
     def is_active(self):
         inactive_states = (
@@ -322,7 +339,6 @@ class Job:
 
     def resubmit_missing_frames(self):
         self._purge_folder("jobs")
-
 
     def are_files_to_pull(self):
         num_local_images = len(list(self.get_folder("images").glob("*")))

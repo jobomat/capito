@@ -62,11 +62,17 @@ class JobSettingsWidget(QWidget):
 
     def load_job(self, job:Job):
         self.job = job
+        if self.job is None:
+            self._fill_widgets("","","")
+            return
+        self._fill_widgets(job.framelist, job.walltime_minutes, job.jobsize)
+    
+    def _fill_widgets(self, framelist, walltime, jobsize):
         blocker = QSignalBlocker(self.framelist_widget)
-        self.framelist_widget.setText(job.framelist)
+        self.framelist_widget.setText(framelist)
         blocker.unblock()
-        self.walltime_widget.setText(str(job.walltime_minutes))
-        self.jobsize_widget.setText(str(job.jobsize))
+        self.walltime_widget.setText(str(walltime))
+        self.jobsize_widget.setText(str(jobsize))
 
 
 
@@ -101,9 +107,9 @@ class JobAndRendererSettingsWidget(QWidget):
     
     def load_job(self, job:Job):
         self.job = job
-        self.renderer_settings_widget.clear_layout()
         self.renderer_combo.setCurrentText("")
-        if job.renderer:
+        self.renderer_settings_widget.clear_layout()
+        if job is not None and job.renderer:
             self.renderer_settings_widget.load_flags(job.renderer.get_editable_flags())
             self.renderer_combo.setCurrentText(job.renderer.name)
 
@@ -155,6 +161,9 @@ class SettingsWidget(QWidget):
 
     def load_job(self, job:Job):
         self.job = job
+        if self.job is None:
+            self.submit_job_btn.setEnabled(False)
+            return
         self.submit_job_btn.setEnabled(not job.is_ready_to_push())
             
     def _create_widgets(self):
