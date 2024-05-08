@@ -39,6 +39,30 @@ JOBLIST_STYLESHEET = '''
 
 """#ca7828; #4f8618; #236fbd; #971f97;"""
 
+
+class FramelistShower(QDialog):
+    def __init__(self, share, job_name, framelist):
+        super().__init__()
+
+        self.setWindowTitle("Missing Frames")
+
+        QBtn = QDialogButtonBox.Ok
+
+        self.buttonBox = QDialogButtonBox(QBtn)
+        self.buttonBox.accepted.connect(self.close)
+
+        self.layout = QVBoxLayout()
+        message = QLabel(f"Missing Frames for {share}.{job_name}:")
+        self.layout.addWidget(message)
+        edit = QTextEdit()
+        edit.setText(framelist)
+        edit.selectAll()
+        self.layout.addWidget(edit)
+        self.layout.addWidget(self.buttonBox)
+        self.setLayout(self.layout)
+        self.show()
+
+
 @bind_to_host
 class CreateJobWin(QMainWindow):
     def __init__(self, add_job_callback:Callable, settings, preselected_share="cg1", parent=None, host=None):
@@ -223,6 +247,9 @@ class JobList(IterableListWidget):
         abort_job = QAction("Abort Job")
         abort_job.triggered.connect(partial(self._abort_job))
         menu.addAction(abort_job)
+        get_missing_frames = QAction("Get Missing Frames Framelist")
+        get_missing_frames.triggered.connect(partial(self._get_missing_frames))
+        menu.addAction(get_missing_frames)
         menu.exec_(QCursor.pos())
     
     def _abort_push(self):
@@ -240,6 +267,14 @@ class JobList(IterableListWidget):
         widget = self.selectedItems()[0].widget
         widget.job.set_aborted(True)
         widget.job.set_finished(True)
+
+    def _get_missing_frames(self):
+        widget = self.selectedItems()[0].widget
+        framelist = widget.job.list_missing_frames()
+        frametext = ",".join([str(f) for f in framelist])
+        fls = FramelistShower(widget.job.share, widget.job.name, frametext)
+        fls.exec()
+
 
     def filter(self, share:str, hide_finished:bool):
         for row in self.iterAllItems():
