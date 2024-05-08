@@ -39,26 +39,43 @@ class RenderManager(QMainWindow):
         super().__init__(parent)
         self.setAttribute(Qt.WA_DeleteOnClose)
         self.setWindowTitle("HLRS Render Manager")
-        self.setMinimumSize(1100, 600)
+        self.setMinimumSize(1200, 800)
         
         self.settings = settings
         self.job_provider = JobProvider(settings)
         self.renderer_provider = RendererProvider(settings)
         
+        self._create_actions()
+
         self._create_widgets()
         self._connect_widgets()
+        self._create_toolbars()
         self._create_layout()
+
+    def _create_actions(self):
+        self.toggle_cron_action = QAction(self)
+        self.toggle_cron_action.setText("&Cron running. Click to stop.")
+        self.toggle_cron_action.setIcon(self.style().standardIcon(QStyle.SP_DialogApplyButton))
     
     def _create_widgets(self):
         self.split_widget = QSplitter(Qt.Horizontal)
         self.split_widget.setStretchFactor(3, 10)
         self.joblist_widget = JobListWidget(self.settings, self.job_provider)
         self.jobtabs_widget = JobTabsWidget(self.renderer_provider)
+    
+    def _create_toolbars(self):
+        cron_toolbar = self.addToolBar("Cron")
+        cron_toolbar.addWidget(QLabel("Cron Status:"))
+        cron_toolbar.addAction(self.toggle_cron_action)
         
     def _connect_widgets(self):
-        pass
+        self.toggle_cron_action.triggered.connect(self._toggle_cron)
 
     def _create_layout(self):
         self.split_widget.addWidget(self.joblist_widget)
         self.split_widget.addWidget(self.jobtabs_widget)
         self.setCentralWidget(self.split_widget)
+
+    def _toggle_cron(self):
+        self.toggle_cron_action.setText("&Cron stopped. Click to start")
+        self.toggle_cron_action.setIcon(self.style().standardIcon(QStyle.SP_BrowserStop))

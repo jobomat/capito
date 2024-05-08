@@ -1,0 +1,1 @@
+#*/1 * * * * /root/hlrs_venv/bin/python /mnt/cg/pipeline/capito/capito/haleres/cron.py "/mnt/cg/pipeline/capito" "/mnt/cg/pipeline/hlrs/settings.json" >> /mnt/cg/pipeline/hlrs/cron_logs/cron.log 2>&1

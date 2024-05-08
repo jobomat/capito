@@ -17,7 +17,8 @@ class LogSelectionWidget(QWidget):
             "Renderer Logs": Job.job_folders["logs"],
             "Stream Out Logs": Job.job_folders["stream_out"],
             "Stream Err Logs": Job.job_folders["stream_err"],
-            "Rsync Logs": Job.job_folders["rsync"]
+            "Rsync Logs": Job.job_folders["rsync"],
+            "Submit Log": Job.job_folders["ipc"]
         }
 
         self._create_widgets()
@@ -74,6 +75,7 @@ class LogSelectionWidget(QWidget):
 class LogDisplayWidget(QWidget):
     def __init__(self):
         super().__init__()
+        self.setMinimumWidth(600)
         self._create_widgets()
         self._connect_widgets()
         self._create_layout()
@@ -170,9 +172,3 @@ class JobLogsWidget(QWidget):
 
         vbox.addWidget(self.splitter, stretch=1)
         self.setLayout(vbox)
-
-    def _save_clicked(self):
-        self.job.write_job_files()
-        self.job.create_rsync_push_file()
-        self.job.set_ready_to_push(True)
-        print("TODO: Check job settings, render config, scenes and linked files")

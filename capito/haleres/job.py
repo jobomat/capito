@@ -356,7 +356,11 @@ class Job:
         return sorted(list(expected_set.symmetric_difference(rendered_set)))
     
     def list_missing_frames(self):
-        return [int(f.split(".")[-1]) for f in self.list_missing_images()]
+        missing_images = self.list_missing_images()
+        if not missing_images:
+            return []
+        delimiter = "_" if missing_images[0].rfind(".") == -1 else "."
+        return [int(f.split(delimiter)[-1]) for f in missing_images]
 
     def get_push_max(self):
         """Percentage... see get_push_progress() down below."""
