@@ -75,7 +75,7 @@ class LogSelectionWidget(QWidget):
 class LogDisplayWidget(QWidget):
     def __init__(self):
         super().__init__()
-        self.setMinimumWidth(600)
+        self.setMinimumWidth(700)
         self._create_widgets()
         self._connect_widgets()
         self._create_layout()
