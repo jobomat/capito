@@ -200,3 +200,91 @@ def copy_weights(source_geo:pc.nodetypes.Transform, target_geo:pc.nodetypes.Tran
 
     pc.copySkinWeights(noMirror=True, surfaceAssociation="closestPoint", influenceAssociation="closestJoint")
     target_sc.normalizeWeights.set(normalize_mode)
+
+
+class SoftSelectionToJoint:
+    def __init__(self):
+        self.win_id = "softselectionjoint_win"
+        self.init_nodes()
+
+        if pc.window(self.win_id, q=1, exists=1):
+            pc.showWindow(self.win_id)
+            return
+        else:
+            self.gui()
+
+    def gui(self):
+        window_width = 250
+        window_height = 410
+
+        if pc.window(self.win_id, q=1, exists=1):
+            self.kill_script_jobs()
+            pc.deleteUI(self.win_id)
+
+        col1 = 1
+        col2 = 100
+        col3 = 60
+        with pc.window(self.win_id, title="Soft Selection Joint Weights") as self.win:
+            with pc.columnLayout(adj=True):
+                with pc.rowLayout(nc=2, adj=2):
+                    pc.text(label="Skin Cluster:")
+                    self.skincluster_optionMenu = pc.optionMenu(cc=self.rebuild_joint_list)
+                self.joint_textScrollList = pc.textScrollList(sc=self.joint_selected)
+                pc.button("Push Soft Select Weights to Joint", c=self.do_weight_push)
+               
+        self.script_jobs = [
+            pc.scriptJob(e=("NameChanged", self._on_name_changed)),
+            pc.scriptJob(e=("SelectionChanged", self._on_selection_changed)),
+        ]
+        self.win.closeCommand(self.kill_script_jobs)
+        
+    def joint_selected(self):
+        self.current_joint = self.joint_list[self.joint_textScrollList.getSelectIndexedItem()[0] - 1]
+        
+    def rebuild_skincluster_optionMenu(self):
+        self.skincluster_optionMenu.deleteAllItems()
+        self.skincluster_optionMenu.addItems([s.name() for s in self.skin_clusters])
+        self.current_skin_cluster = self.skin_clusters[0]
+        self.rebuild_joint_list()
+    
+    def rebuild_joint_list(self, *args):
+        if args:
+            self.current_skin_cluster = pc.PyNode(args[0])
+        self.joint_textScrollList.removeAll()
+        self.joint_list = []
+        for joint in self.current_skin_cluster.influenceObjects():
+            self.joint_textScrollList.append(joint)
+            self.joint_list.append(joint)
+    
+    def _on_name_changed(self):
+        pass
+        
+    def _on_selection_changed(self):
+        sel = pc.selected()
+        if not sel:
+            self.skincluster_optionMenu.deleteAllItems()
+            self.init_nodes()
+            return
+        if isinstance(sel[0], pc.MeshVertex) and self.current_mesh != sel[0].node():
+            self.current_mesh = sel[0].node().getParent()
+            self.skin_clusters = self.current_mesh.listHistory(type="skinCluster")
+            self.rebuild_skincluster_optionMenu()
+    
+    def init_nodes(self):
+        self.current_mesh = None
+        self.current_skin_cluster = None
+        self.joint_list = []
+        self.current_joint = None
+    
+    def kill_script_jobs(self, *args):
+        for job in self.script_jobs:
+            pc.scriptJob(kill=job, force=True)
+
+    def do_weight_push(self, *args):
+        soft_sel_dict = get_soft_selection_values()
+        if not soft_sel_dict:
+            pc.warning("Please soft select some vertices attached to a skinCluster.")
+            return
+       
+        for vert, weight in soft_sel_dict.items():
+            pc.skinPercent(self.current_skin_cluster, f'{self.current_mesh}.vtx[{vert}]', transformValue=[(self.current_joint, weight)])

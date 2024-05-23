@@ -103,6 +103,7 @@ class CreateJobWin(QMainWindow):
             return
         job = Job(self.share, name, self.settings)
         job.create_job_folders()
+        job.write_pathmap_json()
         self.add_job_callback(job)
         self.close()
 
