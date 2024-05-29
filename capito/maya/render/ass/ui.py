@@ -359,6 +359,7 @@ class AssExporter(QMainWindow):
         self.job.jobsize = int(self.hlrs_jobsize_lineedit.text())
         self.job.walltime_minutes = int(self.hlrs_walltime_lineedit.text())
         self.job.renderer = self.renderer_provider.renderers[self.renderer_combo.currentText()]
+        self.job.save_job_settings()
         self.job.save_renderer_config()
         print("Saved renderer config file.")
         self.job.write_pathmap_json()

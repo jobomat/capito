@@ -45,7 +45,7 @@ class LogSelectionWidget(QWidget):
             return
         log_dir = self.log_dirs_dict[self.log_combo.currentText()]
         log_path = Path(self.job.get_folder()) / log_dir
-        for file in log_path.glob("*.*"):
+        for file in sorted(log_path.glob("*.*")):
             self.log_list.addItem(file.name)
 
     def _create_widgets(self):
