@@ -229,6 +229,11 @@ class JobList(IterableListWidget):
         
         self.itemSelectionChanged.connect(self._job_selected)
 
+        self.update_timer = QTimer(self)
+        self.update_timer.timeout.connect(self.forced_update)
+        self.update_timer.start(60000)
+
+
     def add_job(self, job, selected:bool = False):
         job_widget = JobListRowWidget(job)
         job_widget.force_update()
@@ -239,6 +244,10 @@ class JobList(IterableListWidget):
     def update_progress(self):
         for item in self.iterAllItems():
             item.widget.update()
+    
+    def forced_update(self):
+        for item in self.iterAllItems():
+            item.widget.force_update()
 
     def _job_selected(self):
         try:
