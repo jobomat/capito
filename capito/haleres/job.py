@@ -566,7 +566,7 @@ class JobProvider:
     def get_unfinished_jobs(self):
         for job in self.jobs:
             job.update_status()
-        return [job for job in self.jobs if not job.is_finished() and not job.is_flagged_for_deletion()]
+        return [job for job in self.jobs if not job.is_finished() and not job.is_flagged_for_deletion() and not job.is_aborted()]
 
     def _base(self, letter, share):
         """Get platformspecific variant of base path (letter or share name)"""
