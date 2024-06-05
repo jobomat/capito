@@ -321,6 +321,9 @@ class Job:
     
     def set_ready_to_push(self, ready:bool):
         self.set_status(JobStatus.ready_to_push, ready)
+
+    def set_deleted(self):
+        self.set_status(JobStatus.deleted, True)
     
     def flag_for_deletion(self, delete:bool=True):
         self.set_status(JobStatus.flagged_for_deletion, delete)

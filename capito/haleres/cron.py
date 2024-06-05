@@ -48,6 +48,9 @@ something_happened = False
 # DELETE JOBS AT HLRS THAT ARE FLAGGED FOR DELETION
 if jobs_to_delete:
     hlrs.remove_jobs(jobs_to_delete)
+    for job in jobs_to_delete:
+        log_list.append(f"Deleting {job.share}.{job.name}")
+        job.set_deleted()
 
 # PULL IPC FOLDERS
 ipc_folder_list = [
