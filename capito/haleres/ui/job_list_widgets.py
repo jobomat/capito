@@ -36,7 +36,6 @@ JOBLIST_STYLESHEET = '''
         background-color: #4686c7;
     }
 '''
-
 """#ca7828; #4f8618; #236fbd; #971f97;"""
 
 
@@ -131,7 +130,7 @@ class JobListHeaderWidget(QWidget):
 class JobListRowWidget(QWidget):
     def __init__(self, job:Job, parent=None):
         super().__init__(parent)
-        self.job = job
+        self.job:Job = job
         hbox = QHBoxLayout(objectName="JobRow")
         hbox.setContentsMargins(5,1,0,1)
         hbox.setSpacing(1)
@@ -154,8 +153,13 @@ class JobListRowWidget(QWidget):
         self.status.setFixedWidth(70)
         self.status.setAlignment(Qt.AlignCenter)
 
-        hbox.addWidget(QLabel(f"{job.name}"), stretch=1)
-        hbox.addWidget(QLabel(f"{job.share}  "))
+        name = QLabel(f"{job.name}")
+        share = QLabel(f"{job.share}  ")
+        if job.is_deleted():
+            name.setStyleSheet(f"QLabel {{ color : #{col}; }}")
+            share.setStyleSheet(f"QLabel {{ color : #{col}; }}")
+        hbox.addWidget(name, stretch=1)
+        hbox.addWidget(share)
         hbox.addWidget(self.status)
         hbox.addWidget(self.push_progressbar)
         hbox.addWidget(self.submit_progressbar)
@@ -204,6 +208,12 @@ class JobListRowWidget(QWidget):
         self.render_progressbar.setValue(self.job.num_rendered())
         self.pull_progressbar.setValue(self.job.num_pulled())
 
+        if self.job.is_deleted() or self.job.is_flagged_for_deletion():
+            self.push_progressbar.setStyleSheet("#PushProgressBar::chunk {background-color: #444444;}")
+            self.submit_progressbar.setStyleSheet("#SubmitProgressBar::chunk {background-color: #444444;}")
+            self.render_progressbar.setStyleSheet("#RenderProgressBar::chunk {background-color: #444444;}")
+            self.pull_progressbar.setStyleSheet("#PullProgressBar::chunk {background-color: #444444;}")
+
         stat, col = self.job.get_status_string_and_color()
         self.status.setText(stat)
         self.status.setStyleSheet(f"QLabel {{ background-color : #{col}; }}")
@@ -239,6 +249,7 @@ class JobList(IterableListWidget):
         
     def _context_menu(self, qpoint):
         menu = QMenu(self)
+
         abort_push_action = QAction("Abort Push")
         abort_push_action.triggered.connect(partial(self._abort_push))
         menu.addAction(abort_push_action)
@@ -251,6 +262,10 @@ class JobList(IterableListWidget):
         get_missing_frames = QAction("Get Missing Frames Framelist")
         get_missing_frames.triggered.connect(partial(self._get_missing_frames))
         menu.addAction(get_missing_frames)
+        flag_for_deletion = QAction("Delete Job at HLRS")
+        flag_for_deletion.triggered.connect(partial(self._flag_for_deletion))
+        menu.addAction(flag_for_deletion)
+
         menu.exec_(QCursor.pos())
     
     def _abort_push(self):
@@ -267,7 +282,7 @@ class JobList(IterableListWidget):
     def _abort_job(self):
         widget = self.selectedItems()[0].widget
         widget.job.set_aborted(True)
-        widget.job.set_finished(True)
+        widget.force_update()
 
     def _get_missing_frames(self):
         widget = self.selectedItems()[0].widget
@@ -276,6 +291,10 @@ class JobList(IterableListWidget):
         fls = FramelistShower(widget.job.share, widget.job.name, frametext)
         fls.exec()
 
+    def _flag_for_deletion(self):
+        widget = self.selectedItems()[0].widget
+        widget.job.flag_for_deletion(True)
+        widget.force_update()
 
     def filter(self, share:str, hide_finished:bool):
         for row in self.iterAllItems():

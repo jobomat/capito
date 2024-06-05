@@ -39,7 +39,7 @@ class RenderManager(QMainWindow):
         super().__init__(parent)
         self.setAttribute(Qt.WA_DeleteOnClose)
         self.setWindowTitle("HLRS Render Manager")
-        self.setMinimumSize(1200, 800)
+        self.setMinimumSize(1400, 800)
         
         self.settings = settings
         self.job_provider = JobProvider(settings)
@@ -75,6 +75,8 @@ class RenderManager(QMainWindow):
         self.split_widget.addWidget(self.joblist_widget)
         self.split_widget.addWidget(self.jobtabs_widget)
         self.setCentralWidget(self.split_widget)
+        self.split_widget.setStretchFactor(0,1)
+        self.split_widget.setStretchFactor(1,0)
 
     def _toggle_cron(self):
         self.toggle_cron_action.setText("&Cron stopped. Click to start")

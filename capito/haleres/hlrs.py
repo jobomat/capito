@@ -121,6 +121,10 @@ class HLRS:
         full_paths = [f"{self.workspace.path}/{path}/{i}" for i in items]
         return self.run(f"rm{' -rf ' if rf else ' '}{' '.join(full_paths)}")
     
+    def remove_jobs(self, jobs:List[Job]):
+        full_paths = [f"{self.workspace.path}/{job.share}/hlrs/{job.name}" for job in jobs]
+        return self.run(f"rm -rf {' '.join(full_paths)}")
+    
     def submit_jobs(self, jobs:List[Job]):
         commands = [
             f"{self.workspace.path}/{job.share}/hlrs/{job.name}/submit.sh {job.limit}"

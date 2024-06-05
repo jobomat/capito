@@ -23,6 +23,8 @@ class JobStatus(Enum):
     paused = "PAUSED"
     all_images_rendered = "ALL_IMAGES_RENDERED"
     finished = "FINISHED"
+    flagged_for_deletion = "FLAGGED_FOR_DELETION"
+    deleted = "DELETED"
     aborted = "ABORTED"
 
 
@@ -267,13 +269,20 @@ class Job:
             status, color = "Finished", "4f8618"
         if self.get_status(JobStatus.aborted):
             status, color = "Aborted", "861b18"
+        if self.get_status(JobStatus.flagged_for_deletion):
+            status, color = "Deleting...", "444444"
+        if self.get_status(JobStatus.deleted):
+            status, color = "Deleted", "444444"
         
         return status, color
 
     def is_active(self):
         inactive_states = (
             self.is_finished(),
-            self.is_paused()
+            self.is_paused(),
+            self.is_flagged_for_deletion(),
+            self.is_deleted(),
+            self.is_aborted()
         )
         return not any(inactive_states)
 
@@ -295,6 +304,12 @@ class Job:
     def is_finished(self):
         return self.get_status(JobStatus.finished)
     
+    def is_aborted(self):
+        return self.get_status(JobStatus.aborted)
+    
+    def is_deleted(self):
+        return self.get_status(JobStatus.deleted)
+    
     def set_paused(self, paused:bool):
         self.set_status(JobStatus.paused, paused)
     
@@ -307,8 +322,14 @@ class Job:
     def set_ready_to_push(self, ready:bool):
         self.set_status(JobStatus.ready_to_push, ready)
     
+    def flag_for_deletion(self, delete:bool=True):
+        self.set_status(JobStatus.flagged_for_deletion, delete)
+
     def all_files_pushed(self):
         return self.get_status(JobStatus.all_files_pushed)
+    
+    def is_flagged_for_deletion(self):
+        return self.get_status(JobStatus.flagged_for_deletion)
 
     def get_folder(self, folder:str="") -> Path:
         """Get the full path to the requested folder."""
@@ -524,6 +545,12 @@ class JobProvider:
         
         return [job for job in jobs_with_pending_jobs if job.limit > 0]
 
+    def get_jobs_to_delete(self):
+        return [
+            job for job in self.jobs
+            if job.is_flagged_for_deletion()
+            and not job.is_deleted()
+        ]
 
     def get_jobs_to_push(self):
         return [

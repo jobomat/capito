@@ -592,3 +592,40 @@ class RigIcons:
 # # load again:
 # with file.open("r") as f:
 #     pc.mel.eval(f.read())
+        
+
+
+
+# from pathlib import Path
+# import tempfile
+    
+     
+# def write_rig_icon_file(path:str, filename:str):
+#     sel = pc.selected()
+#     if not sel:
+#         pc.warning("Nothing selected.")
+#         return
+#     ma_file = Path(path) / filename
+#     pc.system.exportSelected(
+#         str(ma_file), force=True, type="mayaAscii",
+#         constructionHistory=False, channels=False,
+#         constraints=False, expressions=False, shader=False
+#     )
+
+
+
+# def read_rig_icon_file(path:str, filename, nodename):  
+#     imported_nodes = pc.importFile(str(Path(path) / f"{filename}.ma"), defaultNamespace=True, returnNewNodes=True)
+#     for node in imported_nodes:
+#         if isinstance(node, pc.nodetypes.Transform):
+#             node.rename(nodename)
+#         if isinstance(node, pc.nodetypes.Mesh):
+#             pc.sets("initialShadingGroup", e=True, forceElement=node)
+#     return imported_nodes
+  
+    
+# path, filename = "E:\\", "test"
+# nodename = "cube_ctrl"
+
+# write_rig_icon_file(path, filename)
+# read_rig_icon_file(path, filename, nodename)

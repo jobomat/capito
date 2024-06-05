@@ -36,6 +36,7 @@ jp = JobProvider(haleres_settings)
 hlrs = HLRS(haleres_settings_file)
 
 # Get local data
+jobs_to_delete = jp.get_jobs_to_delete()
 jobs_to_push = jp.get_jobs_to_push()
 unfinished_jobs = jp.get_unfinished_jobs()
 hlrs_server = f"{haleres_settings.hlrs_user}@{haleres_settings.hlrs_server}"
@@ -44,6 +45,9 @@ log_list = []
 something_happened = False
 
 
+# DELETE JOBS AT HLRS THAT ARE FLAGGED FOR DELETION
+if jobs_to_delete:
+    hlrs.remove_jobs(jobs_to_delete)
 
 # PULL IPC FOLDERS
 ipc_folder_list = [
