@@ -17,12 +17,17 @@ class DriverListWidget(QWidget):
     def __init__(self):
         super().__init__()
         self.setMaximumHeight(60)
+        self.add_button = QPushButton("Add Driver")
         self.driver_list_widget = IterableListWidget()
         self.driver_list_widget.itemClicked.connect(self._driver_selected)
         
         vbox = QVBoxLayout()
+        
         vbox.setContentsMargins(0,0,0,0)
         vbox.addWidget(self.driver_list_widget)
+        hbox = QHBoxLayout()
+        hbox.addStretch()
+        hbox.addWidget(self.add_button)
         self.setLayout(vbox)
 
         self.update()
@@ -134,6 +139,7 @@ class AOVListWidget(QWidget):
     def __init__(self):
         super().__init__()
         self.aov_list_widget = IterableListWidget()
+        self.aov_list_widget.setSpacing(3)
 
         vbox = QVBoxLayout()
         vbox.setContentsMargins(0,0,0,0)

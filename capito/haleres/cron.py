@@ -65,7 +65,8 @@ if ipc_folder_list:
     pullfile.write_text("\n".join(ipc_folder_list))
     # Call rsync with pullfile - intentionally blocking!
     log_list.append(f"Pulling {len(ipc_folder_list)} ipc-folder(s). Pull-File: {str(pullfile)}")
-    log_list.append(f"Folders:\n{'\n'.join(ipc_folder_list)}")
+    ipc_text = '\n'.join(ipc_folder_list)
+    log_list.append(f"Folders:\n{ipc_text}")
     if pullfile.exists():
         time.sleep(1)
         try:
