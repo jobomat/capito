@@ -18,11 +18,12 @@ class DriverListWidget(QWidget):
         super().__init__()
         self.setMaximumHeight(100)
         self.add_button = QPushButton("Add Driver")
+        self.add_button.clicked.connect(self.add_driver)
         self.remove_button = QPushButton("Delete Selected Driver")
+        self.remove_button.clicked.connect(self.remove_driver)
         self.driver_list_widget = IterableListWidget()
         self.driver_list_widget.itemClicked.connect(self._driver_selected)
-        
-        
+                
         vbox = QVBoxLayout()
         vbox.setContentsMargins(0,0,0,0)
         
@@ -64,6 +65,14 @@ class DriverListWidget(QWidget):
                 name_info = f"driver_{len(pc.ls(type='aiAOVDriver')) - 2}"
                 driver.prefix.set(name_info)
         item.setText(f"{node_name} ({name_info})")
+
+    def add_driver(self):
+        driver = pc.createNode("aiAOVDriver")
+        self.update()
+
+    def remove_driver(self):
+        pc.delete(self.driver_list_widget.selectedItems()[0].driver)
+        self.update()
     
     def _driver_selected(self):
         driver = self.driver_list_widget.selectedItems()[0].driver
@@ -140,6 +149,19 @@ class DriverSettingsWidget(QWidget):
         self.half_precision_checkbox.setChecked(driver.halfPrecision.get())
 
 
+def get_free_driver_index(aov):
+    for i in range(aov.attr("outputs").numElements()):
+        if not aov.attr(f"outputs[{i}].driver").listConnections():
+            return i
+    return aov.attr("outputs").numElements()
+
+
+def get_aov_attr_for_driver(aov, driver):
+    for i in range(aov.attr("outputs").numElements()):
+        if driver in aov.attr(f"outputs[{i}].driver").listConnections():
+            return aov.attr(f"outputs[{i}].driver")
+
+
 class AOVListWidget(QWidget):
     def __init__(self):
         super().__init__()
@@ -157,20 +179,17 @@ class AOVListWidget(QWidget):
         for aov in pc.ls(type="aiAOV"):
             item = QListWidgetItem(aov.attr("name").get())
             item.aov = aov
-            item.driver = None
+            item.driver = driver
             item.setCheckState(Qt.Unchecked)
             if driver in item.aov.listConnections():
                 item.setCheckState(Qt.Checked)
-                item.driver = driver
             self.aov_list_widget.addItem(item)
 
     def edit_aov(self, item:QListWidgetItem):
         if item.checkState():
-            print("CONNECTING")
+            item.driver.message >> item.aov.attr(f"outputs[{get_free_driver_index(item.aov)}]").driver
         else:
-            print("DISCONNECTING")
-        print(item.aov)
-        print(item.driver)
+            item.driver.message // get_aov_attr_for_driver(item.aov, item.driver)
             
 
 
@@ -215,6 +234,3 @@ class OutputDriverManager(QMainWindow):
         cw = QWidget()
         cw.setLayout(vbox)
         self.setCentralWidget(cw)
-
-
-OutputDriverManager()

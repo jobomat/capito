@@ -115,6 +115,14 @@
             "annotation": "Look Manager. Save and reapply shaders and shader assignments."
         },
         {
+            "sourceType": "python",
+            "image": "arnold_drivers.png",
+            "label": "Arnold Drivers",
+            "command": "from capito.maya.render.output_drivers import OutputDriverManager\nOutputDriverManager()",
+            "image1": "arnold_drivers.png",
+            "annotation": "Arnold Driver Manager. Easy assignment of AOVs to seperate drivers."
+        },
+        {
             "type": "separator"
         },
         {
