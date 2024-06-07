@@ -18,7 +18,8 @@ haleres_settings_file = sys.argv[11]
 
 pc.openFile(file_to_open, force=True)
 render_layers = [l for l in pc.ls(type='renderLayer') if l.name() in rl_names]
-
+# set images dir in case of additional arnold output drivers:
+pc.workspace.fileRules["images"] = f"{job_share}/hlrs/{job_name}/output/images"
 # first export the specified frames...
 for rl in render_layers:
     rl.setCurrent()

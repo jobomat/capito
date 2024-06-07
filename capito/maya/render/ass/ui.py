@@ -374,6 +374,8 @@ class AssExporter(QMainWindow):
         self.update_status = False
         flat_frame_list = create_flat_frame_list(self.framelist_textedit.text())
         num_layers = len(renderlayers)
+        # set images dir in case of additional arnold output drivers:
+        pc.workspace.fileRules["images"] = f"{self.job.share}/hlrs/{self.job.name}/output/images"
         for i, rl in enumerate(renderlayers, start=1):
             rl.setCurrent()
             self.statusBar().showMessage(f"Export Layer {i} of {num_layers} ({rl.name()})")
