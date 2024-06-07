@@ -65,6 +65,7 @@ if ipc_folder_list:
     pullfile.write_text("\n".join(ipc_folder_list))
     # Call rsync with pullfile - intentionally blocking!
     log_list.append(f"Pulling {len(ipc_folder_list)} ipc-folder(s). Pull-File: {str(pullfile)}")
+    log_list.append(f"Folders:\n{'\n'.join(ipc_folder_list)}")
     if pullfile.exists():
         time.sleep(1)
         try:
@@ -80,7 +81,7 @@ if ipc_folder_list:
             time.sleep(1)
             pullfile.unlink()
         except:
-            pass
+            log_list.append(f"Error while pulling.")
 
 # PULL IMAGES
 # Create pull list
