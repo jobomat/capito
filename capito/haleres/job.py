@@ -570,7 +570,7 @@ class JobProvider:
     def get_unfinished_jobs(self):
         for job in self.jobs:
             job.update_status()
-        return [job for job in self.jobs if not (job.is_finished() or job.is_aborted())]
+        return [job for job in self.jobs if not (job.is_finished() or job.is_aborted()) and job.has_status()]
 
     def _base(self, letter, share):
         """Get platformspecific variant of base path (letter or share name)"""
