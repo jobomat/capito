@@ -16,18 +16,22 @@ class DriverListWidget(QWidget):
 
     def __init__(self):
         super().__init__()
-        self.setMaximumHeight(60)
+        self.setMaximumHeight(100)
         self.add_button = QPushButton("Add Driver")
+        self.remove_button = QPushButton("Delete Selected Driver")
         self.driver_list_widget = IterableListWidget()
         self.driver_list_widget.itemClicked.connect(self._driver_selected)
         
-        vbox = QVBoxLayout()
         
+        vbox = QVBoxLayout()
         vbox.setContentsMargins(0,0,0,0)
+        
         vbox.addWidget(self.driver_list_widget)
         hbox = QHBoxLayout()
-        hbox.addStretch()
+        hbox.setContentsMargins(0,1,0,3)
         hbox.addWidget(self.add_button)
+        hbox.addWidget(self.remove_button)
+        vbox.addLayout(hbox)
         self.setLayout(vbox)
 
         self.update()
@@ -79,6 +83,7 @@ class DriverSettingsWidget(QWidget):
 
     def _create_widgets(self):
         self.prefix_lineedit = QLineEdit("")
+        self.prefix_lineedit.setPlaceholderText("Please specify a name (except on default driver).")
         self.compression_combobox = QComboBox()
         for c in self.compression_names:
             self.compression_combobox.addItem(c)
@@ -139,8 +144,8 @@ class AOVListWidget(QWidget):
     def __init__(self):
         super().__init__()
         self.aov_list_widget = IterableListWidget()
-        self.aov_list_widget.setSpacing(3)
-
+        self.aov_list_widget.setStyleSheet( "QListWidget::item { border-bottom: 1px solid #999999; padding-top: 2px; padding-bottom: 2px;}" )
+        self.aov_list_widget.itemChanged.connect(self.edit_aov)
         vbox = QVBoxLayout()
         vbox.setContentsMargins(0,0,0,0)
         vbox.addWidget(self.aov_list_widget)
@@ -157,7 +162,16 @@ class AOVListWidget(QWidget):
             if driver in item.aov.listConnections():
                 item.setCheckState(Qt.Checked)
                 item.driver = driver
-            self.aov_list_widget.addItem(item)        
+            self.aov_list_widget.addItem(item)
+
+    def edit_aov(self, item:QListWidgetItem):
+        if item.checkState():
+            print("CONNECTING")
+        else:
+            print("DISCONNECTING")
+        print(item.aov)
+        print(item.driver)
+            
 
 
 @bind_to_host
@@ -182,17 +196,18 @@ class OutputDriverManager(QMainWindow):
     def _create_layouts(self):
         vbox = QVBoxLayout()
         
-        label = QLabel("Drivers (EXR only)")
+        label = QLabel("Drivers (EXR only):")
         label.setStyleSheet("QLabel {font-weight: bold;}")
         vbox.addWidget(label)
         vbox.addWidget(self.driver_list_widget)
         vbox.addWidget(QHLine())
-        label = QLabel("Driver Settings")
+        label = QLabel("Driver Settings:")
         label.setStyleSheet("QLabel {font-weight: bold;}")
         vbox.addWidget(label)
+        vbox.addWidget(QHLine())
         vbox.addWidget(self.driver_settings_widget)
         vbox.addWidget(QHLine())
-        label = QLabel("AOVs for Driver")
+        label = QLabel("AOVs for Driver:")
         label.setStyleSheet("QLabel {font-weight: bold;}")
         vbox.addWidget(label)
         vbox.addWidget(self.aov_list_widget)

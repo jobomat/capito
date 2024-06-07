@@ -255,6 +255,10 @@ class Job:
             with contextlib.suppress(FileNotFoundError):
                 self._status_file(status).unlink()
 
+    def has_status(self):
+        status_path = self.jobfolder / self.job_folders["status"]
+        return any(status_path.iterdir())
+
     def get_status_string_and_color(self):
         status, color = "Unknown", "333333"
         if self.get_status(JobStatus.ready_to_push):
@@ -478,7 +482,7 @@ class Job:
     def _status_file(self, status:JobStatus) -> Path:
         """Returns the hypothetic path to a certain status file."""
         return self.jobfolder / self.job_folders["status"] / status.value
-    
+        
 
 class JobProvider:
     def __init__(self, settings:Settings):

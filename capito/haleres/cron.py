@@ -55,7 +55,7 @@ if jobs_to_delete:
 # PULL IPC FOLDERS
 ipc_folder_list = [
     f"{job.share}/hlrs/{job.name}/ipc"
-    for job in unfinished_jobs if job not in jobs_to_push
+    for job in unfinished_jobs if job not in jobs_to_push and job.has_status()
 ]
 if ipc_folder_list:
     something_happened = True
