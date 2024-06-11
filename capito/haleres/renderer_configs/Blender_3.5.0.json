@@ -2,7 +2,9 @@
     "executable": "blender-3.5.0-linux-x64.sh/blender",
     "header_template": "#!/bin/bash\n#PBS -N %(jobfile_name)s\n#PBS -l select=1:node_type=rome,walltime=0:%(walltime_minutes)s:00",
     "per_job_template": "%(header)s\n\n%(env_vars)s\n\n%(render_command)s\n\n%(per_frame)s",
-    "per_frame_template": "touch $JOB_PATH/ipc/images_rendered/%(job_name)s.%(padded_frame_number)s.%(extension)s",
+    "pre_render_template": "touch $JOB_PATH/ipc/images_rendering/%(job_name)s.%(padded_frame_number)s.%(extension)s",
+    "post_render_template": "touch $JOB_PATH/ipc/images_rendered/%(job_name)s.%(padded_frame_number)s.%(extension)s",
+    "combined_commands_template": "%(pre_render)s\n\n%(render_commands)s\n\n%(post_render)s\n",
     "single_frame_renderer": false,
     "env_vars": [
         {"name": "WS_BASE_PATH", "value": "$(ws_find %(workspace_name)s)"},

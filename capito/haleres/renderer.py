@@ -128,6 +128,9 @@ class Renderer:
         self.header_template: str = None
         self.per_job_template:str = None
         self.per_frame_template:str = None
+        self.pre_render_template:str = None
+        self.post_render_template:str = None
+        self.combined_commands_template:str = None
         self.single_frame_renderer:bool = False
         self.env_vars: List[RendererEnvVar]
         self.flags: List[RendererFlag]
@@ -168,12 +171,14 @@ class Renderer:
 
     def get_per_frame_string(self):
         return replace(self.per_frame_template, {"render_command": self.get_render_command()})
+    
+    def get_combined_commands_string(self):
+        return replace(self.combined_commands_template, {"render_command": self.get_render_command()})
 
     def get_per_job_string(self):
         data = {
             "header": self.header_template,
             "env_vars": self.get_env_string(),
-            "render_command": self.get_render_command()
         }
         return replace(self.per_job_template, data)
         

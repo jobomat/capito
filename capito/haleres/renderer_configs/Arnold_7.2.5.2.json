@@ -1,9 +1,12 @@
 {
     "executable": "Arnold_7.2.5.2/bin/kick",
     "header_template": "#!/bin/bash\n#PBS -N %(jobfile_name)s\n#PBS -l select=1:node_type=rome,walltime=0:%(walltime_minutes)s:00",
-    "per_job_template": "%(header)s\n\n%(env_vars)s\n\n%(per_frame)s",
-    "per_frame_template": "touch $JOB_PATH/ipc/images_rendering/%(jobfile_name)s.exr\n\n%(render_command)s\n\ntouch $JOB_PATH/ipc/images_rendered/%(jobfile_name)s.exr\n",
+    "per_job_template": "%(header)s\n\n%(env_vars)s\n\n%(commands)s",
+    "pre_render_template": "touch $JOB_PATH/ipc/images_rendering/%(image_name)s.%(padded_frame_number)s.exr",
+    "post_render_template": "touch $JOB_PATH/ipc/images_rendered/%(image_name)s.%(padded_frame_number)s.exr",
+    "combined_commands_template": "%(pre_render)s\n\n%(render_commands)s\n\n%(post_render)s\n",
     "single_frame_renderer": true,
+    "per_frame_template": "touch $JOB_PATH/ipc/images_rendering/%(jobfile_name)s.exr\n\n%(render_command)s\n\ntouch $JOB_PATH/ipc/images_rendered/%(jobfile_name)s.exr\n",
     "env_vars": [
         {"name": "WS_BASE_PATH", "value": "$(ws_find %(workspace_name)s)"},
         {"name": "JOB_PATH", "value": "$WS_BASE_PATH/%(share_name)s/hlrs/%(job_name)s"},

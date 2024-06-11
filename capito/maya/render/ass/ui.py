@@ -350,6 +350,22 @@ class AssExporter(QMainWindow):
     def _export(self):
         cache_dir = self.cache_dir_lineedit.text()
         renderlayers = self.renderlayer_widget.get_selected_renderlayers()
+
+        # for additional arnold drivers we have to reverse-engineer the expected image names:
+        additional_drivers = [
+            d.prefix.get()
+            for d in pc.ls(type="aiAOVDriver")
+            if d.aiTranslator.get() == "exr"
+            and d.listConnections(type="aiAOV")
+            and d.name() != "defaultArnoldDriver"
+        ]
+        additional_driver_names = []
+        for driver in additional_drivers:
+            for rl in renderlayers:
+                rl_name = rl.name()
+                rl_name = "masterLayer" if rl_name == "defaultRenderLayer" else rl_name[3:]
+                additional_driver_names.append(driver.replace("<RenderLayer>", rl_name))
+        self.job.job_settings["additional_image_names"] = additional_driver_names
         
         self.job.framelist = self.framelist_textedit.text()
         # WONKY: if project is not on the same share as the seleced job strange things happen
@@ -374,8 +390,10 @@ class AssExporter(QMainWindow):
         self.update_status = False
         flat_frame_list = create_flat_frame_list(self.framelist_textedit.text())
         num_layers = len(renderlayers)
-        # set images dir in case of additional arnold output drivers:
-        pc.workspace.fileRules["images"] = f"{self.job.share}/hlrs/{self.job.name}/output/images"
+        # save current, and set new project dir in case of additional arnold output drivers:
+        ws = pc.workspace.path
+        pc.workspace(f"{self.job.base_path.parent}/", openWorkspace=True)
+        pc.workspace.fileRules["images"] = f"hlrs/{self.job.name}/output/images"
         for i, rl in enumerate(renderlayers, start=1):
             rl.setCurrent()
             self.statusBar().showMessage(f"Export Layer {i} of {num_layers} ({rl.name()})")
@@ -387,6 +405,8 @@ class AssExporter(QMainWindow):
                 preserveReferences=True
             )
         self.job.write_job_files()
+        # reset project dir to old location
+        pc.workspace(str(ws), openWorkspace=True)
         self.job.set_ready_to_push(True)
         self.statusBar().showMessage("Export completed!")
 

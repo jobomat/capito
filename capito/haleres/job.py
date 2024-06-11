@@ -176,12 +176,12 @@ class Job:
         print(submitter_source, submitter_dest)
         shutil.copy(submitter_source, submitter_dest)
 
-    def write_job_files(self) -> None:
+    def write_job_files_OLD(self) -> None:
         """write the jobfiles.sh for PBS Rendering at HLRS
         """
         self._purge_folder("jobs")
         per_job_string = ""
-        replacement_dict = self._get_replacement_dict()
+        replacement_dict = self._get_replacement_dict()  # --> 'rpd' prefix below
         scene_files = self.scene_files
         framelist = self.framelist
         tuple_list = create_frame_tuple_list(framelist, self.jobsize)
@@ -190,11 +190,12 @@ class Job:
         for start, end in tuple_list:
             per_frame_list = []
             for frame in range(start, end + 1):
-                image_name = f"{scene_files[0].name}.{str(frame).zfill(self.frame_padding)}"
+                padded_frame_number = str(frame).zfill(self.frame_padding)
+                image_name = f"{scene_files[0].name}.{padded_frame_number}"
                 per_frame_rpd = {
                     **replacement_dict,
                     **self.renderer.get_flag_lookup_dict(),
-                    "padded_frame_number": str(frame).zfill(self.frame_padding)
+                    "padded_frame_number": padded_frame_number
                 }
                 if self.renderer.single_frame_renderer:
                     # Hacky. Maybe better overall design could fix this
@@ -205,6 +206,8 @@ class Job:
                 per_frame_string = self.renderer.get_per_frame_string()
                 per_frame_list.append(replace(per_frame_string, per_frame_rpd))
                 (Path(self.get_folder("images_expected")) / image_name).touch()
+                for img in self.job_settings.get("additional_image_names", []):
+                    (Path(self.get_folder("images_expected")) / f"{img}.{padded_frame_number}").touch()
         
             per_job_rpd = {
                 **replacement_dict,
@@ -221,6 +224,95 @@ class Job:
             job_file = self.get_folder("jobs") / f"{per_job_rpd['jobfile_name']}.sh"
             with open(str(job_file), mode="w", encoding="UTF-8", newline="\n") as jf:
                 jf.write(per_job_string)
+    
+    def write_job_files(self) -> None:
+        """write the jobfiles.sh for PBS Rendering at HLRS
+        TODO: untangle responsibilities of self.renderer and this function
+        """
+        per_job_string = ""
+        replacement_dict = self._get_replacement_dict()  # --> 'rpd' prefix below
+        scene_files = self.scene_files
+        framelist = self.framelist
+        tuple_list = create_frame_tuple_list(framelist, self.jobsize)
+
+        job_texts = []
+
+        i = 0
+        for start, end in tuple_list:
+            per_frame_list = []
+            pre_render = []
+            render_commands = []
+            post_render = []
+            for frame in range(start, end + 1):
+                padded_frame_number = str(frame).zfill(self.frame_padding)
+                image_name = scene_files[0].stem[:-(self.frame_padding+1)]
+                per_frame_rpd = {
+                    **replacement_dict,
+                    **self.renderer.get_flag_lookup_dict(),
+                    "padded_frame_number": padded_frame_number,
+                    "image_name": image_name
+                }
+                # normal image name:
+                pre_render.append(replace(self.renderer.pre_render_template, per_frame_rpd))
+                post_render.append(replace(self.renderer.post_render_template, per_frame_rpd))
+
+                if self.renderer.single_frame_renderer:
+                    # Hacky. Maybe better overall design could fix this
+                    per_frame_rpd["scenefile_name"] = scene_files[i].name
+                    per_frame_rpd["jobfile_name"] = scene_files[i].stem
+                    per_frame_rpd["image_name"] = scene_files[i].stem
+                    render_commands.append(replace(self.renderer.get_render_command(), per_frame_rpd))
+                # local:
+                (Path(self.get_folder("images_expected")) / f"{image_name}.{padded_frame_number}").touch()
+                # for multiple expected images per render command (output drivers):
+                for img in self.job_settings.get("additional_image_names", []):
+                    # local:
+                    (Path(self.get_folder("images_expected")) / f"{img}.{padded_frame_number}").touch()
+                    # for render command in submit.sh:
+                    per_frame_rpd["image_name"] = img
+                    pre_render.append(replace(self.renderer.pre_render_template, per_frame_rpd))
+                    post_render.append(replace(self.renderer.post_render_template, per_frame_rpd))                                
+                i += 1
+            
+            if not self.renderer.single_frame_renderer:
+                batch_rdp = {
+                    **replacement_dict,
+                    **self.renderer.get_flag_lookup_dict(),
+                    "start_frame": start,
+                    "end_frame": end
+                }
+                render_commands = [replace(self.renderer.get_render_command(), batch_rdp)]
+
+            combined_commands_string = self.renderer.get_combined_commands_string()
+            combined_commands = replace(
+                combined_commands_string,
+                {   
+                    **replacement_dict,
+                    **self.renderer.get_flag_lookup_dict(),
+                    "pre_render": "\n".join(pre_render),
+                    "render_commands": "\n".join(render_commands),
+                    "post_render": "\n".join(post_render)
+                }
+            )
+        
+            combined_rdp = {
+                **replacement_dict,
+                **self.renderer.get_flag_lookup_dict(),
+                "start_frame": start,
+                "end_frame": end,
+                "jobfile_name": self._get_jobfile_name(start, end),
+                "scenefile_name": scene_files[0].name,
+                "commands": combined_commands,
+                "header": self.renderer.header_template,
+                "env_vars": self.renderer.get_env_string(),
+            }
+
+            per_job_string = self.renderer.get_per_job_string()
+            jobfile_text = replace(per_job_string, combined_rdp)
+
+            job_file = self.get_folder("jobs") / f"{combined_rdp['jobfile_name']}.sh"
+            with open(str(job_file), mode="w", encoding="UTF-8", newline="\n") as jf:
+                jf.write(jobfile_text)
 
     def create_rsync_push_file(self) -> None:
         """Write a linux & rsync compatible file for rsync --files_from flag."""
@@ -458,7 +550,7 @@ class Job:
         if self._job_settings_file.exists():
             self.job_settings = json.loads(self._job_settings_file.read_text())
         else:
-            self.job_settings = {"framelist": "", "jobsize": 1, "frame_padding": 4, "walltime_minutes": 20}
+            self.job_settings = {"framelist": "", "jobsize": 1, "frame_padding": 4, "walltime_minutes": 20, "additional_image_names": []}
             self._job_settings_file.parent.mkdir(exist_ok=True)
             self.save_job_settings()
 

@@ -106,8 +106,10 @@ class DriverSettingsWidget(QWidget):
         self.half_precision_checkbox.stateChanged.connect(self.update_driver_precision)
 
     def update_driver_prefix(self, text):
-        if not self.current_driver:
+        if not self.current_driver or self.current_driver.name() == "defaultArnoldDriver":
             return
+        if not "<RenderLayer>" in text:
+            text = f"<RenderLayer>_{text}"
         self.current_driver.prefix.set(text)
 
     def update_driver_compression(self, text):
