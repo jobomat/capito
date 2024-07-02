@@ -91,7 +91,7 @@ class CABridge:
         self.hdm_execute_shell_script("kill_push.sh", share, jobname)
     
     def rsync(self, filelist:list, direction:str="pull"):
-        share = filelist[1].split("/")
+        share = filelist[0].split("/")
         filelist_text = "\n".join(filelist)
         id = uuid4()
         # TODO: Path beneath not very thoughtful... settings?
