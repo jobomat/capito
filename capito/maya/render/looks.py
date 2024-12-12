@@ -186,6 +186,14 @@ class Look:
                 objects.extend(pc.ls(regex=f"*{obj}"))
             pc.select(objects)
 
+    def select_assigned_objects(self):
+        objects = []
+        shading_groups = self.shadingGroups
+        for sg in shading_groups:
+            sets = pc.sets(sg, q=True)
+            objects.extend(sets)
+        pc.select(objects)
+
     @property
     def shadingGroups(self):
         """Return all shading groups associated with this look node."""
