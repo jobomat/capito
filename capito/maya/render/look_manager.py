@@ -134,6 +134,9 @@ class LookManager(QMainWindow):
         select_btn = QPushButton("Select Objects")
         select_btn.clicked.connect(self.select_objects)
         button_box.addWidget(select_btn)
+        select_assign_btn = QPushButton("Select Assigned Objects")
+        select_assign_btn.clicked.connect(self.select_assigned_objects)
+        button_box.addWidget(select_assign_btn)
         assign_btn = QPushButton("Assign to Selection")
         assign_btn.clicked.connect(self.assign)
         button_box.addWidget(assign_btn)
@@ -183,6 +186,12 @@ class LookManager(QMainWindow):
         for item in items:
             look = item.data(Qt.UserRole)
             look.select_objects()
+
+    def select_assigned_objects(self):
+        items = self.look_list.selectedItems()
+        for item in items:
+            look = item.data(Qt.UserRole)
+            look.select_assigned_objects()
     
     def assign(self):
         items = self.look_list.selectedItems()
@@ -206,7 +215,7 @@ class LookManager(QMainWindow):
         items = self.look_list.selectedItems()
         for item in items:
             look = item.data(Qt.UserRole)
-            look.select_objects()
+            look.select_assigned_objects()
             pc.mel.eval("sets -e -forceElement initialShadingGroup;")
             
             to_delete = []
