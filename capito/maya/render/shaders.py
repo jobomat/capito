@@ -10,6 +10,26 @@ import pymel.core as pc
 from capito.maya.node.tags import get_tag_dict, get_tagged_dag_nodes
 
 
+
+def create_signal_node_with_placement(signal_node_type="file"):
+    signal_node = pc.shadingNode(signal_node_type, asTexture=1, isColorManaged=1)
+    placement_node = pc.shadingNode("place2dTexture", asUtility=1)
+
+    from_to_map = {
+        "coverage": "coverage", "translateFrame": "translateFrame",
+        "rotateFrame": "rotateFrame", "mirrorU": "mirrorU", "mirrorV": "mirrorV",
+        "stagger": "stagger", "wrapU": "wrapU", "wrapV": "wrapV", "repeatUV": "repeatUV",
+        "offset": "offset", "rotateUV": "rotateUV", "noiseUV": "noiseUV",
+        "vertexUvOne": "vertexUvOne", "vertexUvTwo": "vertexUvTwo", "vertexUvThree": "vertexUvThree",
+        "vertexCameraOne": "vertexCameraOne", "outUV": "uv", "outUvFilterSize": "uvFilterSize"
+    }
+
+    for from_attr, to_attr in from_to_map.items():
+        placement_node.attr(from_attr) >> signal_node.attr(to_attr)
+
+    return signal_node, placement_node
+
+
 def a_prototype_function_for_help_with_substance_workflows():
     # for each selected maya set create a aiStdSurface and assign it to each object in the set.
     maya_sets = pc.selected()
