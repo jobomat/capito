@@ -11,6 +11,7 @@ import capito.maya.geo.curves as curves
 from capito.maya.util.names import get_legal_character
 import capito.maya.util.hirarchies as hir
 from capito.maya.rig.ctrl import slider_control, four_corner_control
+from capito.maya.rig.mgear_helpers import mirror_mgear_controller_shapes
 from capito.maya.geo.polys import poly_text, set_vertex_wire_color
 
 
@@ -144,6 +145,10 @@ class RigIcons:
                 pc.menuItem(label="Save Config", c=self.save_config)
 
             with pc.menu(label="Specials", tearOff=True):
+                pc.menuItem(
+                    label="Mirror mgear Controller Shapes (L -> R)",
+                    c=pc.Callback(mirror_mgear_controller_shapes),
+                )
                 pc.menuItem(
                     label="IK FK BlendShaped Icon",
                     c=pc.Callback(self.create_ik_fk_blendshaped_icon),
