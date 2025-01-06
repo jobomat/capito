@@ -2,6 +2,16 @@ import os
 from pathlib import Path
 import sys
 import importlib
+import site
+import versions
+
+
+MAYA_APP_DIR = os.environ["MAYA_APP_DIR"]
+MAYA_VERSION = versions.shortName()
+USER_SCRIPT_DIR = Path(MAYA_APP_DIR) / MAYA_VERSION / "scripts"
+CAPITO_PATH = Path(__file__).parent
+CAPITO_SETTINGS_DIR = "capito_settings"
+SETUP_KEY = "CG_SCRIPTS_PATH"
 
 stop = False
 try:
@@ -9,19 +19,19 @@ try:
 except ImportError:
     from subprocess import check_call
     mayapy = Path(sys.executable).parent / "mayapy"
-    result = check_call([str(mayapy), "-m", "pip", "install", "pymel==1.4"], shell=True) #, '"pymel==1.4"'])
+    target = USER_SCRIPT_DIR / "site-packages"
+    print(f"Trying to install pymel. This may take a few seconds.")
+    print(f"Using mayapy location:")
+    print(mayapy)
+    print("Installing to site-package location:")
+    print(target)
+    result = check_call([
+        str(mayapy), "-m", "pip", "install", "--target", str(target), "pymel"],
+        shell=True
+    ) # '"pymel==1.4"'])
     print(result)
     import pymel.core as pc
     
-
-
-MAYA_APP_DIR = os.environ["MAYA_APP_DIR"]
-MAYA_VERSION = pc.versions.shortName()
-USER_SCRIPT_DIR = Path(MAYA_APP_DIR) / MAYA_VERSION / "scripts"
-CAPITO_PATH = Path(__file__).parent
-CAPITO_SETTINGS_DIR = "capito_settings"
-SETUP_KEY = "CG_SCRIPTS_PATH"
-
 sys.path.append(str(CAPITO_PATH))
 maya_gui = importlib.import_module("capito.maya.ui.maya_gui")
 
