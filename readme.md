@@ -10,7 +10,8 @@ When using the Maya drop-installer (see 3.2) Capito will try to install PyMel if
 + Downloading pymel from [https://github.com/LumaPictures/pymel] (or clone it with git)
 + Copy the subfolder called pymel to a valid maya-script directory.
 + A valid directory is e.g. "scripts" or "2025/scripts" in your user maya folder. To find the exact location on any operating system, open Maya, open the Script Editor and type:
-```import os
+```python
+import os
 print(os.environ["MAYA_APP_DIR"])
 ```
 On Windows this will be something like C:/Users/YOUR_USERNAME/Documents/maya. 
