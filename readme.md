@@ -7,7 +7,7 @@ In the rooms 042 / 043 you have access to the latest version on drive K:\pipelin
 
 When using the Maya drop-installer (see 3.2) Capito will try to install PyMel if it is not already installed. If the automatic PyMel installation did not succed via the drop-installer please install it manually. Close Maya and do either:
 
-+ Downloading pymel from https://github.com/LumaPictures/pymel (or clone it with git)
++ Download pymel from https://github.com/LumaPictures/pymel (or clone it with git)
 + Copy the subfolder called pymel to a valid maya-script directory.
 + A valid directory is e.g. "scripts" or "2025/scripts" in your user maya folder. To find the exact location on any operating system, open Maya, open the Script Editor and type:
 ```python
