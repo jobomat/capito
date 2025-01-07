@@ -5,7 +5,18 @@ In the rooms 042 / 043 you have access to the latest version on drive K:\pipelin
 + Maya 2022+ (capito uses the featureset of Python 3.7+)
 + PyMel
 
-When using the Maya drop-installer (see 3.2) Capito will try to install PyMel if it is not already installed. If the automatic PyMel installation did not succed via the drop-installer please do the following:
+When using the Maya drop-installer (see 3.2) Capito will try to install PyMel if it is not already installed. If the automatic PyMel installation did not succed via the drop-installer please install it manually. Close Maya and do either:
+
++ Downloading pymel from [https://github.com/LumaPictures/pymel] (or clone it with git)
++ Copy the subfolder called pymel to a valid maya-script directory.
++ A valid directory is e.g. "scripts" or "2025/scripts" in your user maya folder. To find the exact location on any operating system, open Maya, open the Script Editor and type:
+```import os
+print(os.environ["MAYA_APP_DIR"])
+```
+On Windows this will be something like C:/Users/YOUR_USERNAME/Documents/maya. 
+
+OR:
+
 + Open a commandline with administrator/root privileges (*cmd* for Windows, *terminal* for Mac, *shell* for Linux)
 + Cd into the Maya install location. This is the directory where *mayapy* is located! (eg. ```cd "C:\Program Files\Autodesk\maya2022\bin"``` for Windows. You can locate this folder for other Operating Systems by typing ```import sys; print(sys.executable)``` into a Maya Python Script Editor window.)
 + Use pip with mayapy to install pymel: ```mayapy -m pip install pymel```
