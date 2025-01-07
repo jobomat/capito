@@ -17,15 +17,15 @@ Click the green "Code" Button above and download the repo as zip file. Unpack to
 
 # 3 Setup
 
-## 3.1 System Setup (Windows only)
-If you only want to use the Maya portion of capito (Rig-Tools etc. for Übungen CG) you can skip this and continue with 3.2. To setup the Captio pipelining tools on Windows right-click on install_windows.bat and choose "Run as Administrator". The installation process will take several minutes depending on your internet connection. The install script will create various Python virtiual envs, set some system environment variables. You will be asked, if you would like to download FFMPEG. If you don't already have FFMPEG installed or are not familiar with setting environment variables, I recommend to say yes. Otherwise you can create an environment variable called "FFMPEG" which points to the installed ffmpeg executable (fmpeg.exe on windows).
-
-## 3.2 Setup for Maya
+## 3.1 Setup for Maya
 Just drop the file *maya_drop_installer.py* into the *viewport* of a running Maya instance. Dropping it into the Outliner or other editors will *not* work! You will be presented with a summary of the installation process. 
 
 If you get presented an error (Red line down to the right in Maya) it's likely that the automatic pymel installation did not succeed. In this case scroll down to point 4!
 
 If you have already created a userSetup.py the installer will ask if you want to replace it with the userSetup for capito. If a replacement is not desired it's recommended to backup your version, let the installer write it's version and merge the two files manually. If your userSetup.py was created by an old version of capito (or cg3) and you did not edit the userSetup.py you can safely replace the userSetup.py.
+
+## 3.2 System Setup (Windows only)
+If you only want to use the Maya portion of capito (Rig-Tools etc. for Übungen CG) you can skip this. To setup the Captio pipelining tools on Windows right-click on install_windows.bat and choose "Run as Administrator". The installation process will take several minutes depending on your internet connection. The install script will create various Python virtiual envs, set some system environment variables. You will be asked, if you would like to download FFMPEG. If you don't already have FFMPEG installed or are not familiar with setting environment variables, I recommend to say yes. Otherwise you can create an environment variable called "FFMPEG" which points to the installed ffmpeg executable (fmpeg.exe on windows).
 
 ## 4. PyMel Installation
 When using the Maya drop-installer (see 3.2) Capito will try to install PyMel if it is not already installed. If the automatic PyMel installation did not succed via the drop-installer please install it manually. Close Maya and do either:
