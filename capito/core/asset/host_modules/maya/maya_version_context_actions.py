@@ -1,6 +1,6 @@
 from functools import partial
 from pathlib import Path
-from PySide2.QtWidgets import QAction, QMessageBox
+from PySide6.QtWidgets import QAction, QMessageBox
 from capito.core.asset.host_modules.maya.maya_utils import open
 
 

@@ -2,8 +2,8 @@ from pathlib import Path
 from typing import Any, Dict, List
 
 from capito.core.pipe import Pipeable, PipeableCategory
-from PySide2.QtWidgets import QDialog  # pylint:disable=wrong-import-order
-from PySide2.QtWidgets import QFileDialog, QHBoxLayout, QLabel, QPushButton, QVBoxLayout
+from PySide6.QtWidgets import QDialog  # pylint:disable=wrong-import-order
+from PySide6.QtWidgets import QFileDialog, QHBoxLayout, QLabel, QPushButton, QVBoxLayout
 
 
 class InputFiles(Pipeable):

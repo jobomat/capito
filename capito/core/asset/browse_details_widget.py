@@ -18,10 +18,10 @@ from capito.core.asset.utils import best_match, sanitize_asset_name
 from capito.core.asset.host_modules.detail_actions import reveal_button_factory, detail_actions_widget_factory
 from capito.core.ui.decorators import bind_to_host
 from capito.core.ui.widgets import EditableTextWidget, HeadlineFont, QHLine
-from PySide2 import QtCore  # pylint:disable=wrong-import-order
-from PySide2.QtGui import QFont  # pylint:disable=wrong-import-order
-from PySide2.QtGui import QColor, QIcon, QPixmap, Qt
-from PySide2.QtWidgets import (  # pylint:disable=wrong-import-order
+from PySide6 import QtCore  # pylint:disable=wrong-import-order
+from PySide6.QtGui import QFont  # pylint:disable=wrong-import-order
+from PySide6.QtGui import QColor, QIcon, QPixmap, Qt
+from PySide6.QtWidgets import (  # pylint:disable=wrong-import-order
     QAbstractItemView,
     QAction,
     QCheckBox,

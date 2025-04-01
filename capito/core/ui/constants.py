@@ -1,7 +1,7 @@
 import os
 from pathlib import Path
-import PySide2.QtCore
-from PySide2.QtGui import QColor, QPalette, Qt
+import PySide6.QtCore
+from PySide6.QtGui import QColor, QPalette, Qt
 
 
 
@@ -42,7 +42,7 @@ def get_dark_palette():
 
 ICON_PATH = Path(os.environ["CAPITO_BASE_DIR"]) / "resources" / "icons"
 
-PySide2.QtCore.QDir.addSearchPath(
+PySide6.QtCore.QDir.addSearchPath(
     'icons',
     str(ICON_PATH)
 )

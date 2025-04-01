@@ -25,11 +25,11 @@ from capito.core.asset.providers.GoogleSheetsAssetProvider import (
 from capito.core.asset.utils import best_match, sanitize_asset_name
 from capito.core.ui.decorators import bind_to_host
 from capito.core.ui.widgets import QHLine, QSplitWidget, RichListItem
-from PySide2 import QtCore  # pylint:disable=wrong-import-order
-from PySide2.QtGui import QFont  # pylint:disable=wrong-import-order
-from PySide2.QtGui import QColor, QIcon, QPixmap, Qt
-from PySide2.QtWidgets import QFrame  # pylint:disable=wrong-import-order
-from PySide2.QtWidgets import QHBoxLayout, QPushButton, QSplitter, QVBoxLayout, QWidget
+from PySide6 import QtCore  # pylint:disable=wrong-import-order
+from PySide6.QtGui import QFont  # pylint:disable=wrong-import-order
+from PySide6.QtGui import QColor, QIcon, QPixmap, Qt
+from PySide6.QtWidgets import QFrame  # pylint:disable=wrong-import-order
+from PySide6.QtWidgets import QHBoxLayout, QPushButton, QSplitter, QVBoxLayout, QWidget
 
 CAPITO_ICONS_PATH = Path(CONFIG.CAPITO_BASE_DIR) / "resources" / "icons"
 

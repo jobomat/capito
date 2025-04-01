@@ -6,13 +6,13 @@ def bind_to_host(ui_class):
     def wrapper(*args, **kwargs):
         host = detect_host()
         if host == "maya":
-            from PySide2 import QtWidgets
+            from PySide6 import QtWidgets
             import maya.app.general.mayaMixin as maya_mixin
             import maya.OpenMayaUI as omui
-            import shiboken2
+            import shiboken6
 
             main_window_ptr = omui.MQtUtil.mainWindow()
-            maya_win = shiboken2.wrapInstance(int(main_window_ptr), QtWidgets.QWidget)
+            maya_win = shiboken6.wrapInstance(int(main_window_ptr), QtWidgets.QWidget)
 
             # class M(maya_mixin.MayaQWidgetDockableMixin, ui_class):
             class M(ui_class):
@@ -23,7 +23,7 @@ def bind_to_host(ui_class):
             ui.show() #dockable=True)
 
         elif host == "nuke":
-            from PySide2 import QtWidgets
+            from PySide6 import QtWidgets
             nuke_win = QtWidgets.QApplication.instance().activeWindow()
             class N(ui_class):
                 def __init__(self):
@@ -55,7 +55,7 @@ def bind_to_host(ui_class):
             ui.show()
             
         elif host == "system":
-            from PySide2 import QtWidgets
+            from PySide6 import QtWidgets
             app = QtWidgets.QApplication.instance()
             if app is None:
                 first_app = True

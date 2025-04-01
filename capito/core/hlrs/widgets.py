@@ -3,9 +3,9 @@ from pathlib import Path
 import shutil
 from time import sleep
 
-from PySide2.QtCore import QObject, Signal
-from PySide2.QtGui import QIntValidator, Qt   # pylint:disable=wrong-import-order
-from PySide2.QtWidgets import *
+from PySide6.QtCore import QObject, Signal
+from PySide6.QtGui import QIntValidator, Qt   # pylint:disable=wrong-import-order
+from PySide6.QtWidgets import *
 
 from capito.core.ui.widgets import QHLine
 from capito.core.hlrs.utils import (

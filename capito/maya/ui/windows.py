@@ -1,7 +1,7 @@
 from collections import defaultdict
 
-from PySide2 import QtCore, QtWidgets, QtGui
-from shiboken2 import wrapInstance
+from PySide6 import QtCore, QtWidgets, QtGui
+from shiboken6 import wrapInstance
 import maya.OpenMayaUI as omui
 
 import pymel.core as pc

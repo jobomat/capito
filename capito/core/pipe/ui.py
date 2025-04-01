@@ -8,9 +8,9 @@ from capito.core.ui.constants import *
 
 from capito.core.ui.syntax import PythonHighlighter
 from capito.core.ui.widgets import QHLine, QSplitWidget
-from PySide2 import QtCore  # pylint:disable=wrong-import-order
-from PySide2.QtGui import QColor, QFont, QIcon, Qt  # pylint:disable=wrong-import-order
-from PySide2.QtWidgets import (  # pylint:disable=wrong-import-order
+from PySide6 import QtCore  # pylint:disable=wrong-import-order
+from PySide6.QtGui import QColor, QFont, QIcon, Qt  # pylint:disable=wrong-import-order
+from PySide6.QtWidgets import (  # pylint:disable=wrong-import-order
     QAbstractItemView,
     QCheckBox,
     QFileDialog,

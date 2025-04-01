@@ -3,9 +3,9 @@ from pathlib import Path
 from functools import partial
 import tempfile
 
-from PySide2.QtWidgets import *
-from PySide2.QtGui import *
-from PySide2.QtCore import *
+from PySide6.QtWidgets import *
+from PySide6.QtGui import *
+from PySide6.QtCore import *
 import pymel.core as pc
 
 from capito.core.ui.decorators import bind_to_host

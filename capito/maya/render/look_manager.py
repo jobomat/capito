@@ -1,9 +1,9 @@
 """Provide GUIs for managing Looks."""
 # import os
 
-# import PySide2.QtCore as QtCore
-# import PySide2.QtGui as QtGui
-# import PySide2.QtWidgets as QtWidgets
+# import PySide6.QtCore as QtCore
+# import PySide6.QtGui as QtGui
+# import PySide6.QtWidgets as QtWidgets
 # from maya.app.general.mayaMixin import MayaQWidgetBaseMixin
 
 # ICON_DIR = "C:/Users/jobo/Documents/GoogleDrive/coding/python/cg3/maya/icons/cmt"
@@ -72,9 +72,9 @@
 #     _LOOKMANAGER_WIN.show()
 from functools import partial
 
-from PySide2 import QtCore
-from PySide2.QtGui import QColor, QFont, QIcon, Qt
-from PySide2.QtWidgets import (
+from PySide6 import QtCore
+from PySide6.QtGui import QColor, QFont, QIcon, Qt
+from PySide6.QtWidgets import (
     QAbstractItemView,
     QHBoxLayout,
     QFormLayout,

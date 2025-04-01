@@ -6,9 +6,9 @@ from pathlib import Path
 from typing import Callable, Tuple, Dict
 
 from capito.core.helpers import clamp, get_font_dict, get_font_file, hex_to_rgb_int, hex_to_rgb_float
-from PySide2.QtCore import *
-from PySide2.QtGui import *
-from PySide2.QtWidgets import *
+from PySide6.QtCore import *
+from PySide6.QtGui import *
+from PySide6.QtWidgets import *
 
 
 class FlowLayout(QLayout):

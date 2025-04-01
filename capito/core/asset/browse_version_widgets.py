@@ -18,9 +18,9 @@ from capito.core.asset.providers.FilesystemAssetProvider import FilesystemAssetP
 from capito.core.asset.utils import best_match, sanitize_asset_name
 from capito.core.ui.decorators import bind_to_host
 from capito.core.ui.widgets import HeadlineFont, QHLine, QSplitWidget, RichListItem
-from PySide2 import QtCore  # pylint:disable=wrong-import-order
-from PySide2.QtGui import QColor, QIcon, QPixmap, Qt, QCursor # pylint:disable=wrong-import-order
-from PySide2.QtWidgets import (  # pylint:disable=wrong-import-order
+from PySide6 import QtCore  # pylint:disable=wrong-import-order
+from PySide6.QtGui import QColor, QIcon, QPixmap, Qt, QCursor # pylint:disable=wrong-import-order
+from PySide6.QtWidgets import (  # pylint:disable=wrong-import-order
     QAbstractItemView,
     QAction,
     QCheckBox,

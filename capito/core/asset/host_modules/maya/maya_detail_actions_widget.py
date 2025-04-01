@@ -8,10 +8,10 @@ from capito.maya.viewport.screenshot import Screenshooter
 from capito.core.asset.utils import get_version_by_filename
 from capito.core.asset.host_modules.maya.maya_utils import open, save_version
 from capito.core.asset.models import Asset, Step, Version
-from PySide2 import QtCore  # pylint:disable=wrong-import-order
-from PySide2.QtGui import QFont  # pylint:disable=wrong-import-order
-from PySide2.QtGui import QColor, QIcon, QPixmap, Qt
-from PySide2.QtWidgets import (  # pylint:disable=wrong-import-order
+from PySide6 import QtCore  # pylint:disable=wrong-import-order
+from PySide6.QtGui import QFont  # pylint:disable=wrong-import-order
+from PySide6.QtGui import QColor, QIcon, QPixmap, Qt
+from PySide6.QtWidgets import (  # pylint:disable=wrong-import-order
     QHBoxLayout,
     QMessageBox,
     QPushButton,

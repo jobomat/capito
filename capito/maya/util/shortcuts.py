@@ -282,7 +282,7 @@ def _get_settings():
     """Get the QSettings instance"""
     global _settings
     try:
-        from PySide2.QtCore import QSettings
+        from PySide6.QtCore import QSettings
     except ImportError:
         from PySide.QtCore import QSettings
     if _settings is None:

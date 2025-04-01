@@ -1,5 +1,5 @@
 gspread
-PySide2
+PySide6
 plumbum
 fonttools
 pytz

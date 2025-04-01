@@ -76,3 +76,52 @@ class FrameListTestCase(unittest.TestCase):
 
 if __name__ == '__main__':
     unittest.main()
+
+
+
+# import sys
+
+# capito_path = "/mnt/cg/pipeline/capito"
+# settings = "/mnt/cg/pipeline/hlrs/settings.json"
+
+# sys.path.append(capito_path)
+# from capito.haleres.settings import Settings
+# from capito.haleres.job import JobProvider
+# from capito.haleres.hlrs import HLRS
+
+# haleres_settings = Settings(settings)
+# jp = JobProvider(haleres_settings)
+# hlrs = HLRS(settings)
+
+# hlrs_server = f"{haleres_settings.hlrs_user}@{haleres_settings.hlrs_server}"
+
+
+# ###########################################
+
+# from pathlib import Path
+# import sys
+# import subprocess
+# from datetime import datetime
+# import time
+
+# # First get the parameters:
+# capito_path = "/mnt/cg/pipeline/capito"
+# haleres_settings_file = "/mnt/cg/pipeline/hlrs/settings.json"
+
+# # Make capito availible for import:
+# sys.path.append(capito_path)
+# from capito.haleres.settings import Settings
+# from capito.haleres.job import JobProvider
+# from capito.haleres.hlrs import HLRS
+
+# haleres_settings = Settings(haleres_settings_file)
+# jp = JobProvider(haleres_settings)
+# hlrs = HLRS(haleres_settings_file)
+
+# # Get local data
+# jobs_to_delete = jp.get_jobs_to_delete()
+# print(f"{jobs_to_delete:}")
+# jobs_to_push = jp.get_jobs_to_push()
+# print(f"{jobs_to_push:}")
+# unfinished_jobs = jp.get_unfinished_jobs()
+# print(f"{unfinished_jobs:}")

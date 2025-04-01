@@ -1,7 +1,7 @@
 """Module for the asset browser qt signal."""
 
 from capito.core.asset.models import Asset, Step, Version
-from PySide2 import QtCore  # pylint:disable=wrong-import-order
+from PySide6 import QtCore  # pylint:disable=wrong-import-order
 
 
 class Signals(QtCore.QObject):

@@ -1,7 +1,7 @@
 """Enable syntax highlighting in QTextField, QTextEdit..."""
 import sys
 
-from PySide2 import QtCore, QtGui
+from PySide6 import QtCore, QtGui
 
 
 def format(color, style=''):

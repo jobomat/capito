@@ -19,6 +19,7 @@
         {"name": "Disable progressive rendering", "flag": "-dp", "type": "bool", "value": true, "protected": true},
         {"name": "Disable render window", "flag": "-dw", "type": "bool", "value": true, "protected": true},
         {"name": "Set arnold config", "flag": "-set", "type": "str", "protected": true, "value": "color_manager_ocio.config $OCIO"},
+        {"name": "Abort on Error", "flag": "-set", "type": "str", "protected": true, "value": "options.abort_on_error off"},
         {"name": "Log filename", "flag": "-logfile", "type": "str", "protected": true, "value": "$JOB_PATH/output/logs/%(jobfile_name)s.log"},
         {"name": "Input filename", "flag": "-i", "type": "str", "protected": true, "value": "$JOB_PATH/input/scenes/%(scenefile_name)s"},
         {"name": "Output filename", "flag": "-o", "type": "str", "protected": true, "value": "$JOB_PATH/output/images/%(jobfile_name)s.exr"},

@@ -1,7 +1,7 @@
 import os
 from pathlib import Path
 
-from PySide2.QtWidgets import *
+from PySide6.QtWidgets import *
 import pymel.core as pc
 
 from capito.core.ui.decorators import bind_to_host

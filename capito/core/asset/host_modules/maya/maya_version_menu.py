@@ -5,10 +5,10 @@ from pathlib import Path
 import pymel.core as pc
 from capito.core.asset.host_modules.maya.maya_utils import open, save_version
 from capito.core.asset.models import Asset, Step
-from PySide2 import QtCore  # pylint:disable=wrong-import-order
-from PySide2.QtGui import QFont  # pylint:disable=wrong-import-order
-from PySide2.QtGui import QColor, QIcon, QPixmap, Qt
-from PySide2.QtWidgets import (  # pylint:disable=wrong-import-order
+from PySide6 import QtCore  # pylint:disable=wrong-import-order
+from PySide6.QtGui import QFont  # pylint:disable=wrong-import-order
+from PySide6.QtGui import QColor, QIcon, QPixmap, Qt
+from PySide6.QtWidgets import (  # pylint:disable=wrong-import-order
     QInputDialog,
     QHBoxLayout,
     QMessageBox,

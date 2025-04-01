@@ -1,7 +1,7 @@
 """Module for importing host specific Modules and creating QWidgets"""
 import importlib
 
-from PySide2.QtWidgets import QWidget
+from PySide6.QtWidgets import QWidget
 
 def reveal_button_factory(parent_widget):
     try:

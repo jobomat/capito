@@ -17,10 +17,10 @@ from capito.core.ui.widgets import (
     QHLine,
     QIntSliderGroup,
 )
-from PySide2.QtCore import QObject, Signal
-from PySide2.QtGui import QColor  # pylint:disable=wrong-import-order
-from PySide2.QtGui import QCursor, QFont, QIcon, QPalette, Qt
-from PySide2.QtWidgets import (  # pylint:disable=wrong-import-order
+from PySide6.QtCore import QObject, Signal
+from PySide6.QtGui import QColor  # pylint:disable=wrong-import-order
+from PySide6.QtGui import QCursor, QFont, QIcon, QPalette, Qt
+from PySide6.QtWidgets import (  # pylint:disable=wrong-import-order
     QAbstractItemView,
     QAction,
     QCheckBox,

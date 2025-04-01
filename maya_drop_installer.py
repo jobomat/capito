@@ -3,12 +3,22 @@ from pathlib import Path
 import sys
 import importlib
 import site
-import versions
+from maya.OpenMaya import MGlobal as _MGlobal
+
+
+def get_maya_user_folder():
+    contents = [
+        d for d in Path(os.environ["MAYA_APP_DIR"]).iterdir()
+        if d.is_dir() and d.name in _MGlobal.mayaVersion()
+    ]
+    
+    if not contents:
+        return None
+    return contents[0]
 
 
 MAYA_APP_DIR = os.environ["MAYA_APP_DIR"]
-MAYA_VERSION = versions.shortName()
-USER_SCRIPT_DIR = Path(MAYA_APP_DIR) / MAYA_VERSION / "scripts"
+USER_SCRIPT_DIR = get_maya_user_folder() / "scripts"
 CAPITO_PATH = Path(__file__).parent
 CAPITO_SETTINGS_DIR = "capito_settings"
 SETUP_KEY = "CG_SCRIPTS_PATH"

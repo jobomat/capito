@@ -9,10 +9,10 @@ from capito.core.asset.providers.provider_ui import SetAssetProviderUI
 from capito.core.asset.publish_widgets import PublishWidget
 from capito.core.pipe.ui import PipeManager
 from capito.core.ui.decorators import bind_to_host
-from PySide2 import QtCore  # pylint:disable=wrong-import-order
-from PySide2.QtGui import QColor, QFont, QIcon, Qt  # pylint:disable=wrong-import-order
-from PySide2.QtWidgets import QAction  # pylint:disable=wrong-import-order
-from PySide2.QtWidgets import QMainWindow, QMenu, QMenuBar, QTabWidget
+from PySide6 import QtCore  # pylint:disable=wrong-import-order
+from PySide6.QtGui import QColor, QFont, QIcon, Qt  # pylint:disable=wrong-import-order
+from PySide6.QtWidgets import QAction  # pylint:disable=wrong-import-order
+from PySide6.QtWidgets import QMainWindow, QMenu, QMenuBar, QTabWidget
 
 
 @bind_to_host

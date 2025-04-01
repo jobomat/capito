@@ -1,9 +1,9 @@
 from typing import List
 from pathlib import Path
 
-from PySide2.QtCore import *
-from PySide2.QtGui import *
-from PySide2.QtWidgets import *
+from PySide6.QtCore import *
+from PySide6.QtGui import *
+from PySide6.QtWidgets import *
 
 from capito.haleres.job import Job
 from capito.haleres.renderer import Renderer
