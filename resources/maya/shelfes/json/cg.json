@@ -118,7 +118,7 @@
             "sourceType": "python",
             "image": "arnold_drivers.png",
             "label": "Arnold Drivers",
-            "command": "from capito.maya.render.output_drivers import OutputDriverManager\nOutputDriverManager()",
+            "command": "import pymel.core as pc\ntry:\n\tpc.loadPlugin('mtoa')\n\tfrom capito.maya.render.output_drivers import OutputDriverManager\n\tOutputDriverManager()\nexcept:\n\tpc.confirmDialog(message='Arnold Plugin (mtoa) could not be loaded.')",
             "image1": "arnold_drivers.png",
             "annotation": "Arnold Driver Manager. Easy assignment of AOVs to seperate drivers."
         },

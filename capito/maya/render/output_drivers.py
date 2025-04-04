@@ -1,4 +1,4 @@
-from typing import Any
+from typing import TypeAlias
 
 from PySide6.QtWidgets import *
 from PySide6.QtGui import *
@@ -11,8 +11,44 @@ from capito.core.ui.widgets import IterableListWidget
 from capito.core.ui.widgets import QHLine
 
 
+DEFAULT_RENDER_GLOBALS = pc.PyNode("defaultRenderGlobals")
+DEFAULT_ARNOLD_DRIVER = pc.PyNode("defaultArnoldDriver")
+AiAOVDriver: TypeAlias  = pc.nodetypes.AiAOVDriver
+
+def list_drivers(output_format:str="exr") -> list:
+    return [
+        d for d in pc.ls(type="aiAOVDriver")
+        if d.aiTranslator.get() == output_format
+    ]
+
+
+def get_short_driver_name(driver:AiAOVDriver) -> str:
+    name = driver.prefix.get().split(">")[-1]
+    return name.lstrip("_")
+
+
+def get_full_driver_name(short_name:str) -> str:
+    prefix = DEFAULT_RENDER_GLOBALS.imageFilePrefix.get()
+    if prefix is None:
+        return short_name
+    return f"{prefix}_{short_name}"
+
+
+def get_free_driver_index(aov):
+    for i in range(aov.attr("outputs").numElements()):
+        if not aov.attr(f"outputs[{i}].driver").listConnections():
+            return i
+    return aov.attr("outputs").numElements()
+
+
+def get_aov_attr_for_driver(aov, driver):
+    for i in range(aov.attr("outputs").numElements()):
+        if driver in aov.attr(f"outputs[{i}].driver").listConnections():
+            return aov.attr(f"outputs[{i}].driver")
+
+
 class DriverListWidget(QWidget):
-    driver_selected = Signal(pc.nodetypes.AiAOVDriver)
+    driver_selected = Signal(QListWidgetItem)
 
     def __init__(self):
         super().__init__()
@@ -38,46 +74,50 @@ class DriverListWidget(QWidget):
 
         self.update()
 
-    def update(self):
+    def update(self, select=None):
         self.driver_list_widget.clear()
-        exr_drivers = [
-            d for d in pc.ls(type="aiAOVDriver")
-            if d.aiTranslator.get() == "exr"
-        ]
-        for driver in exr_drivers:
-            self.add_driver_to_list(driver)
+        for driver in list_drivers():
+            self.add_driver_to_list(driver, driver == select)
 
-    def add_driver_to_list(self, driver):
+    def add_driver_to_list(self, driver, select=False):
         item = QListWidgetItem()
         item.driver = driver
         self.set_list_name(item)
-        # item.setCheckState(Qt.Unchecked)
         self.driver_list_widget.addItem(item)
+        if select:
+            item.setSelected(True)
 
     def set_list_name(self, item:QListWidgetItem):
         driver = item.driver
         node_name = driver.name()
-        prefix = driver.prefix.get()
+        prefix = get_short_driver_name(driver)
         name_info = "default"
         if node_name != "defaultArnoldDriver":
             if prefix:
                 name_info = prefix
             else: 
-                name_info = f"driver_{len(pc.ls(type='aiAOVDriver')) - 2}"
+                name_info = f"driver{len(pc.ls(type='aiAOVDriver')) - 2}"
                 driver.prefix.set(name_info)
         item.setText(f"{node_name} ({name_info})")
 
     def add_driver(self):
         driver = pc.createNode("aiAOVDriver")
-        self.update()
+        driver.exrCompression.set(DEFAULT_ARNOLD_DRIVER.exrCompression.get())
+        driver.mergeAOVs.set(DEFAULT_ARNOLD_DRIVER.mergeAOVs.get())
+        driver.halfPrecision.set(DEFAULT_ARNOLD_DRIVER.halfPrecision.get())
+        self.update(select=driver)
 
     def remove_driver(self):
-        pc.delete(self.driver_list_widget.selectedItems()[0].driver)
+        driver = self.driver_list_widget.selectedItems()[0].driver
+        if driver.name() == "defaultArnoldDriver":
+            pc.warning("Cannot delete the default Arnold driver.")
+            return
+        pc.delete(driver)
         self.update()
     
     def _driver_selected(self):
-        driver = self.driver_list_widget.selectedItems()[0].driver
-        self.driver_selected.emit(driver)
+        item = self.driver_list_widget.selectedItems()[0]
+        self.driver_selected.emit(item)
 
     def _select_driver_node(self):
         driver = self.driver_list_widget.selectedItems()[0].driver
@@ -112,11 +152,11 @@ class DriverSettingsWidget(QWidget):
         self.half_precision_checkbox.stateChanged.connect(self.update_driver_precision)
 
     def update_driver_prefix(self, text):
-        if not self.current_driver or self.current_driver.name() == "defaultArnoldDriver":
+        node_name = self.current_driver.name()
+        if not self.current_driver or node_name == "defaultArnoldDriver":
             return
-        if not "<RenderLayer>" in text:
-            text = f"<RenderLayer>_{text}"
-        self.current_driver.prefix.set(text)
+        self.current_driver.prefix.set(get_full_driver_name(text))
+        self.current_item.setText(f"{node_name} ({text})")
 
     def update_driver_compression(self, text):
         if not self.current_driver:
@@ -148,26 +188,15 @@ class DriverSettingsWidget(QWidget):
 
         self.setLayout(grid)
 
-    def update(self, driver:pc.nodetypes.AiAOVDriver):
+    def update(self, item:QListWidgetItem):
+        driver:AiAOVDriver = item.driver
+        self.current_item = item
         self.current_driver = driver
-        self.prefix_lineedit.setText(driver.prefix.get())
+        self.prefix_lineedit.setText(get_short_driver_name(driver))
         self.prefix_lineedit.setEnabled(driver.name() != "defaultArnoldDriver")
         self.compression_combobox.setCurrentIndex(driver.exrCompression.get())
         self.merge_aovs_checkbox.setChecked(driver.mergeAOVs.get())
         self.half_precision_checkbox.setChecked(driver.halfPrecision.get())
-
-
-def get_free_driver_index(aov):
-    for i in range(aov.attr("outputs").numElements()):
-        if not aov.attr(f"outputs[{i}].driver").listConnections():
-            return i
-    return aov.attr("outputs").numElements()
-
-
-def get_aov_attr_for_driver(aov, driver):
-    for i in range(aov.attr("outputs").numElements()):
-        if driver in aov.attr(f"outputs[{i}].driver").listConnections():
-            return aov.attr(f"outputs[{i}].driver")
 
 
 class AOVListWidget(QWidget):
@@ -182,7 +211,8 @@ class AOVListWidget(QWidget):
 
         self.setLayout(vbox)
 
-    def update(self, driver):
+    def update(self, item:QListWidgetItem):
+        driver:AiAOVDriver = item.driver
         self.aov_list_widget.clear()
         for aov in pc.ls(type="aiAOV"):
             item = QListWidgetItem(aov.attr("name").get())
@@ -194,7 +224,6 @@ class AOVListWidget(QWidget):
             self.aov_list_widget.addItem(item)
 
     def edit_aov(self, item:QListWidgetItem):
-        print("item check state:", item.checkState())
         if item.checkState() == Qt.CheckState.Checked:
             item.driver.message >> item.aov.attr(f"outputs[{get_free_driver_index(item.aov)}]").driver
         else:
@@ -207,7 +236,7 @@ class AOVListWidget(QWidget):
 class OutputDriverManager(QMainWindow):
     def __init__(self, host, parent):
         super().__init__(parent)
-        self.setWindowTitle("Screw the Driver")
+        self.setWindowTitle("Screw Drivers")
         self._create_widgets()
         self._connect_widgets()
         self._create_layouts()
