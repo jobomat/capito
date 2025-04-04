@@ -23,6 +23,7 @@ class DriverListWidget(QWidget):
         self.remove_button.clicked.connect(self.remove_driver)
         self.driver_list_widget = IterableListWidget()
         self.driver_list_widget.itemClicked.connect(self._driver_selected)
+        self.driver_list_widget.itemDoubleClicked.connect(self._select_driver_node)
                 
         vbox = QVBoxLayout()
         vbox.setContentsMargins(0,0,0,0)
@@ -77,6 +78,11 @@ class DriverListWidget(QWidget):
     def _driver_selected(self):
         driver = self.driver_list_widget.selectedItems()[0].driver
         self.driver_selected.emit(driver)
+
+    def _select_driver_node(self):
+        driver = self.driver_list_widget.selectedItems()[0].driver
+        if driver:
+            pc.select(driver, r=True)
 
 
 class DriverSettingsWidget(QWidget):
@@ -188,9 +194,11 @@ class AOVListWidget(QWidget):
             self.aov_list_widget.addItem(item)
 
     def edit_aov(self, item:QListWidgetItem):
-        if item.checkState():
+        print("item check state:", item.checkState())
+        if item.checkState() == Qt.CheckState.Checked:
             item.driver.message >> item.aov.attr(f"outputs[{get_free_driver_index(item.aov)}]").driver
         else:
+            print("removing driver")
             item.driver.message // get_aov_attr_for_driver(item.aov, item.driver)
             
 
