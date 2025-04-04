@@ -12,7 +12,7 @@ from capito.core.ui.widgets import QHLine
 
 
 DEFAULT_RENDER_GLOBALS = pc.PyNode("defaultRenderGlobals")
-DEFAULT_ARNOLD_DRIVER = pc.PyNode("defaultArnoldDriver")
+
 AiAOVDriver: TypeAlias  = pc.nodetypes.AiAOVDriver
 
 def list_drivers(output_format:str="exr") -> list:
@@ -52,6 +52,7 @@ class DriverListWidget(QWidget):
 
     def __init__(self):
         super().__init__()
+        self.dad = pc.PyNode("defaultArnoldDriver")
         self.setMaximumHeight(100)
         self.add_button = QPushButton("Add Driver")
         self.add_button.clicked.connect(self.add_driver)
@@ -86,6 +87,7 @@ class DriverListWidget(QWidget):
         self.driver_list_widget.addItem(item)
         if select:
             item.setSelected(True)
+            self.driver_selected.emit(item)
 
     def set_list_name(self, item:QListWidgetItem):
         driver = item.driver
@@ -102,9 +104,9 @@ class DriverListWidget(QWidget):
 
     def add_driver(self):
         driver = pc.createNode("aiAOVDriver")
-        driver.exrCompression.set(DEFAULT_ARNOLD_DRIVER.exrCompression.get())
-        driver.mergeAOVs.set(DEFAULT_ARNOLD_DRIVER.mergeAOVs.get())
-        driver.halfPrecision.set(DEFAULT_ARNOLD_DRIVER.halfPrecision.get())
+        driver.exrCompression.set(self.dad.exrCompression.get())
+        driver.mergeAOVs.set(self.dad.mergeAOVs.get())
+        driver.halfPrecision.set(self.dad.halfPrecision.get())
         self.update(select=driver)
 
     def remove_driver(self):
