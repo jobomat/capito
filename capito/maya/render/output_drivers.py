@@ -5,13 +5,14 @@ from PySide6.QtGui import *
 from PySide6.QtCore import *
 
 import pymel.core as pc
+from pymel.core.general import MayaNodeError
 
 from capito.core.ui.decorators import bind_to_host
 from capito.core.ui.widgets import IterableListWidget
 from capito.core.ui.widgets import QHLine
 
 
-DEFAULT_RENDER_GLOBALS = pc.PyNode("defaultRenderGlobals")
+DEFAULT_RENDER_GLOBALS = None
 
 AiAOVDriver: TypeAlias  = pc.nodetypes.AiAOVDriver
 
@@ -275,3 +276,20 @@ class OutputDriverManager(QMainWindow):
         cw = QWidget()
         cw.setLayout(vbox)
         self.setCentralWidget(cw)
+
+
+def main():
+    global DEFAULT_RENDER_GLOBALS
+    try:
+        pc.loadPlugin('mtoa')
+    except RuntimeError:
+        pc.confirmDialog(message='Arnold Plugin (mtoa) could not be loaded.')
+        return
+    try:
+        DEFAULT_RENDER_GLOBALS = pc.PyNode("defaultArnoldDriver")
+    except MayaNodeError:
+        import mtoa.core
+        mtoa.core.createOptions()
+        DEFAULT_RENDER_GLOBALS = pc.PyNode("defaultRenderGlobals")
+    odm = OutputDriverManager()
+    
