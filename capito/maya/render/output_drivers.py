@@ -286,7 +286,7 @@ def main():
         pc.confirmDialog(message='Arnold Plugin (mtoa) could not be loaded.')
         return
     try:
-        DEFAULT_RENDER_GLOBALS = pc.PyNode("defaultArnoldDriver")
+        DEFAULT_RENDER_GLOBALS = pc.PyNode("defaultRenderGlobals")
     except MayaNodeError:
         import mtoa.core
         mtoa.core.createOptions()
