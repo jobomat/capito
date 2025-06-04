@@ -3,12 +3,64 @@ from ast import Call
 from functools import partial
 from itertools import zip_longest
 from pathlib import Path
-from typing import Callable, Tuple, Dict
+from typing import Callable, Tuple, Dict, Literal
 
-from capito.core.helpers import clamp, get_font_dict, get_font_file, hex_to_rgb_int, hex_to_rgb_float
 from PySide6.QtCore import *
 from PySide6.QtGui import *
 from PySide6.QtWidgets import *
+
+from capito.core.helpers import clamp, get_font_dict, get_font_file, hex_to_rgb_int, hex_to_rgb_float
+
+
+class FileChooserLineEdit(QWidget):
+    def __init__(self, mode: Literal["single_file", "multiple_files", "directory"] = "directory", start_dir="/home", parent=None):
+        super().__init__(parent=parent)
+        self.mode = mode
+        self.start_dir = start_dir
+        self.dialog_funcs = {
+            "single_file": {"fn": self._get_single_file, "tooltip": "Choose a file"},
+            "multiple_files": {"fn": self._get_multiple_files, "tooltip": "Choose (multiple) files"},
+            "directory": {"fn": self._get_directory, "tooltip": "Choose a directory"},
+        }
+        self.result = []
+
+        button = QPushButton()
+        folder_icon = self.style().standardIcon(QStyle.StandardPixmap.SP_DirIcon)
+        button.setIcon(folder_icon)
+        #button.setIconSize(QSize(24, 24))
+        button.setToolTip(self.dialog_funcs[mode]["tooltip"])
+        button.clicked.connect(self.open_dialog)
+
+        self.line_edit = QLineEdit()
+
+        hbox = QHBoxLayout()
+        hbox.setContentsMargins(0, 0, 0, 0)
+        hbox.addWidget(self.line_edit, stretch=1)
+        hbox.addWidget(button)
+
+        self.setLayout(hbox)
+
+    def open_dialog(self) -> None:
+        mode = self.dialog_funcs.get(self.mode)
+        if mode:
+            mode["fn"]()
+        else:
+            raise ValueError(f"Unsupported mode: {self.mode}")
+
+    def _get_single_file(self) -> list:
+        file, _ = QFileDialog.getOpenFileName(self.parent(), "Choose file", self.start_dir)
+        self.result = [file]
+        self.line_edit.setText(file)
+
+    def _get_multiple_files(self) -> list:
+        files, _ = QFileDialog.getOpenFileNames(self.parent(), "Choose files", self.start_dir)
+        self.result = files
+        self.line_edit.setText(", ".join(files))
+
+    def _get_directory(self) -> list:
+        dir = QFileDialog.getExistingDirectory(self.parent(), "Choose directory", self.start_dir)
+        self.result = [dir]
+        self.line_edit.setText(dir)
 
 
 class FlowLayout(QLayout):

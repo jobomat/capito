@@ -1,4 +1,6 @@
+from functools import partial
 from typing import TypeAlias
+from uuid import uuid4
 
 from PySide6.QtWidgets import *
 from PySide6.QtGui import *
@@ -8,8 +10,7 @@ import pymel.core as pc
 from pymel.core.general import MayaNodeError
 
 from capito.core.ui.decorators import bind_to_host
-from capito.core.ui.widgets import IterableListWidget
-from capito.core.ui.widgets import QHLine
+from capito.core.ui.widgets import IterableListWidget, QHLine
 
 
 DEFAULT_RENDER_GLOBALS = None
@@ -23,9 +24,26 @@ def list_drivers(output_format:str="exr") -> list:
     ]
 
 
+def add_driver_attributes(driver:AiAOVDriver):
+        if not driver.hasAttr("driverName"):
+            driver.addAttr("driverName", dt="string")
+            driver.driverName.set(driver.name())
+        if not driver.hasAttr("namePattern"):
+            driver.addAttr("namePattern", dt="string")
+            driver.namePattern.set("<Scene>/<RenderLayer>/<Driver>")
+            driver.prefix.set(driver.namePattern.get().replace("<Driver>", driver.driverName.get()))
+
+
+def init_drivers():
+    for driver in list_drivers():
+        add_driver_attributes(driver)
+
+
 def get_short_driver_name(driver:AiAOVDriver) -> str:
-    name = driver.prefix.get().split(">")[-1]
-    return name.lstrip("_")
+    name = driver.name()
+    if name == "defaultArnoldDriver":
+        return "default"
+    return name
 
 
 def get_full_driver_name(short_name:str) -> str:
@@ -91,20 +109,16 @@ class DriverListWidget(QWidget):
             self.driver_selected.emit(item)
 
     def set_list_name(self, item:QListWidgetItem):
-        driver = item.driver
-        node_name = driver.name()
-        prefix = get_short_driver_name(driver)
-        name_info = "default"
-        if node_name != "defaultArnoldDriver":
-            if prefix:
-                name_info = prefix
-            else: 
-                name_info = f"driver{len(pc.ls(type='aiAOVDriver')) - 2}"
-                driver.prefix.set(name_info)
-        item.setText(f"{node_name} ({name_info})")
+        node_name = item.driver.name()
+        driver_name = item.driver.driverName.get()
+        if node_name == "defaultArnoldDriver":
+            item.setText(f"{driver_name}")
+        else:
+            item.setText(f"{driver_name} ({node_name})")
 
     def add_driver(self):
         driver = pc.createNode("aiAOVDriver")
+        add_driver_attributes(driver)
         driver.exrCompression.set(self.dad.exrCompression.get())
         driver.mergeAOVs.set(self.dad.mergeAOVs.get())
         driver.halfPrecision.set(self.dad.halfPrecision.get())
@@ -128,6 +142,54 @@ class DriverListWidget(QWidget):
             pc.select(driver, r=True)
 
 
+class NamePatternWidget(QWidget):
+    pattern_changed = Signal(str)
+
+    def __init__(self, parent):
+        super().__init__(parent)
+        self.presets = [
+            "<Scene>/<RenderLayer>/<Driver>",
+            "<Scene>/<RenderLayer>_<Driver>",
+            "<Scene>_<RenderLayer>_<Driver>"
+        ]
+        self._create_widgets()
+        self._connect_widgets()
+        self._create_Layout()
+
+    def _create_widgets(self):
+        self.pattern_lineedit = QLineEdit()
+        self.button = QToolButton()
+        self.button.setText("▼")  # Alternativ ein Icon setzen
+        self.button.setPopupMode(QToolButton.InstantPopup)
+        self.button.setStyleSheet("QToolButton::menu-indicator {image: none; width: 0px;}")
+        self.menu = QMenu(self)
+        for preset in self.presets:
+            action = QAction(preset, self)
+            action.triggered.connect(partial(self.preset_selected, preset))
+            self.menu.addAction(action)
+        self.button.setMenu(self.menu)
+
+    def _connect_widgets(self):
+        self.pattern_lineedit.textChanged.connect(self.pattern_changed.emit)
+
+    def _create_Layout(self):
+        hbox = QHBoxLayout()
+        hbox.setContentsMargins(0,0,0,0)
+        hbox.addWidget(self.pattern_lineedit, stretch=1)
+        hbox.addWidget(self.button)
+        self.setLayout(hbox)
+
+    def get_pattern(self):
+        return self.pattern_lineedit.text()
+    
+    def set_pattern(self, pattern):
+        self.pattern_lineedit.setText(pattern)
+    
+    def preset_selected(self, preset):
+        self.pattern_lineedit.setText(preset)
+        self.pattern_changed.emit(preset)
+
+
 class DriverSettingsWidget(QWidget):
     def __init__(self):
         super().__init__()
@@ -140,8 +202,9 @@ class DriverSettingsWidget(QWidget):
         self._create_layout()
 
     def _create_widgets(self):
-        self.prefix_lineedit = QLineEdit("")
-        self.prefix_lineedit.setPlaceholderText("Please specify a name (except on default driver).")
+        self.drivername_lineedit = QLineEdit("")
+        self.drivername_lineedit.setPlaceholderText("Please specify a name (except on default driver).")
+        self.namepattern_widget = NamePatternWidget(self)
         self.compression_combobox = QComboBox()
         for c in self.compression_names:
             self.compression_combobox.addItem(c)
@@ -149,17 +212,26 @@ class DriverSettingsWidget(QWidget):
         self.half_precision_checkbox = QCheckBox()
 
     def _connect_widgets(self):
-        self.prefix_lineedit.textChanged.connect(self.update_driver_prefix)
+        self.drivername_lineedit.textChanged.connect(self.on_driver_name_changed)
+        self.namepattern_widget.pattern_changed.connect(self.on_name_pattern_changed)
         self.compression_combobox.currentTextChanged.connect(self.update_driver_compression)
         self.merge_aovs_checkbox.stateChanged.connect(self.update_driver_merge)
         self.half_precision_checkbox.stateChanged.connect(self.update_driver_precision)
 
-    def update_driver_prefix(self, text):
-        node_name = self.current_driver.name()
-        if not self.current_driver or node_name == "defaultArnoldDriver":
-            return
-        self.current_driver.prefix.set(get_full_driver_name(text))
-        self.current_item.setText(f"{node_name} ({text})")
+    def on_driver_name_changed(self, name):
+        if not name:
+            name = uuid4().hex[:8]
+        self.current_driver.driverName.set(name)
+        self.current_driver.prefix.set(
+            self.namepattern_widget.get_pattern().replace("<Driver>", name)
+        )
+        self.current_item.setText(f"{name} ({self.current_driver.name()})")
+
+    def on_name_pattern_changed(self, pattern):
+        self.current_driver.namePattern.set(pattern)
+        self.current_driver.prefix.set(
+            pattern.replace("<Driver>", self.current_driver.driverName.get())
+        )
 
     def update_driver_compression(self, text):
         if not self.current_driver:
@@ -180,7 +252,8 @@ class DriverSettingsWidget(QWidget):
         grid = QGridLayout()
         grid.setContentsMargins(0,0,0,0)
         widgets = [
-            [QLabel("Name"), self.prefix_lineedit],
+            [QLabel("Name"), self.drivername_lineedit],
+            [QLabel("Save Pattern"), self.namepattern_widget],
             [QLabel("Compression"), self.compression_combobox],
             [QLabel("Merge AOVs"), self.merge_aovs_checkbox],
             [QLabel("Half Precision"), self.half_precision_checkbox]
@@ -192,11 +265,13 @@ class DriverSettingsWidget(QWidget):
         self.setLayout(grid)
 
     def update(self, item:QListWidgetItem):
+        self.setEnabled(True)
         driver:AiAOVDriver = item.driver
         self.current_item = item
         self.current_driver = driver
-        self.prefix_lineedit.setText(get_short_driver_name(driver))
-        self.prefix_lineedit.setEnabled(driver.name() != "defaultArnoldDriver")
+        self.drivername_lineedit.setText(driver.driverName.get())
+        self.drivername_lineedit.setEnabled(driver.name() != "defaultArnoldDriver")
+        self.namepattern_widget.set_pattern(driver.namePattern.get())
         self.compression_combobox.setCurrentIndex(driver.exrCompression.get())
         self.merge_aovs_checkbox.setChecked(driver.mergeAOVs.get())
         self.half_precision_checkbox.setChecked(driver.halfPrecision.get())
@@ -240,6 +315,7 @@ class OutputDriverManager(QMainWindow):
     def __init__(self, host, parent):
         super().__init__(parent)
         self.setWindowTitle("Screw Drivers")
+        self.setMinimumWidth(330)
         self._create_widgets()
         self._connect_widgets()
         self._create_layouts()
@@ -248,6 +324,7 @@ class OutputDriverManager(QMainWindow):
     def _create_widgets(self):
         self.driver_list_widget = DriverListWidget()
         self.driver_settings_widget = DriverSettingsWidget()
+        self.driver_settings_widget.setEnabled(False)
         self.aov_list_widget = AOVListWidget()
         
     def _connect_widgets(self):
@@ -291,5 +368,6 @@ def main():
         import mtoa.core
         mtoa.core.createOptions()
         DEFAULT_RENDER_GLOBALS = pc.PyNode("defaultRenderGlobals")
+    init_drivers()
     odm = OutputDriverManager()
     
