@@ -111,10 +111,7 @@ class DriverListWidget(QWidget):
     def set_list_name(self, item:QListWidgetItem):
         node_name = item.driver.name()
         driver_name = item.driver.driverName.get()
-        if node_name == "defaultArnoldDriver":
-            item.setText(f"{driver_name}")
-        else:
-            item.setText(f"{driver_name} ({node_name})")
+        item.setText(f"{driver_name} ({node_name})")
 
     def add_driver(self):
         driver = pc.createNode("aiAOVDriver")
@@ -270,7 +267,6 @@ class DriverSettingsWidget(QWidget):
         self.current_item = item
         self.current_driver = driver
         self.drivername_lineedit.setText(driver.driverName.get())
-        self.drivername_lineedit.setEnabled(driver.name() != "defaultArnoldDriver")
         self.namepattern_widget.set_pattern(driver.namePattern.get())
         self.compression_combobox.setCurrentIndex(driver.exrCompression.get())
         self.merge_aovs_checkbox.setChecked(driver.mergeAOVs.get())
@@ -281,7 +277,7 @@ class AOVListWidget(QWidget):
     def __init__(self):
         super().__init__()
         self.aov_list_widget = IterableListWidget()
-        self.aov_list_widget.setStyleSheet( "QListWidget::item { border-bottom: 1px solid #999999; padding-top: 2px; padding-bottom: 2px;}" )
+        self.aov_list_widget.setStyleSheet("QListWidget::item { border-bottom: 1px solid #999999; padding-top: 2px; padding-bottom: 2px;}")
         self.aov_list_widget.itemChanged.connect(self.edit_aov)
         vbox = QVBoxLayout()
         vbox.setContentsMargins(0,0,0,0)
