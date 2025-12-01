@@ -65,8 +65,8 @@ def create_userSetup():
     file_content = [
         "import sys",
         "import importlib",
-        "import pymel.core as pc",
         f"sys.path.append(r'{str(CAPITO_PATH)}')",
+        "import pymel.core as pc",
         'importlib.import_module("capito.maya.setup")'
     ]
     user_setup = USER_SCRIPT_DIR / "userSetup.py"
