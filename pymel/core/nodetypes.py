@@ -17260,8 +17260,8 @@ class Untrim(AbstractBaseCreate):
         return _f.asEdit(self, modeling.untrim, kwargs, 'untrimAll', val)
 
 
-class AddDoubleLinear(DependNode):
-    __melnode__ = 'addDoubleLinear'
+class AddDL(DependNode):
+    __melnode__ = 'addDL'
     __slots__ = ()
 
     @_f.deprecated
@@ -31698,8 +31698,8 @@ class THmotionPath(MotionPath):
     __slots__ = ()
 
 
-class MultDoubleLinear(DependNode):
-    __melnode__ = 'multDoubleLinear'
+class MultDL(DependNode):
+    __melnode__ = 'multDL'
     __slots__ = ()
 
     @_f.deprecated

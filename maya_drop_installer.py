@@ -24,22 +24,7 @@ CAPITO_SETTINGS_DIR = "capito_settings"
 SETUP_KEY = "CG_SCRIPTS_PATH"
 
 stop = False
-# try:
-#     import pymel.core as pc
-# except ImportError:
-#     from subprocess import check_call
-#     mayapy = Path(sys.executable).parent / "mayapy"
-#     target = USER_SCRIPT_DIR / "site-packages"
-#     print(f"Trying to install pymel. This may take a few seconds.")
-#     print(f"Using mayapy location:")
-#     print(mayapy)
-#     print("Installing to site-package location:")
-#     print(target)
-#     result = check_call([
-#         str(mayapy), "-m", "pip", "install", "--target", str(target), "pymel"],
-#         shell=True
-#     ) # '"pymel==1.4"'])
-#     print(result)    
+
 sys.path.append(str(CAPITO_PATH))
 
 import pymel.core as pc
@@ -65,8 +50,8 @@ def create_userSetup():
     file_content = [
         "import sys",
         "import importlib",
-        "import pymel.core as pc",
         f"sys.path.append(r'{str(CAPITO_PATH)}')",
+        "import pymel.core as pc",
         'importlib.import_module("capito.maya.setup")'
     ]
     user_setup = USER_SCRIPT_DIR / "userSetup.py"

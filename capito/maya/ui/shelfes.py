@@ -23,7 +23,7 @@ def keep_keys(dictionary, keep_list):
 
 class TopLevelShelf():
     name = pc.language.getMelGlobal('string', 'gShelfTopLevel')
-    shelf_dir = pc.mel.eval("internalVar -userShelfDir")
+    shelf_dirs = pc.mel.eval("internalVar -userShelfDir").split(";")
 
     def get_shelf_names(self):
         return pc.shelfTabLayout(self.name, q=True, childArray=True)
@@ -34,14 +34,15 @@ class TopLevelShelf():
     def delete_shelf(self, shelf_name):
         if self.shelf_exists(shelf_name):
             pc.deleteUI(pc.shelfLayout(shelf_name, q=True, fullPathName=True))
-            deleted_shelf_name = os.path.join(
-                self.shelf_dir, "shelf_{}.mel.deleted".format(shelf_name)
-            )
-            silent_remove(deleted_shelf_name)
-            silent_rename(
-                os.path.join(self.shelf_dir, "shelf_{}.mel".format(shelf_name)),
-                deleted_shelf_name
-            )
+            for shelf_dir in self.shelf_dirs:
+                deleted_shelf_name = os.path.join(
+                    shelf_dir, "shelf_{}.mel.deleted".format(shelf_name)
+                )
+                silent_remove(deleted_shelf_name)
+                silent_rename(
+                    os.path.join(shelf_dir, "shelf_{}.mel".format(shelf_name)),
+                    deleted_shelf_name
+                )
 
     def add_shelf(self, shelf_name, replace=False):
         exists = self.shelf_exists(shelf_name)
