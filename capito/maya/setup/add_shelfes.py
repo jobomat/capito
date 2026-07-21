@@ -13,4 +13,5 @@ def build_shelfes():
         tls.load_from_json(str(file))
 
 
-from maya.utils import executeDeferred(build_shelfes())
+from maya.utils import executeDeferred
+executeDeferred(build_shelfes())
